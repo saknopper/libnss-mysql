@@ -217,6 +217,11 @@ void _nss_mysql_reset_ent (void);
 nboolean _nss_mysql_active_result (void);
 void _nss_mysql_inc_ent (void);
 
+/* memory.c */
+void xfree(void *ptr);
+void *xmalloc(size_t size);
+void *xrealloc (void *ptr, size_t size);
+
 /* nss_config.c */
 NSS_STATUS _nss_mysql_load_config (conf_t *conf);
 
