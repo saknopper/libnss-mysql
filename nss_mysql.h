@@ -99,11 +99,6 @@ typedef enum
 #define D_FILE          0x0020          /* File opening & closing */
 #define D_ALL           0x0040 - 1      /* All of the above */
 
-/* Flags to pass to the close_sql function */
-#define CLOSE_RESULT    0x0001      /* Nuke the result but leave link open */
-#define CLOSE_LINK      0x0002      /* Nuke result AND link */
-#define CLOSE_NOGRACE   0x0004      /* Ungracefully close everything */
-
 #define PTRSIZE sizeof (void *)     /* My attempt at being portable */
 
 #define FOFS(x,y) ((int)&(((x *)0)->y))     /* Get Field OfFSet */
@@ -143,6 +138,13 @@ typedef enum {
     RETURN_FAILURE
 } freturn_t;
 
+typedef enum
+{
+    BYNONE,
+    BYNAME,
+    BYNUM
+} lookup_t;
+
 /*
  * Parse types for the 'lis' functions.  This is how I accomplish
  * loading data into a struct without referencing the structure's members
@@ -156,6 +158,7 @@ typedef enum {
     FT_UINT,
     FT_ULONG,
     FT_SYSLOG,   /* incoming string, convert to appropriate integer */
+    FT_PPLONG,   /* array of long's */
 } ftype_t;
 
 /*
@@ -168,6 +171,13 @@ typedef struct {
     int     type;
 } field_info_t;
 
+typedef struct {
+    gid_t       **groupsp;
+    long int    *start;
+    long int    *size;
+    long int    limit;
+} group_info_t;
+
 /* Sql queries to execute for ... */
  typedef struct {
     char        *getpwuid;
@@ -178,6 +188,8 @@ typedef struct {
     char        *getgrnam;
     char        *getgrgid;
     char        *getgrent;
+    char        *gidsbymem;     /* list of gids a username belongs to */
+    char        *memsbygid;     /* list of members a group has */
 } sql_query_t;
 
 typedef struct {
@@ -231,7 +243,6 @@ typedef struct {
 typedef struct {
     nboolean        valid;          /* Are we connected to a server? */
     int             server_num;     /* 0 .. MAX_SERVERS - 1 */
-    MYSQL_RES       *result;
     MYSQL           link;
     socket_info_t   sock_info;      /* See above */
 } con_info_t;
@@ -245,19 +256,26 @@ NSS_STATUS _nss_mysql_default_destr (nss_backend_t *be, void *args);
 
 /* nss_support.c */
 NSS_STATUS _nss_mysql_init (void);
-NSS_STATUS _nss_mysql_liswb (const char *val, void *structure, char *buffer,
-                             size_t buflen, int *bufused, int fofs,
-                             ftype_t type);
+NSS_STATUS _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
+                                   MYSQL_RES *mresult);
+NSS_STATUS _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
+                                   MYSQL_RES *mresult);
+NSS_STATUS _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
+                                  MYSQL_RES *mresult);
+NSS_STATUS _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
+                                      MYSQL_RES *mresult);
 
 /* mysql.c */
-NSS_STATUS _nss_mysql_connect_sql (void);
-NSS_STATUS _nss_mysql_close_sql (int flags);
-NSS_STATUS _nss_mysql_run_query(char *query);
-NSS_STATUS _nss_mysql_load_result(void *result, char *buffer, size_t buflen,
-                                  field_info_t *fields);
-void _nss_mysql_reset_ent (void);
-nboolean _nss_mysql_active_result (void);
-NSS_STATUS _nss_mysql_escape_string (char *to, const char *from);
+NSS_STATUS _nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful);
+NSS_STATUS _nss_mysql_run_query(char *query, MYSQL_RES **mresult);
+NSS_STATUS _nss_mysql_fetch_row (MYSQL_ROW *row, MYSQL_RES *mresult);
+my_ulonglong _nss_mysql_num_rows (MYSQL_RES *mresult);
+unsigned long * _nss_mysql_fetch_lengths (MYSQL_RES *mresult);
+unsigned int _nss_mysql_num_fields (MYSQL_RES *mresult);
+
+void _nss_mysql_reset_ent (MYSQL_RES **mresult);
+NSS_STATUS _nss_mysql_escape_string (char *to, const char *from,
+                                     MYSQL_RES **mresult);
 
 /* memory.c */
 void _nss_mysql_free(void *ptr);
@@ -268,15 +286,14 @@ void *_nss_mysql_realloc (void *ptr, size_t size);
 NSS_STATUS _nss_mysql_load_config (void);
 void _nss_mysql_reset_config (void);
 
-/* nss_structures.c */
-extern field_info_t passwd_fields[];
-extern field_info_t spwd_fields[];
-extern field_info_t group_fields[];
-
 /* lookup.c */
-NSS_STATUS _nss_mysql_lookup_name (const char *name, int qofs,
-                                   const char *caller);
-NSS_STATUS _nss_mysql_lookup_number (unsigned int num, int qofs,
-                                     const char *caller);
-NSS_STATUS _nss_mysql_lookup_ent (int qofs, const char *caller);
+NSS_STATUS _nss_mysql_lookup (lookup_t ltype, const char *name,
+                              unsigned int num, char **q, nboolean restrict,
+                              void *result, char *buffer, size_t buflen,
+                              NSS_STATUS (*load_func)(void *, char *, size_t,
+                                                      MYSQL_RES *mresult),
+                              MYSQL_RES **mresult, const char *caller);
 
+NSS_STATUS _nss_mysql_build_query (lookup_t ltype, const char *name,
+                                   unsigned int num, char **qin, char **qout,
+                                   MYSQL_RES **mresult, const char *caller);

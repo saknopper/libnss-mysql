@@ -35,7 +35,7 @@ static const char rcsid[] =
 typedef size_t socklen_t;
 #endif
 
-con_info_t ci = { nfalse, 0, NULL };
+con_info_t ci = { nfalse, 0 };
 extern conf_t conf;
 
 /*
@@ -137,7 +137,7 @@ _nss_mysql_validate_socket (void)
  * Attempt to connect to specified server number
  */
 static NSS_STATUS
-_nss_mysql_try_server (void)
+_nss_mysql_try_server (MYSQL_RES **mresult)
 {
   sql_server_t *server = &conf.sql.server[ci.server_num];
   int flags = 0;
@@ -172,13 +172,13 @@ _nss_mysql_try_server (void)
         {
           _nss_mysql_log (LOG_EMERG, "Unable to select database %s: %s",
                           server->database, mysql_error ((&ci.link)));
-          _nss_mysql_close_sql (CLOSE_LINK);
+          _nss_mysql_close_sql (mresult, ntrue);
           function_return (NSS_UNAVAIL);
         }
       if (_nss_mysql_save_socket_info () != RETURN_SUCCESS )
         {
           _nss_mysql_log (LOG_EMERG, "Unable to save socket info");
-          _nss_mysql_close_sql (CLOSE_LINK);
+          _nss_mysql_close_sql (mresult, ntrue);
           function_return (NSS_UNAVAIL);
         }
       ci.valid = ntrue;
@@ -197,7 +197,7 @@ _nss_mysql_try_server (void)
  * extraordinarily slow (~doubles time to fetch a query)
  */
 static nboolean
-_nss_mysql_check_existing_connection (void)
+_nss_mysql_check_existing_connection (MYSQL_RES **mresult)
 {
   static int euid = -1;
   time_t curTime;
@@ -211,7 +211,7 @@ _nss_mysql_check_existing_connection (void)
        _nss_mysql_debug (FNAME, D_CONNECT,
                          "Socket changed - forcing reconnect");
        /* Do *NOT* CLOSE_LINK - the socket is invalid! */
-      _nss_mysql_close_sql (CLOSE_NOGRACE);
+      _nss_mysql_close_sql (mresult, nfalse);
       ci.valid = nfalse;
       function_return (nfalse);
     }
@@ -222,19 +222,19 @@ _nss_mysql_check_existing_connection (void)
     {
       _nss_mysql_debug (FNAME, D_CONNECT,
                         "euid changed - forcing reconnect");
-      _nss_mysql_close_sql (CLOSE_LINK);
+      _nss_mysql_close_sql (mresult, ntrue);
       euid = geteuid();
       function_return (nfalse);
     }
 
   /* Force reversion to primary if appropriate */
-  if (ci.result == NULL && ci.server_num != 0 &&
+  if (mresult == NULL && ci.server_num != 0 &&
       conf.sql.server[0].status.last_attempt + conf.global.retry <=
         time (&curTime))
     {
       _nss_mysql_debug (FNAME, D_CONNECT,
                         "Attempting to revert to primary server");
-      _nss_mysql_close_sql (CLOSE_LINK);
+      _nss_mysql_close_sql (mresult, ntrue);
       function_return (nfalse);
     }
   _nss_mysql_debug (FNAME, D_CONNECT, "Using existing link");
@@ -286,11 +286,11 @@ _nss_mysql_pick_server (void)
  * in the middle of an active result set.
  * Set CI.VALID to ntrue if we manage to connect to a server.
  */
-NSS_STATUS
-_nss_mysql_connect_sql (void)
+static NSS_STATUS
+_nss_mysql_connect_sql (MYSQL_RES **mresult)
 {
   function_enter;
-  if (_nss_mysql_check_existing_connection () == ntrue)
+  if (_nss_mysql_check_existing_connection (mresult) == ntrue)
     function_return (NSS_SUCCESS);
 
 #ifdef HAVE_MYSQL_INIT
@@ -307,57 +307,50 @@ _nss_mysql_connect_sql (void)
 
   while (_nss_mysql_pick_server () == NSS_SUCCESS)
     {
-      if (_nss_mysql_try_server () == NSS_SUCCESS)
+      if (_nss_mysql_try_server (mresult) == NSS_SUCCESS)
         function_return (NSS_SUCCESS);
     }
   _nss_mysql_log (LOG_EMERG, "Unable to connect to any MySQL servers");
   function_return (NSS_UNAVAIL);
 }
 
+void
+_nss_mysql_close_result (MYSQL_RES **mresult)
+{
+  function_enter;
+  if (mresult && *mresult && ci.valid)
+    {
+      _nss_mysql_debug (FNAME, D_CONNECT | D_MEMORY, "Freeing result");
+      mysql_free_result (*mresult);
+      *mresult = NULL;
+    }
+  function_leave;
+}
+
 /*
- * If flags | CLOSE_RESULT, then finish fetching any remaining MySQL rows
- * and free the MySQL result stored in CI.
- * If flags | CLOSE_LINK, then CLOSE_RESULT and close the link, setting
- * CI.VALID to nfalse.
  */
 NSS_STATUS
-_nss_mysql_close_sql (int flags)
+_nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful)
 {
 
   function_enter;
-  if (flags & (CLOSE_RESULT | CLOSE_LINK) && ci.valid == ntrue && ci.result)
+  _nss_mysql_close_result (mresult);
+  if (graceful && ci.valid)
     {
-      _nss_mysql_debug (FNAME, D_CONNECT | D_MEMORY, "Freeing result");
-      /* mysql_use_result requires fetching all rows */
-      while (mysql_fetch_row (ci.result) != NULL) {}
-      mysql_free_result (ci.result);
-      ci.result = NULL;
-    }
-  if (flags & CLOSE_LINK && ci.valid == ntrue)
-    {
-      _nss_mysql_debug (FNAME, D_CONNECT, "Closing link");
+      _nss_mysql_debug (FNAME, D_CONNECT, "Gracefully closing link");
       mysql_close (&(ci.link));
-      ci.valid = nfalse;
     }
-  if (flags & CLOSE_NOGRACE)
-    {
-      /* 
-       * This leaks memory.  But if something stomped on our connection,
-       * we don't have much choice ...
-       */
-      _nss_mysql_debug (FNAME, D_CONNECT,
-                        "Ungracefully closing link & result");
-      ci.valid = nfalse;
-      ci.result = NULL;
-    }
+  else
+    _nss_mysql_debug (FNAME, D_CONNECT, "Ungracefully closing link");
+  ci.valid = nfalse;
   function_return (NSS_SUCCESS);
 }
 
 void
-_nss_mysql_fail_server (int server_num)
+_nss_mysql_fail_server (MYSQL_RES **mresult, int server_num)
 {
   function_enter;
-  _nss_mysql_close_sql (CLOSE_LINK);
+  _nss_mysql_close_sql (mresult, ntrue);
   conf.sql.server[server_num].status.up = nfalse;
   time (&conf.sql.server[server_num].status.last_attempt);
   function_leave;
@@ -370,11 +363,11 @@ _nss_mysql_fail_server (int server_num)
  * Caller should guarantee that QUERY isn't null or empty
  */
 NSS_STATUS
-_nss_mysql_run_query (char *query)
+_nss_mysql_run_query (char *query, MYSQL_RES **mresult)
 {
   function_enter;
 
-  while (_nss_mysql_connect_sql () == NSS_SUCCESS)
+  while (_nss_mysql_connect_sql (mresult) == NSS_SUCCESS)
     {
       _nss_mysql_debug (FNAME, D_QUERY, "Executing query on server #%d: %s",
                         ci.server_num, query);
@@ -382,14 +375,14 @@ _nss_mysql_run_query (char *query)
         {
           _nss_mysql_log (LOG_ALERT, "mysql_query failed: %s",
                           mysql_error (&(ci.link)));
-          _nss_mysql_fail_server (ci.server_num);
+          _nss_mysql_fail_server (mresult, ci.server_num);
           continue;
         }
-      if ((ci.result = mysql_use_result (&(ci.link))) == NULL)
+      if ((*mresult = mysql_store_result (&(ci.link))) == NULL)
         {
-          _nss_mysql_log (LOG_ALERT, "mysql_use_result failed: %s",
+          _nss_mysql_log (LOG_ALERT, "mysql_store_result failed: %s",
                           mysql_error (&(ci.link)));
-          _nss_mysql_fail_server (ci.server_num);
+          _nss_mysql_fail_server (mresult, ci.server_num);
           continue;
         }
       function_return (NSS_SUCCESS);
@@ -398,23 +391,11 @@ _nss_mysql_run_query (char *query)
   function_return (NSS_UNAVAIL);
 }
 
-/*
- * Fetch next row from a MySQL result set and load the data into
- * RESULT using FIELDS as a guide for what goes where
- */
 NSS_STATUS
-_nss_mysql_load_result (void *result, char *buffer, size_t buflen,
-                        field_info_t *fields)
+_nss_mysql_fetch_row (MYSQL_ROW *row, MYSQL_RES *mresult)
 {
-  MYSQL_ROW row;
-  int to_return;
-  field_info_t *f;
-  int i;
-  char *p;
-  int bufused;
-
   function_enter;
-  if ((row = mysql_fetch_row (ci.result)) == NULL)
+  if ((*row = mysql_fetch_row (mresult)) == NULL)
     {
       if (mysql_errno (&(ci.link)))
         {
@@ -428,20 +409,25 @@ _nss_mysql_load_result (void *result, char *buffer, size_t buflen,
           function_return (NSS_NOTFOUND);
         }
     }
-
-  memset (buffer, 0, buflen);
-  bufused = 0;
-  for (f = fields, i = 0; f->name; f++, i++)
-    {
-      p = buffer + bufused;
-      _nss_mysql_debug (FNAME, D_PARSE, "Loading: %s = '%s' (%d %d %d)",
-                        f->name, row[i], i, f->ofs, f->type);
-      to_return = _nss_mysql_liswb (row[i], result, p, buflen, &bufused,
-                                    f->ofs, f->type);
-      if (to_return != NSS_SUCCESS)
-        function_return (to_return);
-    }
   function_return (NSS_SUCCESS);
+}
+
+my_ulonglong
+_nss_mysql_num_rows (MYSQL_RES *mresult)
+{
+  return (mysql_num_rows (mresult));
+}
+
+unsigned long *
+_nss_mysql_fetch_lengths (MYSQL_RES *mresult)
+{
+  return (mysql_fetch_lengths (mresult));
+}
+
+unsigned int
+_nss_mysql_num_fields (MYSQL_RES *mresult)
+{
+  return (mysql_num_fields (mresult));
 }
 
 /*
@@ -450,30 +436,20 @@ _nss_mysql_load_result (void *result, char *buffer, size_t buflen,
  * current result set.
  */
 void
-_nss_mysql_reset_ent (void)
+_nss_mysql_reset_ent (MYSQL_RES **mresult)
 {
   function_enter;
-  _nss_mysql_close_sql (CLOSE_RESULT);
+  _nss_mysql_close_result (mresult);
   function_leave;
-}
-
-/*
- * Returns NTRUE if there's a currently-active result set
- */
-nboolean
-_nss_mysql_active_result (void)
-{
-  function_enter;
-  function_return (ci.result != NULL);
 }
 
 
 NSS_STATUS
-_nss_mysql_escape_string (char *to, const char *from)
+_nss_mysql_escape_string (char *to, const char *from, MYSQL_RES **mresult)
 {
   function_enter;
 #if MYSQL_VERSION_ID >= 32300 /* comes from mysql.h, NOT config.h! */
-  if (_nss_mysql_connect_sql () != NSS_SUCCESS)
+  if (_nss_mysql_connect_sql (mresult) != NSS_SUCCESS)
     function_return (NSS_UNAVAIL);
   mysql_real_escape_string (&(ci.link), to, from, strlen(from));
 #else

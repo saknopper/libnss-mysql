@@ -46,14 +46,16 @@ static field_info_t server_fields[] =
 
 static field_info_t query_fields[] =
 {
-    {"getpwnam", FOFS (sql_query_t, getpwnam),  FT_PCHAR},
-    {"getpwuid", FOFS (sql_query_t, getpwuid),  FT_PCHAR},
-    {"getspnam", FOFS (sql_query_t, getspnam),  FT_PCHAR},
-    {"getpwent", FOFS (sql_query_t, getpwent),  FT_PCHAR},
-    {"getspent", FOFS (sql_query_t, getspent),  FT_PCHAR},
-    {"getgrnam", FOFS (sql_query_t, getgrnam),  FT_PCHAR},
-    {"getgrgid", FOFS (sql_query_t, getgrgid),  FT_PCHAR},
-    {"getgrent", FOFS (sql_query_t, getgrent),  FT_PCHAR},
+    {"getpwnam",  FOFS (sql_query_t, getpwnam),  FT_PCHAR},
+    {"getpwuid",  FOFS (sql_query_t, getpwuid),  FT_PCHAR},
+    {"getspnam",  FOFS (sql_query_t, getspnam),  FT_PCHAR},
+    {"getpwent",  FOFS (sql_query_t, getpwent),  FT_PCHAR},
+    {"getspent",  FOFS (sql_query_t, getspent),  FT_PCHAR},
+    {"getgrnam",  FOFS (sql_query_t, getgrnam),  FT_PCHAR},
+    {"getgrgid",  FOFS (sql_query_t, getgrgid),  FT_PCHAR},
+    {"getgrent",  FOFS (sql_query_t, getgrent),  FT_PCHAR},
+    {"memsbygid", FOFS (sql_query_t, memsbygid), FT_PCHAR},
+    {"gidsbymem", FOFS (sql_query_t, gidsbymem), FT_PCHAR},
     {NULL}
 };
 

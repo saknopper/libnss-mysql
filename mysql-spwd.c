@@ -21,23 +21,91 @@ static const char rcsid[] =
 #include "lookup.h"
 #include <shadow.h>
 
+extern conf_t conf;
+
+MYSQL_RES *mresult_spent = NULL;
+
+/*
+ * getspnam
+ */
+NSS_STATUS
 #ifdef HAVE_NSS_H
-GET(getspnam, spwd_fields, name, const char *, struct spwd *, 1);
-ENDENT(spent);
-SETENT(spent);
-GETENT(getspent, spwd_fields, struct spwd *, 1);
+_nss_mysql_getspnam_r (const char *name, struct spwd *result, char *buffer,
+                       size_t buflen)
+#elif defined(HAVE_NSS_COMMON_H)
+_nss_mysql_getspnam_r (nss_backend_t *be, void *args)
+#endif
+{
+  int retVal;
+  MYSQL_RES *mresult = NULL;
+#ifdef HAVE_NSS_COMMON_H
+  const char *name = NSS_ARGS(args)->key.name;
+  struct spwd *result = NSS_ARGS(args)->buf.result;
+  char *buffer = NSS_ARGS(args)->buf.buffer;
+  size_t buflen = NSS_ARGS(args)->buf.buflen;
 #endif
 
+  function_enter;
+  LOCK;
+
+  retVal = _nss_mysql_lookup (BYNAME, name, 0, &conf.sql.query.getspnam,
+                              ntrue, result, buffer, buflen,
+                              _nss_mysql_load_shadow, &mresult, FNAME);
 #ifdef HAVE_NSS_COMMON_H
-GET(getspnam, spwd_fields, name, key.name, struct spwd *, 1);
+  if (retVal == NSS_SUCCESS)
+    NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
+#endif
+  UNLOCK;
+  function_return (retVal);
+}
+
+/*
+ * endspent
+ */
 ENDENT(spent);
+
+/*
+ * setspent
+ */
 SETENT(spent);
-GETENT(getspent, spwd_fields, struct spwd *, 1);
+
+/*
+ * getspent
+ */
+NSS_STATUS
+#ifdef HAVE_NSS_H
+_nss_mysql_getspent_r (struct spwd *result, char *buffer, size_t buflen)
+#elif defined(HAVE_NSS_COMMON_H)
+_nss_mysql_getspent_r (nss_backend_t *be, void *args)
+#endif
+{
+  int retVal;
+#ifdef HAVE_NSS_COMMON_H
+  struct spwd *result = NSS_ARGS(args)->buf.result;
+  char *buffer = NSS_ARGS(args)->buf.buffer;
+  size_t buflen = NSS_ARGS(args)->buf.buflen;
+#endif
+
+  function_enter;
+  LOCK;
+
+  retVal = _nss_mysql_lookup (BYNONE, NULL, 0, &conf.sql.query.getspent,
+                              ntrue, result, buffer, buflen,
+                              _nss_mysql_load_shadow, &mresult_spent, FNAME);
+#ifdef HAVE_NSS_COMMON_H
+  if (retVal == NSS_SUCCESS)
+    NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
+#endif
+  UNLOCK;
+  function_return (retVal);
+}
+
+#ifdef HAVE_NSS_COMMON_H
 
 static nss_backend_op_t shadow_ops[] = {
     _nss_mysql_default_destr,       /* NSS_DBOP_DESTRUCTOR */
-    _nss_mysql_endspent_r,          /* NSS_DBOP_ENDENT */
-    _nss_mysql_setspent_r,          /* NSS_DBOP_SETENT */
+    _nss_mysql_endspent,            /* NSS_DBOP_ENDENT */
+    _nss_mysql_setspent,            /* NSS_DBOP_SETENT */
     _nss_mysql_getspent_r,          /* NSS_DBOP_GETENT */
     _nss_mysql_getspnam_r           /* NSS_DBOP_SHADOW_BYNAME */
 };

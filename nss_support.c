@@ -23,11 +23,11 @@ static const char rcsid[] =
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include <time.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
+#include <pwd.h>
+#include <shadow.h>
+#include <grp.h>
+
+extern conf_t conf;
 
 /* Alignment code adapted from padl.com's nss_ldap */
 #ifdef __GNUC__
@@ -44,138 +44,234 @@ do {                                                                         \
   blen += (ptr - qtr);                                                       \
 } while (0)
 
-/* Number of comma- or space-separated tokens in BUFFER */
-static NSS_STATUS
-_nss_mysql_count_tokens (const char *buffer, int *count)
+NSS_STATUS 
+_nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
+                        MYSQL_RES *mresult)
 {
-  char *p;
-  char *token;
-  int buflen;
+  MYSQL_ROW row;
+  int retVal;
+  struct passwd *pw = (struct passwd *)result;
+  size_t offsets[7];
+  unsigned long *lengths;
 
   function_enter;
-  *count = 0;
-  buflen = strlen (buffer);
-  if (buflen == 0)
-    function_return (NSS_SUCCESS);
 
-  /* strtok destroys the input, so copy it somewhere safe first */
-  if ((p = (char *) _nss_mysql_malloc (buflen + 1)) == NULL)
+  retVal = _nss_mysql_fetch_row (&row, mresult);
+  if (retVal != NSS_SUCCESS)
+    function_return (retVal);
+  if (_nss_mysql_num_fields (mresult) != 7)
     function_return (NSS_UNAVAIL);
-  memcpy (p, buffer, strlen (buffer) + 1);
 
-  for (token = strtok (p, ", "); token; (*count)++)
-    token = strtok (NULL, ", ");
-  _nss_mysql_free (p);
-  _nss_mysql_debug (FNAME, D_PARSE, "Found %d tokens", *count);
+  lengths = _nss_mysql_fetch_lengths (mresult);
+  offsets[0] = 0;
+  offsets[1] = offsets[0] + lengths[0] + 1;
+  offsets[4] = offsets[1] + lengths[1] + 1;
+  offsets[5] = offsets[4] + lengths[4] + 1;
+  offsets[6] = offsets[5] + lengths[5] + 1;
+  if (offsets[6] + lengths[6] + 1 > buflen)
+    {
+      errno = ERANGE;
+      function_return (NSS_TRYAGAIN);
+    }
+
+  memset (buffer, 0, buflen);
+  pw->pw_name = memcpy (buffer + offsets[0], row[0], lengths[0]);
+  pw->pw_passwd = memcpy (buffer + offsets[1], row[1], lengths[1]);
+  pw->pw_uid = atoi (row[2]);
+  pw->pw_gid = atoi (row[3]);
+  pw->pw_gecos = memcpy (buffer + offsets[4], row[4], lengths[4]);
+  pw->pw_dir = memcpy (buffer + offsets[5], row[5], lengths[5]);
+  pw->pw_shell = memcpy (buffer + offsets[6], row[6], lengths[6]);
   function_return (NSS_SUCCESS);
 }
 
-/*
- * 'lis' = Load Into Structure.  'wb' = With Buffer
- * There's a different version of this (just 'lis' and not 'liswb')
- * in nss_config.c
- */
-NSS_STATUS
-_nss_mysql_liswb (const char *val, void *structure, char *buffer,
-                  size_t buflen, int *bufused, int fofs, ftype_t type)
+NSS_STATUS 
+_nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
+                        MYSQL_RES *mresult)
 {
-  _nss_mysql_byte *b;
-  int val_size = 0;
+  MYSQL_ROW row;
+  int retVal;
+  struct spwd *sp = (struct spwd *)result;
+  size_t offsets[9];
+  unsigned long *lengths;
 
   function_enter;
-  if (!val)
-    {
-      _nss_mysql_log (LOG_CRIT, "%s was passed a NULL VAL");
-      function_return (NSS_UNAVAIL);
-    }
-  val_size = strlen (val) + 1;
 
-  b = (_nss_mysql_byte *) structure;
-  switch (type)
+  retVal = _nss_mysql_fetch_row (&row, mresult);
+  if (retVal != NSS_SUCCESS)
+    function_return (retVal);
+  if (_nss_mysql_num_fields (mresult) != 9)
+    function_return (NSS_UNAVAIL);
+
+  lengths = _nss_mysql_fetch_lengths (mresult);
+  offsets[0] = 0;
+  offsets[1] = offsets[0] + lengths[0] + 1;
+  if (offsets[1] + lengths[1] + 1 > buflen)
     {
-    case FT_INT:
-      *(int *) (b + fofs) = atoi (val);
-      break;
-    case FT_UINT:
-      *(unsigned int *) (b + fofs) = (unsigned int) atoi (val);
-      break;
-    case FT_LONG:
-      *(long *) (b + fofs) = atol (val);
-      break;
-    case FT_ULONG:
-      *(unsigned long *) (b + fofs) = (unsigned long) atol (val);
-      break;
-    case FT_PCHAR:
-      align (buffer, *bufused, char *);
-      if (*bufused > buflen)
+      errno = ERANGE;
+      function_return (NSS_TRYAGAIN);
+    }
+
+  memset (buffer, 0, buflen);
+  sp->sp_namp = memcpy (buffer + offsets[0], row[0], lengths[0]);
+  sp->sp_pwdp = memcpy (buffer + offsets[1], row[1], lengths[1]);
+  sp->sp_lstchg = atol (row[2]);
+  sp->sp_min = atol (row[3]);
+  sp->sp_max = atol (row[4]);
+  sp->sp_warn = atol (row[5]);
+  sp->sp_inact = atol (row[6]);
+  sp->sp_expire = atol (row[7]);
+  sp->sp_flag = (unsigned long) atol (row[8]);
+  function_return (NSS_SUCCESS);
+}
+
+// TODO
+// Align buffer
+// Double-check all the buflen/strings_len math
+// How to know if RESULT's connection ID changed (due to another routine
+// needing to close it) - may be moot as query will fail anyway no?  Check...
+static NSS_STATUS
+_nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
+                           MYSQL_RES *mresult)
+{
+  MYSQL_ROW row;
+  int retVal;
+  struct group *gr = (struct group *)result;
+  char **members = (char **)buffer;
+  unsigned long num_rows, i;
+  unsigned long *lengths;
+  size_t strings_offset;
+  size_t strings_len;
+
+  function_enter;
+  num_rows = _nss_mysql_num_rows (mresult);
+  if (num_rows == 0)
+    function_return (NSS_NOTFOUND);
+
+  strings_offset = (num_rows + 1) * PTRSIZE;
+  strings_len = buflen - strings_offset;
+  /* Allow room for NUM_ROWS + 1 pointers */
+  if (strings_offset > buflen)
+    {
+      errno = ERANGE;
+      function_return (NSS_TRYAGAIN);
+    }
+
+  /* Load the first one */
+  retVal = _nss_mysql_fetch_row (&row, mresult);
+  if (retVal != NSS_SUCCESS)
+    function_return (retVal);
+  lengths = _nss_mysql_fetch_lengths (mresult);
+  if (lengths[0] + 1 > strings_len)
+    {
+      errno = ERANGE;
+      function_return (NSS_TRYAGAIN);
+    }
+  members[0] = buffer + strings_offset;
+  strncpy (members[0], row[0], lengths[0]);
+  strings_len -= lengths[0] + 1;
+
+  /* Load the rest */
+  for (i = 1; i < num_rows; i++)
+    {
+      /* Set pointer to one byte after the last string loaded */
+      members[i] = members[i - 1] + lengths[0] + 1;
+
+      retVal = _nss_mysql_fetch_row (&row, mresult);
+      if (retVal != NSS_SUCCESS)
+        function_return (retVal);
+      lengths = _nss_mysql_fetch_lengths (mresult);
+      if (lengths[0] + 1 > strings_len)
         {
           errno = ERANGE;
-          _nss_mysql_debug (FNAME, D_MEMORY,
-                            "Requesting more memory for BUFFER");
           function_return (NSS_TRYAGAIN);
         }
-      *(uintptr_t *) (b + fofs) = (uintptr_t) memcpy (buffer, val, val_size);
-      *bufused += val_size;
-      break;
-    case FT_PPCHAR:
-      {
-        char *s;    /* Strings start here */
-        char *p;    /* Pointers start here */
-        char *copy_of_val;
-        char *token;
-        int num_tokens, token_size;
-
-        if ((_nss_mysql_count_tokens (val, &num_tokens)) != NSS_SUCCESS)
-          function_return (NSS_UNAVAIL);
-
-        if (num_tokens == 0)
-          {
-            *(uintptr_t *) (b + fofs) = (uintptr_t) buffer;
-            function_return (NSS_SUCCESS);
-          }
- 
-        align (buffer, *bufused, char *);
-        /* Leave room for n+1 pointers (last must be NULL) */
-        p = buffer;
-        s = p + ((num_tokens + 1) * PTRSIZE);
-        *bufused += (num_tokens + 1) * PTRSIZE;
-
-        /* strtok destroys the input, so copy it somewhere safe first */
-        if ((copy_of_val = (char *) _nss_mysql_malloc (val_size)) == NULL)
-          function_return (NSS_UNAVAIL);
-
-        memcpy (copy_of_val, val, val_size);
-
-        token = strtok (copy_of_val, ", ");
-        while (token)
-          {
-            token_size = strlen (token) + 1;
-            *bufused += token_size;
-            if (*bufused > buflen)
-              {
-                _nss_mysql_free (copy_of_val);
-                errno = ERANGE;
-                _nss_mysql_debug (FNAME, D_MEMORY,
-                                  "Requesting more memory for BUFFER");
-                function_return (NSS_TRYAGAIN);
-              }
-            *(uintptr_t *) p = (uintptr_t) memcpy (s, token, token_size);
-            p += PTRSIZE;
-            s += token_size;
-
-            token = strtok (NULL, ", ");
-          }
-        _nss_mysql_free (copy_of_val);
-        /* Set structure pointer to point at start of pointers */
-        *(uintptr_t *) (b + fofs) = (uintptr_t) buffer;
-      }
-      break;
-    default:
-      _nss_mysql_log (LOG_ERR, "%s: Unhandled type: %d", FNAME, type);
-      break;
+      strncpy (members[i], row[0], lengths[0]);
+      strings_len -= lengths[0] + 1;
     }
+
+  /* Set the last pointer to NULL to terminate the pointer-list */
+  members[num_rows] = NULL;
+
+  /* Set gr->gr_mem to point to start of our pointer-list */
+  (char *)gr->gr_mem = (uintptr_t)buffer;
+
   function_return (NSS_SUCCESS);
 }
+
+NSS_STATUS 
+_nss_mysql_load_group (void *result, char *buffer, size_t buflen,
+                       MYSQL_RES *mresult)
+{
+  MYSQL_ROW row;
+  MYSQL_RES *mresult_grmem = NULL;
+  int retVal;
+  struct group *gr = (struct group *)result;
+  size_t offsets[4];
+  unsigned long *lengths;
+
+  function_enter;
+
+  retVal = _nss_mysql_fetch_row (&row, mresult);
+  if (retVal != NSS_SUCCESS)
+    function_return (retVal);
+  if (_nss_mysql_num_fields (mresult) != 3)
+    function_return (NSS_UNAVAIL);
+
+  lengths = _nss_mysql_fetch_lengths (mresult);
+  offsets[0] = 0;
+  offsets[1] = offsets[0] + lengths[0] + 1;
+  offsets[3] = offsets[1] + lengths[1] + 1;
+  if (offsets[3] + 1 > buflen)
+    {
+      errno = ERANGE;
+      function_return (NSS_TRYAGAIN);
+    }
+
+  memset (buffer, 0, buflen);
+  gr->gr_name = memcpy (buffer + offsets[0], row[0], lengths[0]);
+  gr->gr_passwd = memcpy (buffer + offsets[1], row[1], lengths[1]);
+  gr->gr_gid = atoi (row[2]);
+
+  retVal = _nss_mysql_lookup (BYNUM, NULL, gr->gr_gid,
+                              &conf.sql.query.memsbygid, nfalse, result,
+                              buffer + offsets[3], buflen - offsets[3],
+                              _nss_mysql_load_memsbygid, &mresult_grmem, FNAME);
+
+  function_return (retVal);
+}
+
+NSS_STATUS
+_nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
+                           MYSQL_RES *mresult)
+{
+  MYSQL_ROW row;
+  unsigned long num_rows, i;
+  group_info_t *gi = (group_info_t *)result;
+  gid_t *groups;
+  int retVal;
+
+  function_enter;
+  num_rows = _nss_mysql_num_rows (mresult);
+  if (num_rows == 0)
+    function_return (NSS_NOTFOUND);
+
+  // FIXME: realloc
+  if (num_rows + *gi->start > gi->limit) {}
+
+  groups = *gi->groupsp;
+  for (i = 0; i < num_rows; i++)
+    {
+      retVal = _nss_mysql_fetch_row (&row, mresult);
+      if (retVal != NSS_SUCCESS)
+        function_return (retVal);
+      groups[(*gi->start)++] = atoi(row[0]);
+    }
+  // groups[(*gi->start)++] = 5000;
+
+  function_return (NSS_SUCCESS);
+}
+
 
 NSS_STATUS
 _nss_mysql_init (void)
