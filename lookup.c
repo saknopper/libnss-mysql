@@ -87,9 +87,9 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
 NSS_STATUS
 _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
                    char **q, nboolean restrict, void *result,
-                   char *buffer, size_t buflen,
+                   char *buffer, size_t buflen, int *errnop,
                    NSS_STATUS (*load_func)(void *, char *, size_t,
-                                           MYSQL_RES *mresult),
+                                           MYSQL_RES *mresult, int *errnop),
                    MYSQL_RES **mresult, const char *caller)
 {
   char *query;
@@ -120,7 +120,7 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
     return (retVal);
 
   /* Take result of query and load RESULT & BUFFER */
-  retVal = load_func (result, buffer, buflen, *mresult);
+  retVal = load_func (result, buffer, buflen, *mresult, errnop);
 
   /* BYNONE indicates *ent; don't kill the result here, endent does that */
   if (ltype != BYNONE)

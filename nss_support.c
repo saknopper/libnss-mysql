@@ -45,7 +45,7 @@ do {                                                                         \
 
 NSS_STATUS 
 _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
-                        MYSQL_RES *mresult)
+                        MYSQL_RES *mresult, int *errnop)
 {
   MYSQL_ROW row;
   int retVal;
@@ -66,10 +66,7 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
   offsets[5] = offsets[4] + lengths[4] + 1;
   offsets[6] = offsets[5] + lengths[5] + 1;
   if (offsets[6] + lengths[6] + 1 > buflen)
-    {
-      errno = ERANGE;
-      return (NSS_TRYAGAIN);
-    }
+    EXHAUSTED_BUFFER;
 
   memset (buffer, 0, buflen);
   pw->pw_name = memcpy (buffer + offsets[0], row[0], lengths[0]);
@@ -84,7 +81,7 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
 
 NSS_STATUS 
 _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
-                        MYSQL_RES *mresult)
+                        MYSQL_RES *mresult, int *errnop)
 {
   MYSQL_ROW row;
   int retVal;
@@ -102,10 +99,7 @@ _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
   offsets[0] = 0;
   offsets[1] = offsets[0] + lengths[0] + 1;
   if (offsets[1] + lengths[1] + 1 > buflen)
-    {
-      errno = ERANGE;
-      return (NSS_TRYAGAIN);
-    }
+    EXHAUSTED_BUFFER;
 
   memset (buffer, 0, buflen);
   sp->sp_namp = memcpy (buffer + offsets[0], row[0], lengths[0]);
@@ -120,13 +114,9 @@ _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
   return (NSS_SUCCESS);
 }
 
-// TODO
-// Double-check all the buflen/strings_len math
-// How to know if RESULT's connection ID changed (due to another routine
-// needing to close it) - may be moot as query will fail anyway no?  Check...
 static NSS_STATUS
 _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
-                           MYSQL_RES *mresult)
+                           MYSQL_RES *mresult, int *errnop)
 {
   MYSQL_ROW row;
   int retVal;
@@ -135,7 +125,6 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
   unsigned long num_rows, i;
   unsigned long *lengths;
   size_t strings_offset;
-  size_t strings_len;
 
   num_rows = _nss_mysql_num_rows (mresult);
   if (num_rows == 0)
@@ -144,27 +133,23 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
   align (buffer, buflen, char *);
   members = (char **)buffer;
   strings_offset = (num_rows + 1) * sizeof (char *);
-  strings_len = buflen - strings_offset;
   /* Allow room for NUM_ROWS + 1 pointers */
   if (strings_offset > buflen)
-    {
-      errno = ERANGE;
-      return (NSS_TRYAGAIN);
-    }
+    EXHAUSTED_BUFFER;
+
+  buflen -= strings_offset;
 
   /* Load the first one */
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
     return (retVal);
   lengths = _nss_mysql_fetch_lengths (mresult);
-  if (lengths[0] + 1 > strings_len)
-    {
-      errno = ERANGE;
-      return (NSS_TRYAGAIN);
-    }
+  if (lengths[0] + 1 > buflen)
+    EXHAUSTED_BUFFER;
+
   members[0] = buffer + strings_offset;
   strncpy (members[0], row[0], lengths[0]);
-  strings_len -= lengths[0] + 1;
+  buflen -= lengths[0] + 1;
 
   /* Load the rest */
   for (i = 1; i < num_rows; i++)
@@ -176,13 +161,10 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
       if (retVal != NSS_SUCCESS)
         return (retVal);
       lengths = _nss_mysql_fetch_lengths (mresult);
-      if (lengths[0] + 1 > strings_len)
-        {
-          errno = ERANGE;
-          return (NSS_TRYAGAIN);
-        }
+      if (lengths[0] + 1 > buflen)
+        EXHAUSTED_BUFFER;
       strncpy (members[i], row[0], lengths[0]);
-      strings_len -= lengths[0] + 1;
+      buflen -= lengths[0] + 1;
     }
 
   /* Set the last pointer to NULL to terminate the pointer-list */
@@ -196,7 +178,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
 
 NSS_STATUS 
 _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
-                       MYSQL_RES *mresult)
+                       MYSQL_RES *mresult, int *errnop)
 {
   static const char FNAME[] = "_nss_mysql_load_group";
   MYSQL_ROW row;
@@ -217,10 +199,7 @@ _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
   offsets[1] = offsets[0] + lengths[0] + 1;
   offsets[3] = offsets[1] + lengths[1] + 1;
   if (offsets[3] + 1 > buflen)
-    {
-      errno = ERANGE;
-      return (NSS_TRYAGAIN);
-    }
+    EXHAUSTED_BUFFER;
 
   memset (buffer, 0, buflen);
   gr->gr_name = memcpy (buffer + offsets[0], row[0], lengths[0]);
@@ -230,14 +209,15 @@ _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
   retVal = _nss_mysql_lookup (BYNUM, NULL, gr->gr_gid,
                               &conf.sql.query.memsbygid, nfalse, result,
                               buffer + offsets[3], buflen - offsets[3],
-                              _nss_mysql_load_memsbygid, &mresult_grmem, FNAME);
+                              errnop, _nss_mysql_load_memsbygid,
+                              &mresult_grmem, FNAME);
 
   return (retVal);
 }
 
 NSS_STATUS
 _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
-                           MYSQL_RES *mresult)
+                           MYSQL_RES *mresult, int *errnop)
 {
   MYSQL_ROW row;
   unsigned long num_rows, i;

@@ -78,6 +78,33 @@ extern pthread_mutex_t lock;
 #define UNLOCK pthread_mutex_unlock (&lock)
 
 /*
+ * Linux and Solaris handle buffer exhaustion differently.
+ * Linux sets errno to ERANGE and returns TRYAGAIN, which results in
+ * the NSS system trying with a buffer twice as big.
+ * Solaris, however, doesn't seem to retry.  I've checked the Solaris 8
+ * code for files/ldap/nisplus NSS and they all set NSS_ARGS(args)->erange
+ * to 1 and return NOTFOUND.  Note that this macro sets *errnop to 1, but
+ * it's not really errnop, it's erange - see the calling functions.
+ * In fact, my tests reveal that if you return TRYAGAIN, Solaris will try
+ * over and over, without increasing the buffer - AKA infinite (or long)
+ * loop.
+ */
+#ifdef HAVE_NSS_H
+#define EXHAUSTED_BUFFER                                                     \
+  {                                                                          \
+    *errnop = ERANGE;                                                        \
+    return (NSS_TRYAGAIN);                                                   \
+  }
+#else
+#define EXHAUSTED_BUFFER                                                     \
+  {                                                                          \
+    if (errnop)                                                              \
+      *errnop = 1;                                                           \
+    return (NSS_NOTFOUND);                                                   \
+  }
+#endif
+
+/*
  * To the untrained eye, this looks like my version of a boolean.  It's
  * really my secret code for taking over the universe ...
  */
@@ -186,13 +213,13 @@ void _nss_mysql_reset_ent (MYSQL_RES **mresult);
 
 /* nss_support.c */
 NSS_STATUS _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
-                                   MYSQL_RES *mresult);
+                                   MYSQL_RES *mresult, int *errnop);
 NSS_STATUS _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
-                                   MYSQL_RES *mresult);
+                                   MYSQL_RES *mresult, int *errnop);
 NSS_STATUS _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
-                                  MYSQL_RES *mresult);
+                                  MYSQL_RES *mresult, int *errnop);
 NSS_STATUS _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
-                                      MYSQL_RES *mresult);
+                                      MYSQL_RES *mresult, int *errnop);
 
 /* mysql.c */
 void _nss_mysql_close_result (MYSQL_RES **mresult);
@@ -216,7 +243,9 @@ NSS_STATUS _nss_mysql_load_config (void);
 NSS_STATUS _nss_mysql_lookup (lookup_t ltype, const char *name,
                               unsigned int num, char **q, nboolean restrict,
                               void *result, char *buffer, size_t buflen,
+                              int *errnop,
                               NSS_STATUS (*load_func)(void *, char *, size_t,
-                                                      MYSQL_RES *mresult),
+                                                      MYSQL_RES *mresult,
+                                                      int *errnop),
                               MYSQL_RES **mresult, const char *caller);
 
