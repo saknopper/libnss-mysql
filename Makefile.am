@@ -24,7 +24,7 @@ libnss_mysql_la_SOURCES = nss_config.c nss_main.c nss_structures.c \
 libnss_mysql_la_LDFLAGS = -version-info 2:0:0
 noinst_HEADERS = nss_mysql.h
 CPPFLAGS = @CPPFLAGS@ -Wall -D_REENTRANT
-EXTRA_DIST = INTERNALS TODO FAQ sample/*.cfg
+EXTRA_DIST = INTERNALS TODO FAQ sample/*.cfg sample/*.sql
 install-data-local:
 	@if test ! -e ${DESTDIR}${sysconfdir}/nss_mysql.cfg; then \
 		${srcdir}/mkinstalldirs ${DESTDIR}${sysconfdir}; \
