@@ -40,7 +40,8 @@ fi
 
 liblist="$MYSQL_LIB_DIR \
          /usr/lib \
-         /usr/local/lib"
+         /usr/local/lib \
+         /usr/local/lib/mysql"
 
 for f in $liblist; do
     if test -f "$f/libmysqlclient.so"
