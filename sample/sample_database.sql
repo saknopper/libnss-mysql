@@ -28,12 +28,11 @@ use auth;
 
 # The tables ...
 CREATE TABLE groups (
-  rowid int(11) NOT NULL auto_increment,
   name varchar(16) NOT NULL default '',
-  password varchar(34) NOT NULL default '',
-  gid int(11) NOT NULL default '5000',
-  PRIMARY KEY  (rowid)
-) TYPE=MyISAM;
+  password varchar(34) NOT NULL default 'x',
+  gid int(11) NOT NULL auto_increment,
+  PRIMARY KEY  (gid)
+) TYPE=MyISAM AUTO_INCREMENT=5000;
 
 CREATE TABLE grouplist (
   rowid int(11) NOT NULL auto_increment,
@@ -43,14 +42,13 @@ CREATE TABLE grouplist (
 ) TYPE=MyISAM;
 
 CREATE TABLE users (
-  rowid int(11) NOT NULL auto_increment,
   username varchar(16) NOT NULL default '',
-  uid int(11) NOT NULL default '5000',
+  uid int(11) NOT NULL auto_increment,
   gid int(11) NOT NULL default '5000',
   gecos varchar(128) NOT NULL default '',
   homedir varchar(255) NOT NULL default '',
-  shell varchar(64) NOT NULL default '',
-  password varchar(34) NOT NULL default '',
+  shell varchar(64) NOT NULL default '/bin/bash',
+  password varchar(34) NOT NULL default 'x',
   lstchg bigint(20) NOT NULL default '1',
   min bigint(20) NOT NULL default '0',
   max bigint(20) NOT NULL default '99999',
@@ -58,27 +56,42 @@ CREATE TABLE users (
   inact bigint(20) NOT NULL default '0',
   expire bigint(20) NOT NULL default '-1',
   flag bigint(20) unsigned NOT NULL default '0',
-  PRIMARY KEY  (rowid),
-  UNIQUE KEY rowid (rowid),
+  PRIMARY KEY  (uid),
   KEY username (username),
   KEY uid (uid)
-) TYPE=MyISAM;
+) TYPE=MyISAM AUTO_INCREMENT=5000;
 
 # The data ...
-INSERT INTO users VALUES (1, 'cinergi', 5000, 5000, 'Ben Goodwin', '/home/cinergi', '/bin/bash', ENCRYPT('cinergi'), 1, 0, 99999, 0, 0, -1, 0);
-INSERT INTO groups VALUES (1, 'foobaz', 'x', 5000);
-INSERT INTO grouplist VALUES (1,5000,'cinergi');
+INSERT INTO users (username,gecos,homedir,password)
+    VALUES ('cinergi', 'Ben Goodwin', '/home/cinergi', ENCRYPT('cinergi'));
+INSERT INTO groups (name)
+    VALUES ('foobaz');
+INSERT INTO grouplist (gid,username)
+    VALUES (5000,'cinergi');
 
 # The permissions ...
 GRANT USAGE ON *.* TO `nss-root`@`localhost` IDENTIFIED BY 'rootpass';
 GRANT USAGE ON *.* TO `nss-user`@`localhost` IDENTIFIED BY 'userpass';
 
-GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`, `password`, `lstchg`, `min`, `max`, `warn`, `inact`, `expire`, `flag`) ON `auth`.`users` TO 'nss-root'@'localhost';
-GRANT Select (`name`, `password`, `gid`) ON `auth`.`groups` TO 'nss-root'@'localhost';
+GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`, `password`,
+              `lstchg`, `min`, `max`, `warn`, `inact`, `expire`, `flag`)
+             ON `auth`.`users`
+             TO 'nss-root'@'localhost';
+GRANT Select (`name`, `password`, `gid`)
+             ON `auth`.`groups`
+             TO 'nss-root'@'localhost';
 
-GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`) ON `auth`.`users` TO 'nss-user'@'localhost';
-GRANT Select (`name`, `password`, `gid`) ON `auth`.`groups` TO 'nss-user'@'localhost';
+GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`)
+             ON `auth`.`users`
+             TO 'nss-user'@'localhost';
+GRANT Select (`name`, `password`, `gid`)
+             ON `auth`.`groups`
+             TO 'nss-user'@'localhost';
 
-GRANT Select (`username`, `gid`) ON `auth`.`grouplist` TO 'nss-user'@'localhost';
-GRANT Select (`username`, `gid`) ON `auth`.`grouplist` TO 'nss-root'@'localhost';
+GRANT Select (`username`, `gid`)
+             ON `auth`.`grouplist`
+             TO 'nss-user'@'localhost';
+GRANT Select (`username`, `gid`)
+             ON `auth`.`grouplist`
+             TO 'nss-root'@'localhost';
 
