@@ -61,7 +61,7 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
   if (_nss_mysql_num_fields (mresult) != 7)
     DSRETURN (NSS_UNAVAIL)
 
-  lengths = _nss_mysql_fetch_lengths (mresult);
+  lengths = (unsigned long *) _nss_mysql_fetch_lengths (mresult);
   offsets[0] = 0;
   offsets[1] = offsets[0] + lengths[0] + 1;
   offsets[4] = offsets[1] + lengths[1] + 1;
@@ -106,7 +106,7 @@ _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
   if (_nss_mysql_num_fields (mresult) != 9)
     DSRETURN (NSS_UNAVAIL)
 
-  lengths = _nss_mysql_fetch_lengths (mresult);
+  lengths = (unsigned long *) _nss_mysql_fetch_lengths (mresult);
   offsets[0] = 0;
   offsets[1] = offsets[0] + lengths[0] + 1;
   if (offsets[1] + lengths[1] + 1 > buflen)
@@ -156,7 +156,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
     DSRETURN (retVal)
-  lengths = _nss_mysql_fetch_lengths (mresult);
+  lengths = (unsigned long *) _nss_mysql_fetch_lengths (mresult);
   if (lengths[0] + 1 > buflen)
     EXHAUSTED_BUFFER;
 
@@ -173,7 +173,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
       retVal = _nss_mysql_fetch_row (&row, mresult);
       if (retVal != NSS_SUCCESS)
         DSRETURN (retVal)
-      lengths = _nss_mysql_fetch_lengths (mresult);
+      lengths = (unsigned long *) _nss_mysql_fetch_lengths (mresult);
       if (lengths[0] + 1 > buflen)
         EXHAUSTED_BUFFER;
       strncpy (members[i], row[0], lengths[0]);
@@ -208,7 +208,7 @@ _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
   if (_nss_mysql_num_fields (mresult) != 3)
     DSRETURN (NSS_UNAVAIL)
 
-  lengths = _nss_mysql_fetch_lengths (mresult);
+  lengths = (unsigned long *) _nss_mysql_fetch_lengths (mresult);
   offsets[0] = 0;
   offsets[1] = offsets[0] + lengths[0] + 1;
   offsets[3] = offsets[1] + lengths[1] + 1;
