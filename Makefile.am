@@ -20,7 +20,7 @@
 
 lib_LTLIBRARIES = libnss_mysql.la
 libnss_mysql_la_SOURCES = nss_config.c nss_mysql.c nss_structures.c \
-                          nss_support.c
+                          nss_support.c memory.c
 libnss_mysql_la_LDFLAGS = -version-info 2:0:0
 noinst_HEADERS = nss_mysql.h
 CPPFLAGS = @CPPFLAGS@ -Wall -D_REENTRANT
