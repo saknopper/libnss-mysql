@@ -1,14 +1,11 @@
 develop tests - including multi-threaded
-Make my own, non-destructive, strtok replacement?
-Better/more generic parser?
-Support other NSS calls (like group_bymember)
+Support other NSS databases
 Solaris 9 support
 Check current error returns/conditions; properly use errno, herrno etc
 PAM/passwd solution for Solaris
+64-bit library support
 
 BUGFIXES
     Turn off socket keepalive?
     full fork/pid-change handling
     sigpipe handling
-    Solaris doesn't show auxiliary MySQL groups
-    64-bit library support
