@@ -19,7 +19,7 @@ dnl $Id$ */
 
 AC_REVISION($Revision$)dnl
 AC_INIT(nss_main.c)
-AM_INIT_AUTOMAKE(libnss_mysql, 0.2)
+AM_INIT_AUTOMAKE(libnss_mysql, 0.3dev)
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
