@@ -8,7 +8,9 @@
               are automatically searched in this order: /usr, /usr/local,
               /usr/local/mysql, /opt/local, /opt/local/mysql.
 
-    * BUGFIX: (interim) Try query a couple more times if it fails
+    * BUGFIX: Try query a few more times if it fails; corrects issues with
+              reset idle connections which should result in a valid reconnect
+              and query, but caused 1 'user unknown' error.
 
     * BUGFIX: Groups without members weren't showing up in getgrent's
 
@@ -17,6 +19,10 @@
               example is Apache/PHP using different version than the one
               statically linked in the libnss-mysql RPM.  On Linux, this
               requires libtool >= 1.5.2
+
+    * DOCS:   The FreeBSD sample now contains proper shadow implementation.
+              ! PREVIOUS SAMPLES ALLOWED NON-ROOT USERS TO SEE ENCRYPTED
+              ! PASSWORDS
 
     * DOCS:   Updated README to better suit FreeBSD installations
 
