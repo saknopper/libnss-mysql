@@ -26,7 +26,6 @@ static const char rcsid[] =
 
 #include "nss_mysql.h"
 #include <string.h>     /* strlen() */
-#include <stdlib.h>     /* atoi() */
 #include <netinet/in.h> /* struct sockaddr_in */
 
 #ifndef HAVE_SOCKLEN_T
