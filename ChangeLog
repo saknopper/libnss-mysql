@@ -1,5 +1,14 @@
 # $Id$
 
+2002-08-17  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * acconfig.h: Added HAVE_LOG_FTP - configure.in sets this value now
+
+    * nss_config.c: Only use LOG_FTP on systems that have it.
+
+    * nss_mysql.h: HAVE_NSSWITCH_H should have been HAVE_NSS_COMMON_H.
+      Needed to define NSS_STATUS when HAVE_NSS_COMMON_H is defined.
+
 2002-08-16  Ben Goodwin  <cinergi@users.sourceforge.net>
 
     * mysql.c: Call mysql_escape_string if MYSQL_VERSION_ID < 32300.
