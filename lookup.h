@@ -93,12 +93,14 @@
 #endif
 
 #ifdef HAVE_NSS_COMMON_H
-#define GET(fname, fields, ltype, arg, restype)                              \
+#define GET(fname, fields, ltype, arg, restype, restrict)                    \
     NSS_STATUS                                                               \
     _nss_mysql_##fname##_r (nss_backend_t *be, void *args)                   \
     {                                                                        \
       int retVal;                                                            \
       function_enter;                                                        \
+      if (restrict && geteuid() != 0)                                        \
+        function_return (NSS_NOTFOUND)                                       \
       LOCK;                                                                  \
       retVal = _nss_mysql_lookup_##ltype (NSS_ARGS(args)->arg,               \
                                           FOFS (sql_query_t, fname),         \
@@ -118,12 +120,14 @@
       function_return (retVal);                                              \
     }
 
-#define GETENT(fname, fields, restype)                                       \
+#define GETENT(fname, fields, restype, restrict)                             \
     NSS_STATUS                                                               \
     _nss_mysql_##fname##_r (nss_backend_t *be, void *args)                   \
     {                                                                        \
       int retVal;                                                            \
       function_enter;                                                        \
+      if (restrict && geteuid() != 0)                                        \
+        function_return (NSS_NOTFOUND)                                       \
       LOCK;                                                                  \
       if (_nss_mysql_active_result () == nfalse)                             \
         {                                                                    \
