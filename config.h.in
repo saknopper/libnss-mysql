@@ -30,6 +30,9 @@
 /* Define to 1 if you have the <nss.h> header file. */
 #undef HAVE_NSS_H
 
+/* Define to 1 if the system has the type `socklen_t'. */
+#undef HAVE_SOCKLEN_T
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -104,9 +107,6 @@
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
-
-/* Define to `size_t' if <sys/types.h> does not define. */
-#undef socklen_t
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef uid_t
