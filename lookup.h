@@ -64,7 +64,7 @@
 
 #define ENDENT(type)                                                         \
     NSS_STATUS                                                               \
-    _nss_mysql_end##type##_r (void)                                          \
+    _nss_mysql_end##type## (void)                                            \
     {                                                                        \
       function_enter;                                                        \
       LOCK;                                                                  \
@@ -76,7 +76,7 @@
 
 #define SETENT(type)                                                         \
     NSS_STATUS                                                               \
-    _nss_mysql_set##type##_r (void)                                          \
+    _nss_mysql_set##type## (void)                                            \
     {                                                                        \
       function_enter;                                                        \
       LOCK;                                                                  \
