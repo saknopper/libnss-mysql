@@ -1,0 +1,58 @@
+# $Id$
+
+MySQL for NSS systems
+=====================
+
+Please read the file INSTALL for generic installation details.
+
+For the impatient:
+    On modern systems, you should just be able to
+        ./configure
+        make
+        make install
+    You'll probably have to add /usr/local/lib to /etc/ld.so.conf (Linux)
+    Solaris, I don't know yet :-)
+    Edit nss_mysql.cfg and nss_mysql_root.cfg (/usr/local/etc)
+    Edit /etc/nsswitch.conf and add 'mysql' to passwd/shadow/group
+    Enjoy!
+
+    On systems with older or nonstandard MySQL installations, you may
+    need to use the --with-mysql-lib and/or --with-mysql-inc options.
+
+
+Debugging:
+    Configure with --enable-debug[=FILE].  FILE defaults to /tmp/debug
+    DO NOT LEAVE DEBUG SUPPORT COMPILED IN.  IT IS A SECURITY HAZZARD
+
+    Since there's a lot of debugging messages, you can pick which
+    type(s) you want.  Set the environment variable DEBUG_NSS to be the sum
+    of the options below you want:
+
+    ERRORS                              1
+    MEMORY (malloc, free, etc)          2
+    FUNCTION (enter/exit w/ status)     4
+    CONNECT (MySQL connect/disconnect)  8
+    QUERY (MySQL queries)               16
+    PARSE (File parsing)                32
+    FILE (File opening/closing)         64
+
+    For example, if you want all options, set DEBUG_NSS to 127
+    If you want just CONNECT, set it to 8.  If you want CONNECT
+    and QUERY, set it to 24.
+
+    Note that debugging applies ONLY to the process that has
+    this environment variable set.  The entire system WILL NOT
+    debug to that file.  If you need to debug a daemon, set it
+    in the init script or in the xinetd conf etc.
+
+Solaris support:
+    Coming soon.  It actually compiles on my Solaris 8 x86 box, but
+    I have NOT implemented the interface Solaris requires yet.
+
+
+Tested with:
+    Corel (1.something - Debian 2.1) and MySQL 3.21.33b
+    RedHat 6.1 and MySQL 3.20.something
+    RedHat 7.1 and MySQL 3.23.49a
+    RedHat 7.2 and MySQL 3.23.49a
+    RedHat 7.3 and MySQL 3.23.49a

@@ -1,0 +1,36 @@
+# $Id$
+
+2002-05-29  Ben Goodwin  <ben@localhost>
+
+	* sample/nss_mysql_root.cfg:
+	Added missing [server] entry
+
+	* Makefile.am, Makefile.in:
+	Additional file to dist
+
+	* FAQ: New file.
+
+	* sample/nss_mysql_root.cfg: changed default password
+
+2002-05-28  Ben Goodwin  <ben@localhost>
+
+	* Makefile.am, Makefile.in:
+	Specify files in the sample directory to keep 'make dist' from adding
+	CVS files to the distfile
+
+	* configure.in, configure: Added CVS revision tag
+
+	* Makefile.in:
+	This should have been 1.1.1.1; Makefile.am was edited but automake was
+	neve run.  Oops ..
+
+	* nss_mysql.h, nss_support.c, nss_structures.c:
+	Added license and rcsid string
+
+	* nss_mysql.c:
+	Added license and rcsid string.  Fixed some formatting issues
+
+	* nss_config.c: Added license and rcsid string
+
+	* - : Initial import of nss-mysql
+
