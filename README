@@ -8,32 +8,23 @@ Please read the file INSTALL for generic installation details.
 NOTE: Solaris 9 is currently unsupported.  Sun changed something in the
       API that's preventing the library from properly functioning.
 
+PREREQUISITES:
+	GCC
+	GNU Make
+	MySQL client library & header files
+
+Only GCC is supported at this time.
+Your MySQL library MUST be 32-bit, as libnss-mysql currently only supports
+a 32-bit output.  This means 64-bit programs will not be able to make use
+of libnss-mysql - yet.  This isn't an issue on intel (32-bit-only) platforms.
+Most programs are still 32-bit even on Solaris 8/sparc so in general, I
+wouldn't really worry about 64-bit support.
+
 For the impatient:
-    Linux:
         ./configure
 	make
 	make install
-    Solaris (gcc):
-        sh -c "CFLAGS='-m32' ./configure"
-        sh -c "LD_OPTIONS='-z nodelete' make" 
-        make install
-    Solaris (cc):
-        Unsupported at this time
 
-    It's very important to follow the Solaris lines above.  In some future
-    version you won't have to do the above.  Here's why you need each line
-    CFLAGS=-m32 - Compile a 32-bit library.  NOTE: your MySQL installation
-                  must also be 32-bit.  If you build from source using a gcc
-                  that builds 64-bit targets, rebuild and reinstall MySQL
-                  using CFLAGS=-m32 and CXXFLAGS=-m32 or you won't be able
-                  to create a working libnss-mysql library.
-    LD_OPTIONS='-z nodelete' - There are bugs in various Solaris routines
-                  which will cause memory leaks unless we tell the linker
-                  to disallow the system from dlclose()'ing libnss-mysql.
-
-    You need to use GNU make.  Solaris' make will choke.  You may need
-    to add the full path to your GNU make in the example above.
-            
     Edit /etc/nss_mysql.cfg and /etc/nss_mysql_root.cfg.  Pay special
     attention to the socket location.  The default may not work in your
     environment!
@@ -96,6 +87,6 @@ Tested with:
     RedHat 7.3 and MySQL 3.23.49a
 
     Solaris 8/x86, MySQL 3.23.52, gcc 3.1
-    Solaris 8/sparc, MySQL 3.23.52, gcc (64bit) 3.0.2
+    Solaris 8/sparc, MySQL 3.23.52, gcc 3.0.2 & 3.2
 
 
