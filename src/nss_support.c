@@ -45,6 +45,7 @@ do {                                                                         \
   blen -= (ptr - qtr);                                                       \
 } while (0)
 
+/* Password */
 #if defined(__FreeBSD__)
 typedef enum {
   ROW_PW_NAME,
@@ -85,6 +86,29 @@ typedef enum {
 } pw_rows;
 #endif
 
+/* Shadow */
+typedef enum {
+  ROW_SP_NAMP,
+  ROW_SP_PWDP,
+  ROW_SP_LSTCHG,
+  ROW_SP_MIN,
+  ROW_SP_MAX,
+  ROW_SP_WARN,
+  ROW_SP_INACT,
+  ROW_SP_EXPIRE,
+  ROW_SP_FLAG,
+  NUM_SP_ELEMENTS
+} sp_rows;
+
+/* Group */
+typedef enum {
+  ROW_GR_NAME,
+  ROW_GR_PASSWD,
+  ROW_GR_GID,
+  ROW_GR_MEM,
+  NUM_GR_ELEMENTS
+} gr_rows;
+
 NSS_STATUS 
 _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
                         MYSQL_RES *mresult, int *errnop)
@@ -95,21 +119,30 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
   struct passwd *pw = (struct passwd *)result;
   size_t offsets[NUM_PW_ELEMENTS];
   unsigned long *lengths;
+  unsigned int num_fields;
 
   DENTER
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
     DSRETURN (retVal)
-  if (_nss_mysql_num_fields (mresult) != NUM_PW_ELEMENTS)
-    DSRETURN (NSS_UNAVAIL)
+  num_fields = _nss_mysql_num_fields (mresult);
+  if (num_fields != NUM_PW_ELEMENTS)
+    {
+      _nss_mysql_log (LOG_ALERT,
+                      "mysql_fetch_row() found %u rows (expecting %u).",
+                      num_fields, NUM_PW_ELEMENTS);
+      DSRETURN (NSS_UNAVAIL)
+    }
 
+  /* Make sure we have enough room in 'buffer' for all our data */
   lengths = (unsigned long *) _nss_mysql_fetch_lengths (mresult);
-  offsets[0] = 0;
+  offsets[ROW_PW_NAME] = 0;
   for (i = 1; i < NUM_PW_ELEMENTS; i++)
     offsets[i] = offsets[i - 1] + lengths[i - 1] + 1;
   if (offsets[NUM_PW_ELEMENTS - 1] > buflen)
     EXHAUSTED_BUFFER;
 
+  /* Clear out buffer and copy in data */
   memset (buffer, 0, buflen);
   pw->pw_name = memcpy (buffer + offsets[ROW_PW_NAME], row[ROW_PW_NAME],
                         lengths[ROW_PW_NAME]);
@@ -132,7 +165,7 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
 
 #if defined(sun)
   pw->pw_age = memcpy (buffer + offsets[ROW_PW_AGE], row[ROW_PW_AGE],
-                         lengths[ROW_PW_AGE]);
+                       lengths[ROW_PW_AGE]);
   pw->pw_comment = memcpy (buffer + offsets[ROW_PW_COMMENT],
                            row[ROW_PW_COMMENT], lengths[ROW_PW_COMMENT]);
 #endif
@@ -149,32 +182,43 @@ _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
   MYSQL_ROW row;
   int retVal;
   struct spwd *sp = (struct spwd *)result;
-  size_t offsets[9];
+  size_t offsets[NUM_SP_ELEMENTS];
   unsigned long *lengths;
+  unsigned int num_fields;
 
   DENTER
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
     DSRETURN (retVal)
-  if (_nss_mysql_num_fields (mresult) != 9)
-    DSRETURN (NSS_UNAVAIL)
+  num_fields = _nss_mysql_num_fields (mresult);
+  if (num_fields != NUM_SP_ELEMENTS)
+    {
+      _nss_mysql_log (LOG_ALERT,
+                      "mysql_fetch_row() found %u rows (expecting %u).",
+                      num_fields, NUM_SP_ELEMENTS);
+      DSRETURN (NSS_UNAVAIL)
+    }
 
+  /* Make sure we have enough room in 'buffer' for all our data */
   lengths = (unsigned long *) _nss_mysql_fetch_lengths (mresult);
-  offsets[0] = 0;
-  offsets[1] = offsets[0] + lengths[0] + 1;
-  if (offsets[1] + lengths[1] + 1 > buflen)
+  offsets[ROW_SP_NAMP] = 0;
+  offsets[ROW_SP_PWDP] = offsets[ROW_SP_NAMP] + lengths[ROW_SP_NAMP] + 1;
+  if (offsets[ROW_SP_PWDP] + lengths[ROW_SP_PWDP] + 1 > buflen)
     EXHAUSTED_BUFFER;
 
+  /* Clear out buffer and copy in data */
   memset (buffer, 0, buflen);
-  sp->sp_namp = memcpy (buffer + offsets[0], row[0], lengths[0]);
-  sp->sp_pwdp = memcpy (buffer + offsets[1], row[1], lengths[1]);
-  sp->sp_lstchg = atol (row[2]);
-  sp->sp_min = atol (row[3]);
-  sp->sp_max = atol (row[4]);
-  sp->sp_warn = atol (row[5]);
-  sp->sp_inact = atol (row[6]);
-  sp->sp_expire = atol (row[7]);
-  sp->sp_flag = (unsigned long) atol (row[8]);
+  sp->sp_namp = memcpy (buffer + offsets[ROW_SP_NAMP], row[ROW_SP_NAMP],
+                        lengths[ROW_SP_NAMP]);
+  sp->sp_pwdp = memcpy (buffer + offsets[ROW_SP_PWDP], row[ROW_SP_PWDP],
+                        lengths[ROW_SP_PWDP]);
+  sp->sp_lstchg = atol (row[ROW_SP_LSTCHG]);
+  sp->sp_min = atol (row[ROW_SP_MIN]);
+  sp->sp_max = atol (row[ROW_SP_MAX]);
+  sp->sp_warn = atol (row[ROW_SP_WARN]);
+  sp->sp_inact = atol (row[ROW_SP_INACT]);
+  sp->sp_expire = atol (row[ROW_SP_EXPIRE]);
+  sp->sp_flag = (unsigned long) atol (row[ROW_SP_FLAG]);
   DSRETURN (NSS_SUCCESS)
 }
 #endif
@@ -257,31 +301,47 @@ _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
   MYSQL_RES *mresult_grmem = NULL;
   int retVal;
   struct group *gr = (struct group *)result;
-  size_t offsets[4];
+  size_t offsets[NUM_GR_ELEMENTS];
   unsigned long *lengths;
+  unsigned int num_fields;
 
   DENTER
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
     DSRETURN (retVal)
-  if (_nss_mysql_num_fields (mresult) != 3)
-    DSRETURN (NSS_UNAVAIL)
+  num_fields = _nss_mysql_num_fields (mresult);
+  if (num_fields != NUM_GR_ELEMENTS - 1) /* gr_mem not part of this query */
+    {
+      _nss_mysql_log (LOG_ALERT,
+                      "mysql_fetch_row() found %u rows (expecting %u).",
+                      num_fields, NUM_GR_ELEMENTS - 1);
+      DSRETURN (NSS_UNAVAIL)
+    }
 
+  /*
+   * Make sure we have enough room in 'buffer' for all our data
+   * (not including gr_mem - that's dealt with later
+   */
   lengths = (unsigned long *) _nss_mysql_fetch_lengths (mresult);
-  offsets[0] = 0;
-  offsets[1] = offsets[0] + lengths[0] + 1;
-  offsets[3] = offsets[1] + lengths[1] + 1;
-  if (offsets[3] + 1 > buflen)
+  offsets[ROW_GR_NAME] = 0;
+  offsets[ROW_GR_PASSWD] = offsets[ROW_GR_NAME] + lengths[ROW_GR_NAME] + 1;
+  offsets[ROW_GR_MEM] = offsets[ROW_GR_PASSWD] + lengths[ROW_GR_PASSWD] + 1;
+  if (offsets[ROW_GR_MEM] + 1 > buflen)
     EXHAUSTED_BUFFER;
 
+  /* Clear out buffer and copy in data (except gr_mem) */
   memset (buffer, 0, buflen);
-  gr->gr_name = memcpy (buffer + offsets[0], row[0], lengths[0]);
-  gr->gr_passwd = memcpy (buffer + offsets[1], row[1], lengths[1]);
-  gr->gr_gid = atoi (row[2]);
+  gr->gr_name = memcpy (buffer + offsets[ROW_GR_NAME], row[ROW_GR_NAME],
+                        lengths[ROW_GR_NAME]);
+  gr->gr_passwd = memcpy (buffer + offsets[ROW_GR_PASSWD], row[ROW_GR_PASSWD],
+                          lengths[ROW_GR_PASSWD]);
+  gr->gr_gid = atoi (row[ROW_GR_GID]);
 
+  /* Load gr_mem */
   retVal = _nss_mysql_lookup (BYNUM, NULL, gr->gr_gid,
                               &conf.sql.query.memsbygid, nfalse, result,
-                              buffer + offsets[3], buflen - offsets[3],
+                              buffer + offsets[ROW_GR_MEM],
+                              buflen - offsets[ROW_GR_MEM],
                               errnop, _nss_mysql_load_memsbygid,
                               &mresult_grmem, FUNCNAME);
 
@@ -303,21 +363,21 @@ _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
   DENTER
   num_rows = _nss_mysql_num_rows (mresult);
 
-  // Nothing to load = success
+  /* Nothing to load = success */
   if (num_rows == 0)
     DSRETURN (NSS_SUCCESS)
 
-  // If we need more room and we're allowed to alloc it, alloc it
+  /* If we need more room and we're allowed to alloc it, alloc it */
   if (num_rows + *gi->start > *gi->size)
     {
       long int newsize = *gi->size;
 
-      if (gi->limit <= 0)                // Allocate as much as we need
+      if (gi->limit <= 0)                /* Allocate as much as we need */
         newsize = num_rows + *gi->start;
-      else if (*gi->size != gi->limit)   // Allocate to limit
+      else if (*gi->size != gi->limit)   /* Allocate to limit */
         newsize = gi->limit;
 
-      if (newsize != *gi->size)         // If we've got more room, do it
+      if (newsize != *gi->size)          /* If we've got more room, do it */
         {
           gid_t *groups = *gi->groupsp;
           gid_t *newgroups;
