@@ -15,9 +15,6 @@
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef uid_t
 
-/* define to unsigned int if your system doesn't define it for you */
-#undef uintptr_t
-
 /* Main config file */
 #undef MAINCFG
 
@@ -57,17 +54,20 @@
 /* Define if you have the <nss_common.h> header file.  */
 #undef HAVE_NSS_COMMON_H
 
+/* Define if you have the <stdint.h> header file.  */
+#undef HAVE_STDINT_H
+
 /* Define if you have the <strings.h> header file.  */
 #undef HAVE_STRINGS_H
 
 /* Define if you have the <syslog.h> header file.  */
 #undef HAVE_SYSLOG_H
 
-/* Define if you have the <unistd.h> header file.  */
-#undef HAVE_UNISTD_H
-
 /* Define if you have the mysqlclient library (-lmysqlclient).  */
 #undef HAVE_LIBMYSQLCLIENT
+
+/* Define if you have the socket library (-lsocket).  */
+#undef HAVE_LIBSOCKET
 
 /* Name of package */
 #undef PACKAGE
