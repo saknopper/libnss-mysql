@@ -28,6 +28,9 @@ static const char rcsid[] =
 #include <unistd.h>
 #include <stdlib.h>
 
+/*
+ * Map config keys to the struct offsets to load their values into
+ */
 static field_info_t server_fields[] =
 {
     {"host",     FOFS (sql_server_t, host),     FT_PCHAR},
@@ -61,6 +64,9 @@ static field_info_t global_fields[]=
     {NULL}
 };
 
+/*
+ * The various sections (IE '[global]') of the config file
+ */
 typedef enum
 {
   SECTION_INVALID,
@@ -78,7 +84,10 @@ static field_info_t section_info[] =
     {NULL}
 };
 
-/* More overloading, whee! */
+/*
+ * Map string to syslog facilities/priorities
+ * More overloading, whee!
+ */
 static field_info_t syslog_names[] =
 {
     /* priorities */
@@ -116,6 +125,10 @@ static field_info_t syslog_names[] =
     {NULL}
 };
 
+/*
+ * For a given NAME, return the matching enum'ed value.
+ * Return -1 if not found.
+ */
 static int
 _nss_mysql_syslog_name_to_id (const char *name)
 {
@@ -130,7 +143,12 @@ _nss_mysql_syslog_name_to_id (const char *name)
   function_return (-1);
 }
 
-/* 'lis' = Load Into Structure */
+/*
+ * Load Into Structure - Take KEY/VAL and, using FIELDS as a guide for
+ * what goes where, load VAL into the appropriate spot that KEY points
+ * to.  Basically a generic way to assign values of any type to the
+ * right spot in a struct.
+ */
 static NSS_STATUS
 _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
                 void *structure)
@@ -183,6 +201,9 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
   function_return (NSS_SUCCESS);
 }
 
+/*
+ * Return NTRUE if the current line starts with '[' and has a ']' in it
+ */
 static nboolean _nss_mysql_is_bracketed (char *line)
 {
   if (line && *line == '[' && index (line, ']'))
@@ -191,8 +212,9 @@ static nboolean _nss_mysql_is_bracketed (char *line)
 }
 
 /*
- * Load key and val with the next key/val pair (if any) from the file pointed
- * to by fh.  If a key/val pair is found, return 0, otherwise 1.
+ * Load KEY and VAL with the next key/val pair (if any) from the file pointed
+ * to by FH.  If a key/val pair is found, return NSS_SUCCESS, otherwise
+ * NSS_NOTFOUND.
  */
 static NSS_STATUS
 _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
@@ -247,6 +269,10 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
   function_return (NSS_NOTFOUND);
 }
 
+/*
+ * For a given NAME, return the matching enum'ed value.  Return
+ * SECTION_INVALID if not found.
+ */
 static int
 _nss_mysql_section_to_id (char *name)
 {
@@ -261,6 +287,9 @@ _nss_mysql_section_to_id (char *name)
   function_return (SECTION_INVALID);
 }
 
+/*
+ * Step through FH until a valid section delimeter is found
+ */
 static NSS_STATUS
 _nss_mysql_get_section (FILE *fh, int *section)
 {
@@ -284,6 +313,10 @@ _nss_mysql_get_section (FILE *fh, int *section)
   function_return (NSS_NOTFOUND);
 }
 
+/*
+ * Step through FH, loading key/val pairs, until EOF or a new section is
+ * encountered
+ */
 static NSS_STATUS
 _nss_mysql_load_section (FILE *fh, void *structure, field_info_t *fields)
 {
@@ -301,6 +334,9 @@ _nss_mysql_load_section (FILE *fh, void *structure, field_info_t *fields)
   function_return (NSS_SUCCESS);
 }
 
+/*
+ * Open FILE and load up the config data inside it
+ */
 static NSS_STATUS
 _nss_mysql_load_config_file (char *file, conf_t *conf)
 {
@@ -366,6 +402,10 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
   function_return (NSS_SUCCESS);
 }
 
+/*
+ * Load main and, if appropriate, root configs.  Set some defaults.
+ * Set CONF->VALID to NTRUE and return NSS_SUCCESS if all goes well.
+ */
 NSS_STATUS
 _nss_mysql_load_config (conf_t *conf)
 {

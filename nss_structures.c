@@ -16,6 +16,12 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * This is how I know what type of data and where the data is stored
+ * in a particular structure for my parser.  Yeah, I know it's not
+ * portable and whatnot, but fixing the parser is on my TODO list :-)
+ */
+
 static const char rcsid[] =
     "$Id$";
 

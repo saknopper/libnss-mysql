@@ -16,6 +16,12 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * All the NSS API functions should go in here.  There are a couple
+ * support routines in here, too (which require access to the CONF
+ * global variable
+ */
+
 static const char rcsid[] =
     "$Id$";
 
@@ -37,6 +43,10 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
 
+/*
+ * Use a single define which we later use to 'create' the get*
+ * functions for export
+ */
 #define GET(funcname, sname, argtype, restrict)                               \
   NSS_STATUS                                                                  \
   _nss_mysql_##funcname##_r (argtype arg, struct sname *result,               \
@@ -90,6 +100,10 @@ conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
     function_return (retVal);                                                 \
   }
 
+/*
+ * Use a single define which we later use to 'create' the end*ent
+ * functions for export
+ */
 #define ENDENT(type)                                                          \
   NSS_STATUS                                                                  \
   _nss_mysql_end##type (void)                                                 \
@@ -101,6 +115,10 @@ conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
     function_return (NSS_SUCCESS);                                            \
   }
 
+/*
+ * Use a single define which we later use to 'create' the set*ent
+ * functions for export
+ */
 #define SETENT(type)                                                          \
   NSS_STATUS                                                                  \
   _nss_mysql_set##type (void)                                                 \
@@ -112,6 +130,10 @@ conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
     function_return (NSS_SUCCESS);                                            \
   }
 
+/*
+ * Use a single define which we later use to 'create' the get*ent
+ * functions for export
+ */
 #define GETENT(type, sname)                                                   \
   NSS_STATUS                                                                  \
   _nss_mysql_get##type##_r (struct sname *result, char *buffer,               \
@@ -166,6 +188,7 @@ conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
   }
 
 /*
+ * Syslog a message at PRIORITY.
  * Do *NOT* change this to maintain persistent connection - it will fail
  * under certain circumstances where programs using this library open and
  * close their own file descriptors.  I save the MySQL socket information
@@ -186,6 +209,11 @@ _nss_mysql_log (int priority, char *fmt, ...)
   closelog ();
 }
 
+/*
+ * Our debug routine.  FUNCTION should contain the calling function name.
+ * FLAGS contains the type of debug message this is.  Sends the resulting
+ * string to the log function above.
+ */
 void
 _nss_mysql_debug (char *function, int flags, char *fmt, ...)
 {
