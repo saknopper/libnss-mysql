@@ -12,3 +12,6 @@
 
 /* */
 #undef HAVE___FUNC__
+
+/* */
+#undef HAVE_LOG_AUTHPRIV

@@ -95,6 +95,16 @@ case "$have_func" in
    no) ;;
 esac
 
+AC_TRY_COMPILE([
+#include <syslog.h>],
+[int foo = LOG_AUTHPRIV;],
+[have_authpriv=yes],
+[have_authpriv=no])
+case "$have_authpriv" in
+  yes) AC_DEFINE(HAVE_LOG_AUTHPRIV) ;;
+   no) ;;
+esac
+
 test "$prefix" = "NONE" && prefix=/usr/local
 EXPANDED_SYSCONFDIR=`eval echo $sysconfdir`
 AC_DEFINE_UNQUOTED(MAINCFG,"$EXPANDED_SYSCONFDIR/nss_mysql.cfg")
