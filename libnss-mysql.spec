@@ -24,7 +24,7 @@ make
 # This also assumes libmysqlclient.so* is in default linker path or
 # /usr/lib/mysql ...
 rm .libs/libnss_mysql.so.2.0.0
-gcc -shared  version.lo nss_config.lo nss_main.lo nss_support.lo memory.lo mysql.lo lookup.lo mysql-pwd.lo mysql-spwd.lo mysql-grp.lo  -L/usr/lib/mysql -Wl,-Bstatic -lmysqlclient -lz -Wl,-Bdynamic -ldl -lm -lcrypt -lnsl -Wl,-znodelete -Wl,--allow-shlib-undefined -Wl,-Bgroup -Wl,-soname -Wl,libnss_mysql.so.2 -o .libs/libnss_mysql.so.2.0.0
+gcc -shared  *.lo  -L/usr/lib/mysql -Wl,-Bstatic -lmysqlclient -lz -Wl,-Bdynamic -ldl -lm -lcrypt -lnsl -Wl,-znodelete -Wl,-soname -Wl,libnss_mysql.so.2 -o .libs/libnss_mysql.so.2.0.0
 
 %install
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT

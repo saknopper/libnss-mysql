@@ -340,6 +340,7 @@ _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
   DSRETURN (NSS_SUCCESS)
 }
 
+/* Thanks to Clement Laforet for most of this */
 #if defined(__FreeBSD__)
 
 NSS_METHOD_PROTOTYPE(__nss_compat_getpwnam_r);

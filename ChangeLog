@@ -1,5 +1,21 @@
 # $Id$
 
+0.9 - 1.0
+
+    * NEW:    FreeBSD (5.1+) is now supported
+
+    * CHANGE: Solaris makes use of two new columns in the getpw* routines
+              See the file UPGRADING for details
+
+    * CHANGE: Installation of libraries is handled better; as a result, a 
+              'make uninstall' will remove libnss-mysql (except config files)
+
+    * CHANGE: -Bgroup and --allow-shlib-undefined linker options are no longer
+              used.  Hopefully these really aren't necessary anymore
+
+    * CHANGE: Updated RPM SPEC file and removed the linker options above.
+              Minor shortcuts added
+
 0.8 - 0.9
 
     * NEW:    Several new sample database and configuration files

@@ -4,6 +4,14 @@ $Id$
 *** users, such as ssh, nscd, cron, etc.  It's best if you simply reboot
 *** unless you know the complete list of daemons to restart.
 
+0.9 -> 1.0
+    * If you're running anything other than Linux, you *MUST* update your
+      /etc/libnss-mysql.cfg file!  Each operating system now has their own
+      independant password fields.  You'll need to add some columns to your
+      queries; Solaris adds 'age' and 'comment'.  This is the first version
+      that supports FreeBSD so there's no upgrade concerns here.  See the
+      sample configs for details on where to put the new columns.
+
 0.8 -> 0.9
     * IMPORTANT: The filenames for the configuration files has changed.
       There's also been a slight change inside the configuration files.
