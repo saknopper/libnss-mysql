@@ -1,7 +1,5 @@
-Add debugging to nss_mysql.c (at least D_FUNCTION)
 develop tests - including multi-threaded
 Better MySQL autoconf find/check
-Allow syslog config from config file
 Reconnect upon euid change
-better connect code
+better connect/query code (esp WRT failover & errors etc)
 Solaris support
