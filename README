@@ -10,13 +10,17 @@ For the impatient:
         ./configure
         make
         make install
-    You'll need to make sure you system sees the library you just
-    installed into /usr/local/lib (unless you changed the destination)
         Linux:
+            You'll need to make sure you system sees the library you just
+            installed into /usr/local/lib (unless you changed the destination).
             Add /usr/local/lib to /etc/ld.so.conf and run /sbin/ldconfig.
             Make sure you do this *after* you've installed the library.
         Solaris:
-            ...
+            You shouldn't need to do anything special.  The library gets
+            installed as /usr/lib/nss_mysql.so.1 and the system will
+            automatically use it (assuming you set up nsswitch.conf - see
+            below)
+            
     Edit nss_mysql.cfg and nss_mysql_root.cfg (/usr/local/etc)
     Edit /etc/nsswitch.conf and add 'mysql' to passwd/shadow/group
     Enjoy!
@@ -59,15 +63,19 @@ Debugging:
         Linux:   edited /etc/ld.so.conf, run 'ldconfig', and edited
                  /etc/nsswitch.conf
         Solaris:
-                ...
+                Edited /etc/nsswitch.conf
 Solaris support:
-    Coming soon.  It actually compiles on my Solaris 8 x86 box, but
-    I have NOT implemented the interface Solaris requires yet.
-
+    This is working on my Solaris8/x86 box.  It compiles on a Solaris8/sparc
+    box but I don't have the root privs needed to test it.  If someone's got
+    a place I can test this on, I'd be very appreciative.
 
 Tested with:
-    Corel (1.something - Debian 2.1) and MySQL 3.21.33b
+    Corel (1.2 - Debian 2.1) and MySQL 3.21.33b
     RedHat 6.1 and MySQL 3.20.something
     RedHat 7.1 and MySQL 3.23.49a
     RedHat 7.2 and MySQL 3.23.49a
     RedHat 7.3 and MySQL 3.23.49a
+
+    Solaris 8/x86, MySQL 3.23.52, gcc 3.1
+
+
