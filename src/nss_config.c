@@ -29,156 +29,10 @@ static const char rcsid[] =
 
 conf_t  conf = CONF_INITIALIZER;
 
-typedef unsigned char nbyte;
-#define FOFS(x,y) ((int)&(((x *)0)->y))     /* Get Field OFfSet */
-
-/*
- * Parse types for _nss_mysql_lis.  This is how I accomplish
- * loading data into a struct without referencing the structure's members
- */
-typedef enum {
-    FT_NONE,
-    FT_PCHAR,    /* (char *) */
-    FT_UINT,     /* (unsigned int) */
-} ftype_t;
-
-/*
- * Mostly used to use a string to describe where in a structure something
- * goes.  I overload it's purpose in a couple places though
- */
 typedef struct {
     char    *name;
-    int     ofs;
-    int     type;
-} field_info_t;
-
-/*
- * Map config keys to the struct offsets to load their values into
- */
-static field_info_t server_fields[] =
-{
-    {"host",     FOFS (sql_server_t, host),             FT_PCHAR},
-    {"port",     FOFS (sql_server_t, port),             FT_UINT},
-    {"socket",   FOFS (sql_server_t, socket),           FT_PCHAR},
-    {"username", FOFS (sql_server_t, username),         FT_PCHAR},
-    {"password", FOFS (sql_server_t, password),         FT_PCHAR},
-    {"database", FOFS (sql_server_t, database),         FT_PCHAR},
-    {"timeout",  FOFS (sql_server_t, options.timeout),  FT_UINT},
-    {"compress", FOFS (sql_server_t, options.compress), FT_UINT},
-    {"initcmd",  FOFS (sql_server_t, options.initcmd),  FT_PCHAR},
-    {NULL}
-};
-
-static field_info_t query_fields[] =
-{
-    {"getpwnam",  FOFS (sql_query_t, getpwnam),  FT_PCHAR},
-    {"getpwuid",  FOFS (sql_query_t, getpwuid),  FT_PCHAR},
-    {"getspnam",  FOFS (sql_query_t, getspnam),  FT_PCHAR},
-    {"getpwent",  FOFS (sql_query_t, getpwent),  FT_PCHAR},
-    {"getspent",  FOFS (sql_query_t, getspent),  FT_PCHAR},
-    {"getgrnam",  FOFS (sql_query_t, getgrnam),  FT_PCHAR},
-    {"getgrgid",  FOFS (sql_query_t, getgrgid),  FT_PCHAR},
-    {"getgrent",  FOFS (sql_query_t, getgrent),  FT_PCHAR},
-    {"memsbygid", FOFS (sql_query_t, memsbygid), FT_PCHAR},
-    {"gidsbymem", FOFS (sql_query_t, gidsbymem), FT_PCHAR},
-    {NULL}
-};
-
-/*
- * The various sections (IE '[server]') of the config file
- */
-typedef enum
-{
-  SECTION_INVALID = -1,
-  SECTION_SERVER,
-  SECTION_QUERIES
-} sections_t;
-
-/* I'm overloading the 'purpose' of field_info_t here ... */
-static field_info_t section_info[] =
-{
-    {"server",    0, SECTION_SERVER},
-    {"queries",   0, SECTION_QUERIES},
-    {NULL}
-};
-
-/*
- * "translate" NAME to a number using FIELDS
- * IE translate "server" to SECTION_SERVER using SECTION_INFO above
- */
-static int
-_nss_mysql_name_to_id (field_info_t *fields, const char *name)
-{
-  DN ("_nss_mysql_name_to_id")
-  field_info_t *f;
-
-  DENTER
-  for (f = fields; f->name; f++)
-    {
-      if (strcmp (name, f->name) == 0)
-        DIRETURN (f->type)
-    }
-  DIRETURN (-1)
-}
-
-/*
- * Load Into Structure - Take KEY/VAL and, using FIELDS as a guide for
- * what goes where, load VAL into the appropriate spot that KEY points
- * to.  Basically a generic way to assign values of any type to the
- * right spot in a struct.
- */
-static NSS_STATUS
-_nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
-                void *structure)
-{
-  DN ("_nss_mysql_lis")
-  field_info_t *f;
-  nbyte *b;
-  int size;
-  void *ptr;
-
-  DENTER
-  for (f = fields; f->name; f++)
-    {
-      if (strcmp (key, f->name) == 0)
-        {
-          b = (nbyte *) structure;
-          switch (f->type)
-            {
-            case FT_PCHAR:
-              size = strlen (val) + 1;
-              /* Set 'ptr' to addr of string */
-              ptr = (void *) *(uintptr_t *) (b + f->ofs);
-              /* allocate/reallocate space for incoming string */
-              if ((ptr = _nss_mysql_realloc (ptr, size)) == NULL)
-                DSRETURN (NSS_UNAVAIL)
-              /* Set the pointer in structure to new pointer */
-              *(uintptr_t *) (b + f->ofs) = (uintptr_t) ptr;
-              /* Copy value into newly-alloc'ed area */
-              memcpy (ptr, val, size);
-              break;
-            case FT_UINT:
-              *(unsigned int *) (b + f->ofs) = (unsigned int) atoi (val);
-              break;
-            }
-          DSRETURN (NSS_SUCCESS)
-        }
-    }
-  DSRETURN (NSS_SUCCESS)
-}
-
-/*
- * Return NTRUE if the current line starts with '[' and has a ']' in it
- */
-static nboolean _nss_mysql_is_bracketed (char *line)
-{
-  DN ("_nss_mysql_is_bracketed")
-
-  DENTER
-  if (line && *line == '[' && index (line, ']'))
-    DBRETURN (ntrue)
-  DBRETURN (nfalse)
-}
+    char    **ptr;
+} config_info_t;
 
 /*
  * Load KEY and VAL with the next key/val pair (if any) from the file pointed
@@ -209,12 +63,6 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
       if (line[0] == '#')
         continue;    /* skip comments */
 
-      if (_nss_mysql_is_bracketed (line))
-        {
-          fseek (fh, previous_fpos, SEEK_SET);
-          break;
-        }
-
       ccil = line;
       cur_key = ccil;
       ccil += strcspn (ccil, "\n\r \t");
@@ -238,56 +86,6 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
 }
 
 /*
- * Step through FH until a valid section delimeter is found
- */
-static NSS_STATUS
-_nss_mysql_get_section (FILE *fh, int *section)
-{
-  DN ("_nss_mysql_get_section")
-  char line[MAX_LINE_LEN];
-  char *p;
-
-  DENTER
-  while (fgets (line, sizeof (line), fh) != NULL)
-    {
-      if (_nss_mysql_is_bracketed (line) == ntrue)
-        {
-          p = index (line, ']');
-          *p = '\0';
-          p = line;
-          p++;
-          *section = _nss_mysql_name_to_id (section_info, p);
-          if (*section != SECTION_INVALID)
-              DSRETURN (NSS_SUCCESS)
-        }
-    }
-  DSRETURN (NSS_NOTFOUND)
-}
-
-/*
- * Step through FH, loading key/val pairs, until EOF or a new section is
- * encountered
- */
-static NSS_STATUS
-_nss_mysql_load_section (FILE *fh, void *structure, field_info_t *fields)
-{
-  DN ("_nss_mysql_load_section")
-  char key[MAX_KEY_LEN];
-  char val[MAX_LINE_LEN];
-  int to_return;
-
-  DENTER
-  while (_nss_mysql_next_key (fh, key, sizeof (key), val, sizeof (val))
-          == NSS_SUCCESS)
-    {
-      to_return = _nss_mysql_lis (key, val, fields, structure);
-      if (to_return != NSS_SUCCESS)
-        DSRETURN (to_return)
-    }
-  DSRETURN (NSS_SUCCESS)
-}
-
-/*
  * Open FILE and load up the config data inside it
  */
 static NSS_STATUS
@@ -297,6 +95,34 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
   FILE *fh;
   int section;
   int to_return;
+  char key[MAX_KEY_LEN];
+  char val[MAX_LINE_LEN];
+  size_t size;
+  config_info_t *c;
+
+  config_info_t config_fields[] =
+  {
+      {"host",      &conf.sql.server.host},
+      {"port",      &conf.sql.server.port},
+      {"socket",    &conf.sql.server.socket},
+      {"username",  &conf.sql.server.username},
+      {"password",  &conf.sql.server.password},
+      {"database",  &conf.sql.server.database},
+      {"timeout",   &conf.sql.server.options.timeout},
+      {"compress",  &conf.sql.server.options.compress},
+      {"initcmd",   &conf.sql.server.options.initcmd},
+      {"getpwnam",  &conf.sql.query.getpwnam},
+      {"getpwuid",  &conf.sql.query.getpwuid},
+      {"getspnam",  &conf.sql.query.getspnam},
+      {"getpwent",  &conf.sql.query.getpwent},
+      {"getspent",  &conf.sql.query.getspent},
+      {"getgrnam",  &conf.sql.query.getgrnam},
+      {"getgrgid",  &conf.sql.query.getgrgid},
+      {"getgrent",  &conf.sql.query.getgrent},
+      {"memsbygid", &conf.sql.query.memsbygid},
+      {"gidsbymem", &conf.sql.query.gidsbymem},
+      {NULL}
+  };
 
   DENTER
   if ((fh = fopen (file, "r")) == NULL)
@@ -307,30 +133,22 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
         DSRETURN (NSS_UNAVAIL)
     }
   D ("%s: Loading: %s", FUNCNAME, file);
-  while ((_nss_mysql_get_section (fh, &section)) == NSS_SUCCESS)
+
+  while (_nss_mysql_next_key (fh, key, MAX_KEY_LEN, val, MAX_LINE_LEN)
+          == NSS_SUCCESS)
     {
-      switch (section)
+      for (c = config_fields; c->name; c++)
         {
-        case SECTION_SERVER:
-          to_return = _nss_mysql_load_section (fh, &conf.sql.server,
-                                               server_fields);
-          if (to_return != NSS_SUCCESS)
+          if (strcmp (key, c->name) == 0)
             {
-              fclose (fh);
-              DSRETURN (to_return)
+              size = strlen (val) + 1;
+              if ((*c->ptr = _nss_mysql_realloc (*c->ptr, size)) == NULL)
+                DSRETURN (NSS_UNAVAIL)
+              memcpy (*c->ptr, val, size);
             }
-          break;
-        case SECTION_QUERIES:
-          to_return = _nss_mysql_load_section (fh, &conf.sql.query,
-                                               query_fields);
-          if (to_return != NSS_SUCCESS)
-            {
-              fclose (fh);
-              DSRETURN (to_return)
-            }
-          break;
         }
     }
+
   fclose (fh);
   DSRETURN (NSS_SUCCESS)
 }
@@ -349,14 +167,6 @@ _nss_mysql_validate_config (void)
   DBRETURN (ntrue)
 }
 
-static void
-_nss_mysql_set_defaults (void)
-{
-  DN ("_nss_mysql_set_defaults")
-  conf.sql.server.options.timeout = DEF_TIMEOUT;
-  DEXIT
-}
-
 /*
  * Load main and, if appropriate, root configs.  Set some defaults.
  * Set CONF->VALID to NTRUE and return NSS_SUCCESS if all goes well.
@@ -372,7 +182,6 @@ _nss_mysql_load_config (void)
     DSRETURN (NSS_SUCCESS)
 
   memset (&conf, 0, sizeof (conf));
-  _nss_mysql_set_defaults ();
   to_return = _nss_mysql_load_config_file (MAINCFG, ntrue);
   if (to_return != NSS_SUCCESS)
     DSRETURN (to_return)

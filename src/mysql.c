@@ -141,12 +141,17 @@ static void
 _nss_mysql_set_options (sql_server_t *server)
 {
   DN ("_nss_mysql_set_options")
+  unsigned int timeout;
 
   DENTER
-  D ("%s: Setting connect timeout to %d", FUNCNAME, server->options.timeout);
+  if (server->options.timeout)
+    timeout = (unsigned int) atoi (server->options.timeout);
+  else
+    timeout = DEF_TIMEOUT;
+  D ("%s: Setting connect timeout to %d", FUNCNAME, timeout);
   mysql_options(&ci.link, MYSQL_OPT_CONNECT_TIMEOUT,
-                (char *)&server->options.timeout);
-  if (server->options.compress)
+                (char *)&timeout);
+  if (server->options.compress && atoi (server->options.compress))
     {
       D ("%s: Setting compressed protocol", FUNCNAME);
       mysql_options(&ci.link, MYSQL_OPT_COMPRESS, 0);
@@ -207,6 +212,7 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
   DN ("_nss_mysql_connect_sql")
   int retval;
   sql_server_t *server = &conf.sql.server;
+  unsigned int port;
 
   DENTER
 
@@ -231,9 +237,13 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
 
   _nss_mysql_set_options (server);
   D ("%s: Connecting to %s", FUNCNAME, server->host);
+  if (server->port)
+    port = atoi (server->port);
+  else
+    port = 0;
   if (mysql_real_connect (&ci.link, server->host, server->username,
-                          server->password, server->database, server->port,
-                          server->socket, 0))
+                          server->password, server->database,
+                          port, server->socket, 0))
     {
       if (_nss_mysql_save_socket_info () != RETURN_SUCCESS )
         {

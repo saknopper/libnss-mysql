@@ -201,14 +201,14 @@ typedef struct {
 } sql_query_t;
 
 typedef struct {
-    unsigned int timeout;        /* Connect timeout in seconds */
-    unsigned int compress;       /* Use compressed MySQL protocol? */
+    char         *timeout;        /* Connect timeout in seconds */
+    char         *compress;       /* Use compressed MySQL protocol? */
     char         *initcmd;       /* Send to server at time of connect */
 } server_options_t;
 
 typedef struct {
     char             *host;      /* SQL Server to connect to */
-    unsigned int     port;       /* SQL port to connect to */
+    char             *port;       /* SQL port to connect to */
     char             *socket;    /* SQL socket path to use */
     char             *username;  /* Username to connect as */
     char             *password;  /* Password to connect with */
