@@ -1,5 +1,15 @@
 # $Id$
 
+0.6 - 0.7
+
+    * BUGFIX: re-implemented uid check to make sure getsp* routines
+              couldn't be called by non-root users (which would create
+              syslog message regarding failed query attempts).
+
+    * BUGFIX: Fix nscd coredump under Solaris.  Any programs that
+              tried to access pw->pw_comment and/or pw->pw_age would have
+              suffered the same fate.
+
 0.5 - 0.6
 
     * NEW:    Support for Sun Workshop compiler
