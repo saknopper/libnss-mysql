@@ -47,6 +47,8 @@
 #include <stdint.h>
 #endif
 
+#include <stdlib.h> /* realloc(), free(), malloc(), atoi() */
+
 #include <pthread.h>
 
 #ifdef HAVE_NSS_H
@@ -60,8 +62,11 @@ typedef nss_status_t NSS_STATUS;
 #define NSS_ARGS(args)  ((nss_XbyY_args_t *)args)
 #endif
 
-#define MAX_LINE_LEN        1024        /* Max line length in config file */
-#define MAX_KEY_LEN         128         /* Max length of a key in cfg file */
+#define MAX_LINE_SIZE       128         /* Max line length in config file */
+#define MAX_QUERY_SIZE      2048        /* Max size of SQL query */
+#define MAX_NAME_SIZE       128         /* Max username/groupname size */
+#define MAX_KEY_SIZE        128         /* Max length of a key in cfg file */
+#define MAX_VAL_SIZE        1024        /* Max length of a val in cfg file */
 #define MAX_QUERY_ATTEMPTS  3           /* # of query retries */
 
 /* Use these as defaults until they're overridden via the config file */
@@ -109,6 +114,7 @@ void _nss_mysql_debug (char *fmt, ...);
     return (r);                                                             \
   }
 #define DPRETURN(r) { D ("%s: EXIT (%p)", FUNCNAME, r); return (r); }
+#define DRETURN { D ("%s: EXIT", FUNCNAME); return; }
 #define DEXIT D ("%s: EXIT", FUNCNAME);
 #else
 #define D
@@ -119,6 +125,7 @@ void _nss_mysql_debug (char *fmt, ...);
 #define DFRETURN(r) return (r);
 #define DBRETURN(r) return (r);
 #define DSRETURN(r) return (r);
+#define DRETURN return;
 #define DEXIT
 #endif
 
@@ -196,23 +203,23 @@ typedef struct {
     char        *getgrnam;
     char        *getgrgid;
     char        *getgrent;
-    char        *gidsbymem;     /* list of gids a username belongs to */
-    char        *memsbygid;     /* list of members a gid has */
+    char        *gidsbymem;       /* list of gids a username belongs to */
+    char        *memsbygid;       /* list of members a gid has */
 } sql_query_t;
 
 typedef struct {
-    char         *timeout;        /* Connect timeout in seconds */
-    char         *compress;       /* Use compressed MySQL protocol? */
-    char         *initcmd;       /* Send to server at time of connect */
+    char        *timeout;         /* Connect timeout in seconds */
+    char        *compress;        /* Use compressed MySQL protocol? */
+    char        *initcmd;         /* Send to server at time of connect */
 } server_options_t;
 
 typedef struct {
-    char             *host;      /* SQL Server to connect to */
-    char             *port;       /* SQL port to connect to */
-    char             *socket;    /* SQL socket path to use */
-    char             *username;  /* Username to connect as */
-    char             *password;  /* Password to connect with */
-    char             *database;  /* SQL Database to open */
+    char        *host;            /* SQL Server to connect to */
+    char        *port;            /* SQL port to connect to */
+    char        *socket;          /* SQL socket path to use */
+    char        *username;        /* Username to connect as */
+    char        *password;        /* Password to connect with */
+    char        *database;        /* SQL Database to open */
     server_options_t options;
 } sql_server_t;
 
@@ -276,8 +283,6 @@ NSS_STATUS _nss_mysql_escape_string (char *to, const char *from,
 #define _nss_mysql_num_fields(m) mysql_num_fields (m)
 
 /* memory.c */
-void _nss_mysql_free(void *ptr);
-void *_nss_mysql_malloc(size_t size);
 void *_nss_mysql_realloc (void *ptr, size_t size);
 void *_nss_mysql_safe_memset (void *s, int c, size_t n);
 
