@@ -404,21 +404,7 @@ _nss_mysql_set_defaults (void)
 
   conf.global.retry = DEF_RETRY;
   for (i = 0; i < MAX_SERVERS; i++)
-    {
-      conf.sql.server[i].options.timeout = DEF_TIMEOUT;
-      if (!conf.sql.server[i].host)
-        conf.sql.server[i].host = strdup ("");
-      if (!conf.sql.server[i].socket)
-        conf.sql.server[i].socket = strdup ("");
-      if (!conf.sql.server[i].username)
-        conf.sql.server[i].username = strdup ("");
-      if (!conf.sql.server[i].password)
-        conf.sql.server[i].password = strdup ("");
-      if (!conf.sql.server[i].database)
-        conf.sql.server[i].database = strdup ("");
-      if (!conf.sql.server[i].options.initcmd)
-        conf.sql.server[i].options.initcmd = strdup ("");
-    }
+    conf.sql.server[i].options.timeout = DEF_TIMEOUT;
   DEXIT
 }
 
