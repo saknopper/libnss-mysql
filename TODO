@@ -1,8 +1,8 @@
 develop tests - including multi-threaded
 Better MySQL autoconf find/check
 Reconnect upon euid change
-better connect/query code (esp WRT failover & errors etc)
 Solaris support
-Make my own, non-destructive, strtok replacement
-Create xfree/xmalloc/etc functions with logging
+Make my own, non-destructive, strtok replacement ?
 Align pointers stored in buffer
+Escape the username with mysql_real_escape. 
+Better/more generic parser
