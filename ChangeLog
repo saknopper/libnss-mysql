@@ -2,11 +2,29 @@
 
 2002-05-29  Ben Goodwin  <ben@localhost>
 
-	* sample/nss_mysql_root.cfg:
-	Added missing [server] entry
+	* nss_support.c: Formatting
 
-	* Makefile.am, Makefile.in:
-	Additional file to dist
+	* nss_mysql.h: Include nss_common.h.  HAVE_UUFUNCUU renamed
+
+	* nss_mysql.c: Formatting.  Call the close function to free result
+      instead of duplicating the code
+
+	* nss_config.c: Formatting
+
+	* configure, configure.in: Added license and revision info.  Version
+      updated to 0.2d (in-development)
+
+	* config.h.in, acconfig.h: Better name for what is now HAVE___FUNC__
+
+	* Makefile.am, Makefile.in: License and revision info
+
+	* TODO: Let everyone know how I plan to take over the world
+
+	* AUTHORS, ChangeLog, NEWS, README: First-pass
+
+	* sample/nss_mysql_root.cfg: Added missing [server] entry
+
+	* Makefile.am, Makefile.in: Additional file to dist
 
 	* FAQ: New file.
 
@@ -14,23 +32,23 @@
 
 2002-05-28  Ben Goodwin  <ben@localhost>
 
-	* Makefile.am, Makefile.in:
-	Specify files in the sample directory to keep 'make dist' from adding
-	CVS files to the distfile
+    * *: Tag/Release 0.1
+
+	* Makefile.am, Makefile.in: Specify files in the sample directory to
+      keep 'make dist' from adding CVS files to the distfile
 
 	* configure.in, configure: Added CVS revision tag
 
-	* Makefile.in:
-	This should have been 1.1.1.1; Makefile.am was edited but automake was
-	neve run.  Oops ..
+	* Makefile.in: This should have been 1.1.1.1; Makefile.am was edited
+      but automake was never run.  Oops ..
 
-	* nss_mysql.h, nss_support.c, nss_structures.c:
-	Added license and rcsid string
+	* nss_mysql.h, nss_support.c, nss_structures.c: Added license and rcsid
+      string
 
-	* nss_mysql.c:
-	Added license and rcsid string.  Fixed some formatting issues
+	* nss_mysql.c: Added license and rcsid string.  Fixed some formatting
+      issues
 
 	* nss_config.c: Added license and rcsid string
 
-	* - : Initial import of nss-mysql
+	* *: Initial import of nss-mysql
 
