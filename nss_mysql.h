@@ -34,6 +34,7 @@
 #include <mysql.h>
 #endif
 #include <sys/socket.h>
+#include <errno.h>
 
 #ifdef HAVE___FUNC__
 #define FNAME __func__
@@ -63,8 +64,6 @@ typedef enum
 #define MAX_SERVERS     3               /* Max # of configured SQL servers */
 #define PADSIZE         64              /* malloc this much more for queries
                                            to allow for format expansion */
-#define SYSLOG_FACILITY LOG_AUTHPRIV
-#define SYSLOG_PRIORITY LOG_ALERT
 
 #define FOFS(x,y) ((int)&(((x *)0)->y)) /* Get field offset */
 #define FSIZ(x,y) (sizeof(((x *)0)->y)) /* Get field size */
@@ -104,6 +103,7 @@ typedef enum {
     FT_PPCHAR,   /* char ** Pointer to pointer to char (unallocated) */
     FT_UINT,
     FT_ULONG,
+    FT_SYSLOG,   /* incoming string, convert to an integer */
 } ftype_t;
 
 typedef struct {
@@ -140,6 +140,8 @@ typedef struct {
 
 typedef struct {
     int             retry;
+    int             syslog_facility;
+    int             syslog_priority;
 } global_conf_t;
 
 typedef struct {
@@ -171,9 +173,9 @@ void _nss_mysql_debug(char *function, int flags, char *fmt, ...);
 NSS_STATUS _nss_mysql_close_sql (state_t *state, int flags);
 NSS_STATUS _nss_mysql_init(conf_t *conf, state_t *state);
 NSS_STATUS _nss_mysql_run_query(conf_t conf, state_t *state);
-NSS_STATUS _nss_mysql_load_result(void *result, char *buffer,
-                                       size_t buflen, state_t *state,
-                                       field_info_t *fields, int idx);
+NSS_STATUS _nss_mysql_load_result(void *result, char *buffer,size_t buflen,
+                                  state_t *state, field_info_t *fields,
+                                  int idx);
 void _nss_mysql_log_error (char *function, char *fmt, ...);
 NSS_STATUS _nss_mysql_load_config (conf_t *conf);
 
