@@ -189,9 +189,7 @@ _nss_mysql_try_server (MYSQL_RES **mresult)
   server->status.up = nfalse;
 
   _nss_mysql_set_options (server, &flags);
-  D ("%s: Connecting to %s:%s@%s, %u %s", FUNCNAME, server->username,
-                                          server->password, server->host,
-                                          server->port, server->socket);
+  D ("%s: Connecting to %s", FUNCNAME, server->host);
 #ifdef HAVE_MYSQL_REAL_CONNECT /* comes from mysql.h, NOT config.h! */
 #if MYSQL_VERSION_ID >= 32200  /* ditto */
   if (mysql_real_connect (&(ci.link), server->host, server->username,
