@@ -171,7 +171,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
   members[num_rows] = NULL;
 
   /* Set gr->gr_mem to point to start of our pointer-list */
-  (char *)gr->gr_mem = (uintptr_t)buffer;
+  gr->gr_mem = (char **) (uintptr_t)buffer;
 
   return (NSS_SUCCESS);
 }
