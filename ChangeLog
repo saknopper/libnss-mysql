@@ -1,5 +1,25 @@
 # $Id$
 
+2002-08-20  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * sample/nss_mysql.cfg: Back to %d (well, %u) for numerical formats.
+
+    * nss_main.c: Removed all NSS API code and spread out to files below.
+
+    * lookup.c, lookup.h, mysql-grp.c, mysql-pwd.c, mysql-spwd.c:
+      NEW FILES.  Moved most of the NSS API code out of nss_main.c to these
+      files.  Also introduced working Solaris pieces.
+
+    * nss_mysql.h: moved pthread stuff here. Added include for nss_dbdefs.h
+      for Solaris (nss_common.h).  Added NSS_ARGS macro (ripped from padl's
+      nss-ldap project).  New source file (lookup.c) -> function proto's.
+
+    * Makefile.am, Makefile.in: Several files added to project
+
+    * mysql.c: _nss_mysql_run_query(): Don't check for valid query anymore
+
+    * nss_mysql.h, nss_main.c: (const char *) for debug routine's FUNCTION arg
+
 2002-08-19  Ben Goodwin  <cinergi@users.sourceforge.net>
 
     * mysql.c: _nss_mysql_run_query(): Check for valid query ONCE before
