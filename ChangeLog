@@ -1,5 +1,19 @@
 # $Id$
 
+0.7 - 0.7a
+
+    * CHANGE: Don't send syslog messages to *.EMERG (causing console
+              spam) - send them to *.ALERT
+
+    * BUGFIX: Detect various linker options.  Important to get around
+              inability to compile on slightly older Linux systems
+              (IE RedHat 7.1 - 7.2).  Also fixes broken compile on
+              even older systems (RedHat 7.0, Corel 1.2/Debian 2.1)
+
+    * BUGFIX: Fixed compiler warnings when using older versions of MySQL
+
+    * BUGFIX: Properly detect MySQL 4 libraries
+
 0.6 - 0.7
 
     * NEW:    Re-added debugging.  You can send debug output to syslog,
