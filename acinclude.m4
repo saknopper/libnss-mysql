@@ -19,11 +19,14 @@ dnl $Id$
 
 AC_DEFUN([FIND_MYSQL],[
 
-headerlist="$MYSQL_INCLUDE_DIR \
+headerlist="$with_mysql_inc \
             /usr/include \
             /usr/include/mysql \
             /usr/local/include \
-            /usr/local/include/mysql"
+            /usr/local/include/mysql \
+            /usr/local/mysql/include \
+            /opt/local/include \
+            /opt/local/mysql/include"
 
 for f in $headerlist; do
     if test -f "$f/mysql.h"
@@ -35,16 +38,18 @@ done
 
 if test -n "$MYSQL_INCLUDE_DIR"; then
     CPPFLAGS="-I $MYSQL_INCLUDE_DIR $CPPFLAGS"
-    export CPPFLAGS
 fi
 
-liblist="$MYSQL_LIB_DIR \
+liblist="$with_mysql_lib \
          /usr/lib \
          /usr/local/lib \
-         /usr/local/lib/mysql"
+         /usr/local/lib/mysql \
+         /usr/local/mysql/lib \
+         /opt/local/lib \
+         /opt/local/mysql/lib"
 
 for f in $liblist; do
-    if test -f "$f/libmysqlclient.so"
+    if test -f "$f/libmysqlclient.so" -o -f "$f/libmysqlclient.a"
     then
         MYSQL_LIB_DIR=$f
         break
@@ -52,8 +57,7 @@ for f in $liblist; do
 done
 
 if test -n "$MYSQL_LIB_DIR"; then
-    LIBS="-L$MYSQL_LIB_DIR $LIBS"
-    export LIBS
+    LDFLAGS="-L$MYSQL_LIB_DIR $LDFLAGS"
 fi
 
 
