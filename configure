@@ -1148,7 +1148,7 @@ fi
 
 PACKAGE=libnss_mysql
 
-VERSION=0.3dev
+VERSION=0.3
 
 if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
   { echo "configure: error: source directory already configured; run "make distclean" there first" 1>&2; exit 1; }
