@@ -1,6 +1,6 @@
 Summary: NSS library for MySQL.
 Name: libnss-mysql
-Version: 1.1
+Version: 1.2
 Release: 1
 Source0: http://prdownloads.sourceforge.net/libnss-mysql/libnss-mysql-%{version}.tar.gz
 URL: http://libnss-mysql.sourceforge.net
@@ -42,6 +42,9 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %doc sample
 
 %changelog
+* Sun Mar 28 2004 Ben Goodwin <cinergi@users.sourceforge.net> 1.2-1
+- Update to 1.2
+
 * Tue Mar 02 2004 Ben Goodwin <cinergi@users.sourceforge.net> 1.1-1
 - s#exports.linux#.libs/libnss_mysql.ver#
 - Oops, libs/*.o not *.lo
