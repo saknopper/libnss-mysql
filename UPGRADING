@@ -15,7 +15,9 @@ $Id$
 
     * Only one server can be defined in your configuration files.
       Delete any [secondary] sections and rename your [primary] section
-      to [server]
+      to [server].  The [global] section no longer has any meaning.  Remove
+      it and any entries (IE 'retry') it has.  See the sample configuration
+      files for more information
 
     * A "make install" and RPM upgrades will NOT rename your existing
       configuration files.  They will install new default ones under
