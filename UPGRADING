@@ -4,6 +4,9 @@ $Id$
 *** users, such as ssh, nscd, cron, etc.  It's best if you simply reboot
 *** unless you know the complete list of daemons to restart.
 
+1.1 -> 1.2
+    * This is a maintenance release.  No changes are needed on your part.
+
 1.0 -> 1.1
     * This is a maintenance release.  No changes are needed on your part.
       If compiling from source, you should note that the new 'configure'
