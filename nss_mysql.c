@@ -29,7 +29,6 @@ static const char rcsid[] =
 #include <shadow.h>
 #include <grp.h>
 #include <pthread.h>
-#include <stdlib.h>
 #include <stdarg.h>
 
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -45,7 +44,7 @@ conf_t  conf = { 0, 0, { DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
         {                                                                     \
           if (query_list[i])                                                  \
             {                                                                 \
-              free (query_list[i]);                                           \
+              xfree (query_list[i]);                                          \
               query_list[i] = NULL;                                           \
             }                                                                 \
         }                                                                     \
@@ -85,7 +84,7 @@ conf_t  conf = { 0, 0, { DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
         if (!conf.sql[i].query.funcname)                                      \
           continue;                                                           \
         size = strlen (conf.sql[i].query.funcname) + 1 + PADSIZE;             \
-        query_list[i] = malloc (size);                                        \
+        query_list[i] = xmalloc (size);                                       \
         if (query_list[i] == NULL)                                            \
           {                                                                   \
             _nss_mysql_free_query_list;                                       \
@@ -163,8 +162,8 @@ conf_t  conf = { 0, 0, { DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
           {                                                                   \
             if (!conf.sql[i].query.get##type)                                 \
               continue;                                                       \
-            size = strlen (conf.sql[i].query.get##type) + 1 + PADSIZE;        \
-            query_list[i] = malloc (size);                                    \
+            size = strlen (conf.sql[i].query.get##type) + 1;                  \
+            query_list[i] = xmalloc (size);                                   \
             if (query_list[i] == NULL)                                        \
               {                                                               \
                 _nss_mysql_free_query_list;                                   \
@@ -191,15 +190,11 @@ void
 _nss_mysql_log (int priority, char *fmt, ...)
 {
   va_list ap;
-  static char *string = NULL;
+  char string[2000];
 
   if (priority > conf.global.syslog_priority)
     return;
 
-  if (string == NULL)
-    string = malloc (2000);
-  if (string == NULL)
-    return;
   va_start (ap, fmt);
   vsnprintf (string, 2000, fmt, ap);
   va_end (ap);
@@ -212,7 +207,7 @@ void
 _nss_mysql_debug (char *function, int flags, char *fmt, ...)
 {
   va_list ap;
-  static char *string;
+  char string[2000];
 
   if (conf.global.syslog_priority < LOG_DEBUG)
     return;
@@ -220,10 +215,6 @@ _nss_mysql_debug (char *function, int flags, char *fmt, ...)
   if (!(flags & conf.global.debug_flags))
     return;
 
-  if (string == NULL)
-    string = malloc (2000);
-  if (string == NULL)
-    return;
   snprintf (string, 2000, "%s: ", function);
   va_start (ap, fmt);
   vsnprintf (string + strlen (string), 2000, fmt, ap);
