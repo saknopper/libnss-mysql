@@ -177,22 +177,20 @@ _nss_mysql_init (void)
 
 /*
  * Syslog a message at PRIORITY.
- * Do *NOT* change this to maintain persistent connection - it will fail
- * under certain circumstances where programs using this library open and
- * close their own file descriptors.  I save the MySQL socket information
- * for later comparison for the same reason.
+ * Do *NOT* openlog/closelog as you'll mess up calling programs that
+ * are syslogging their own stuff.
  */
 void
 _nss_mysql_log (int priority, char *fmt, ...)
 {
   DN ("_nss_mysql_log")
   va_list ap;
+  char msg[1000];
 
-  openlog (PACKAGE, OPENLOG_OPTIONS, SYSLOG_FACILITY);
   va_start (ap, fmt);
-  vsyslog (priority, fmt, ap);
+  vsnprintf (msg, 1000, fmt, ap);
+  syslog (priority, "%s: %s", PACKAGE, msg);
   va_end (ap);
-  closelog ();
 }
 
 #ifdef HAVE_NSS_COMMON_H
