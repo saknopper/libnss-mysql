@@ -19,7 +19,7 @@
 /*
  * All the NSS API functions should go in here.  There are a couple
  * support routines in here, too (which require access to the CONF
- * global variable
+ * global variable)
  */
 
 static const char rcsid[] =
@@ -43,11 +43,55 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
 
+/* Split up some reused code into some handy #define's ... */
+#define PRECHECK(restrict)                                                    \
+  if (restrict && geteuid () != 0)                                            \
+    function_return (NSS_NOTFOUND);                                           \
+                                                                              \
+  if (!result)                                                                \
+    {                                                                         \
+      _nss_mysql_log (LOG_CRIT, "%s was passed a NULL RESULT", FNAME);        \
+      function_return (NSS_UNAVAIL);                                          \
+    }                                                                         \
+  if (!buffer)                                                                \
+    {                                                                         \
+      _nss_mysql_log (LOG_CRIT, "%s was passed a NULL BUFFER", FNAME);        \
+      function_return (NSS_UNAVAIL);                                          \
+    }
+
+#define INITBACKEND                                                           \
+  if (_nss_mysql_init (&conf) != NSS_SUCCESS)                                 \
+    {                                                                         \
+      UNLOCK;                                                                 \
+      function_return (NSS_UNAVAIL);                                          \
+    }
+
+#define INITQUERY(qname)                                                      \
+  if (!conf.sql.query.qname)                                                  \
+    {                                                                         \
+      UNLOCK;                                                                 \
+      function_return (NSS_UNAVAIL);                                          \
+    }                                                                         \
+  size = strlen (conf.sql.query.qname) + 1 + PADSIZE;                         \
+  query = xmalloc (size);                                                     \
+  if (query == NULL)                                                          \
+    {                                                                         \
+      UNLOCK;                                                                 \
+      function_return (NSS_UNAVAIL);                                          \
+    }
+
+#define RUNQUERY                                                              \
+  if (_nss_mysql_run_query (conf, query) != NSS_SUCCESS)                      \
+    {                                                                         \
+      UNLOCK;                                                                 \
+      function_return (NSS_UNAVAIL);                                          \
+    }
+
 /*
  * Use a single define which we later use to 'create' the get*
  * functions for export
  */
-#define GET(funcname, sname, argtype, restrict)                               \
+#define GET(funcname, sname, argtype, argfmt, restrict)                       \
   NSS_STATUS                                                                  \
   _nss_mysql_##funcname##_r (argtype arg, struct sname *result,               \
                              char *buffer, size_t buflen)                     \
@@ -55,45 +99,24 @@ conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
     int retVal;                                                               \
     int size;                                                                 \
     char *query;                                                              \
+    char earg[PADSIZE];                                                       \
+    char tmp[PADSIZE / 2 - 1];                                                \
                                                                               \
     function_enter;                                                           \
-    if (restrict && geteuid () != 0)                                          \
-      function_return (NSS_NOTFOUND);                                         \
-    if (!result)                                                              \
-      {                                                                       \
-        _nss_mysql_log (LOG_CRIT, "%s was passed a NULL RESULT", FNAME);      \
-        function_return (NSS_UNAVAIL);                                        \
-      }                                                                       \
-    if (!buffer)                                                              \
-      {                                                                       \
-        _nss_mysql_log (LOG_CRIT, "%s was passed a NULL BUFFER", FNAME);      \
-        function_return (NSS_UNAVAIL);                                        \
-      }                                                                       \
+    PRECHECK(restrict);                                                       \
     LOCK;                                                                     \
-    if (_nss_mysql_init (&conf) != NSS_SUCCESS)                               \
+    INITBACKEND;                                                              \
+    INITQUERY(funcname);                                                      \
+    snprintf (tmp, sizeof(tmp), argfmt, arg);                                 \
+    if (strlen (tmp) >= sizeof(tmp) - 1)                                      \
       {                                                                       \
         UNLOCK;                                                               \
         function_return (NSS_UNAVAIL);                                        \
       }                                                                       \
-    if (!conf.sql.query.funcname)                                             \
-      {                                                                       \
-        UNLOCK;                                                               \
-        function_return (NSS_UNAVAIL);                                        \
-      }                                                                       \
-    size = strlen (conf.sql.query.funcname) + 1 + PADSIZE;                    \
-    query = xmalloc (size);                                                   \
-    if (query == NULL)                                                        \
-      {                                                                       \
-        UNLOCK;                                                               \
-        function_return (NSS_UNAVAIL);                                        \
-      }                                                                       \
-    snprintf (query, size, conf.sql.query.funcname, arg);                     \
+    _nss_mysql_escape_string (earg, tmp);                                     \
+    snprintf (query, size, conf.sql.query.funcname, earg);                    \
     _nss_mysql_reset_ent ();                                                  \
-    if (_nss_mysql_run_query (conf, query) != NSS_SUCCESS)                    \
-      {                                                                       \
-        UNLOCK;                                                               \
-        function_return (NSS_UNAVAIL);                                        \
-      }                                                                       \
+    RUNQUERY;                                                                 \
     retVal = _nss_mysql_load_result (result, buffer, buflen, sname##_fields); \
     _nss_mysql_close_sql (CLOSE_RESULT);                                      \
     UNLOCK;                                                                   \
@@ -134,7 +157,7 @@ conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
  * Use a single define which we later use to 'create' the get*ent
  * functions for export
  */
-#define GETENT(type, sname)                                                   \
+#define GETENT(type, sname, restrict)                                         \
   NSS_STATUS                                                                  \
   _nss_mysql_get##type##_r (struct sname *result, char *buffer,               \
                             size_t buflen)                                    \
@@ -144,43 +167,14 @@ conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
     char *query;                                                              \
                                                                               \
     function_enter;                                                           \
-    if (!result)                                                              \
-      {                                                                       \
-        _nss_mysql_log (LOG_CRIT, "%s was passed a NULL RESULT", FNAME);      \
-        function_return (NSS_UNAVAIL);                                        \
-      }                                                                       \
-    if (!buffer)                                                              \
-      {                                                                       \
-        _nss_mysql_log (LOG_CRIT, "%s was passed a NULL BUFFER", FNAME);      \
-        function_return (NSS_UNAVAIL);                                        \
-      }                                                                       \
+    PRECHECK(restrict);                                                       \
     LOCK;                                                                     \
-    if (_nss_mysql_init (&conf) != NSS_SUCCESS)                               \
-      {                                                                       \
-        UNLOCK;                                                               \
-        function_return (NSS_UNAVAIL);                                        \
-      }                                                                       \
+    INITBACKEND;                                                              \
     if (_nss_mysql_active_result () == nfalse)                                \
       {                                                                       \
-        if (!conf.sql.query.get##type)                                        \
-          {                                                                   \
-            UNLOCK;                                                           \
-            function_return (NSS_UNAVAIL);                                    \
-          }                                                                   \
-        size = strlen (conf.sql.query.get##type) + 1;                         \
-        query = xmalloc (size);                                               \
-        if (query == NULL)                                                    \
-          {                                                                   \
-            UNLOCK;                                                           \
-            function_return (NSS_UNAVAIL);                                    \
-          }                                                                   \
+        INITQUERY(get##type);                                                 \
         strcpy (query, conf.sql.query.get##type);                             \
-                                                                              \
-        if (_nss_mysql_run_query (conf, query) != NSS_SUCCESS)                \
-          {                                                                   \
-            UNLOCK;                                                           \
-            function_return (NSS_UNAVAIL);                                    \
-          }                                                                   \
+        RUNQUERY;                                                             \
       }                                                                       \
     retVal = _nss_mysql_load_result (result, buffer, buflen, sname##_fields); \
     UNLOCK;                                                                   \
@@ -234,18 +228,18 @@ _nss_mysql_debug (char *function, int flags, char *fmt, ...)
 }
 
 /* "Create" functions using the defines above ... */
-GET (getpwnam, passwd, const char *, 0);
-GET (getpwuid, passwd, uid_t, 0);
-GET (getspnam, spwd, const char *, 1);
-GET (getgrnam, group, const char *, 0);
-GET (getgrgid, group, gid_t, 0);
+GET (getpwnam, passwd, const char *, "%s", 0);
+GET (getpwuid, passwd, uid_t, "%u", 0);
+GET (getspnam, spwd, const char *, "%s", 1);
+GET (getgrnam, group, const char *, "%s", 0);
+GET (getgrgid, group, gid_t, "%u", 0);
 ENDENT (pwent);
 SETENT (pwent);
-GETENT (pwent, passwd);
+GETENT (pwent, passwd, 0);
 ENDENT (spent);
 SETENT (spent);
-GETENT (spent, spwd);
+GETENT (spent, spwd, 1);
 ENDENT (grent);
 SETENT (grent);
-GETENT (grent, group);
+GETENT (grent, group, 0);
 
