@@ -30,7 +30,7 @@ CPPFLAGS = @CPPFLAGS@ -Wall -D_REENTRANT
 EXTRA_DIST = INTERNALS TODO FAQ THANKS sample/*.cfg sample/*.sql
 
 if SOLARIS
-export LD_OPTIONS=-z nodelete
+export LD_OPTIONS=-z nodelete -B group
 endif
 
 install-exec-local:
