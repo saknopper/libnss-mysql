@@ -81,3 +81,16 @@ _nss_mysql_debug (const char *function, int flags, char *fmt, ...)
   _nss_mysql_log (LOG_DEBUG, "%s", string);
 }
 
+#ifdef HAVE_NSS_COMMON_H
+NSS_STATUS
+_nss_mysql_default_destr (nss_backend_t *be, void *args)
+{
+  function_enter;
+  xfree(be);
+  function_return (NSS_SUCCESS);
+
+}
+#endif
+
+
+
