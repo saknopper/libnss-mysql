@@ -1,5 +1,11 @@
 $Id$
 
+*** In all cases, you should at *least* restart any daemons that look up
+*** users, such as ssh, nscd, cron, etc.  It's best if you simply reboot
+*** unless you know the complete list of daemons to restart.
+
+0.7a -> 0.8
+
 0.7 -> 0.7a
     This is a maintenance release.  No changes are needed on your part.
 
