@@ -116,6 +116,7 @@
                                        fields);                              \
       if (retVal == NSS_SUCCESS)                                             \
         NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;              \
+      _nss_mysql_close_sql (CLOSE_RESULT);                                   \
       UNLOCK;                                                                \
       function_return (retVal);                                              \
     }
