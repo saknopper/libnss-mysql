@@ -10,20 +10,12 @@ For the impatient:
         ./configure
         make
         make install
-        Linux:
-            You'll need to make sure you system sees the library you just
-            installed into /usr/local/lib (unless you changed the destination).
-            Add /usr/local/lib to /etc/ld.so.conf and run /sbin/ldconfig.
-            Make sure you do this *after* you've installed the library.
-        Solaris:
-            You shouldn't need to do anything special.  The library gets
-            installed as /usr/lib/nss_mysql.so.1 and the system will
-            automatically use it (assuming you set up nsswitch.conf - see
-            below)
             
-    Edit nss_mysql.cfg and nss_mysql_root.cfg (/usr/local/etc)
+    Edit /etc/nss_mysql.cfg and /etc/nss_mysql_root.cfg
     Edit /etc/nsswitch.conf and add 'mysql' to passwd/shadow/group
-    Enjoy!
+    The default configs will work well with the sample sql database in
+    sample/sample_database.sql.  Read that file for more details on the
+    sample database.
 
     On systems with older or nonstandard MySQL installations, you may
     need to use the --with-mysql-lib and/or --with-mysql-inc options.
@@ -59,11 +51,8 @@ Debugging:
     You could also edit nss_mysql.h and change DEF_PRIO to
     LOG_DEBUG, recompile & reinstall, and see if that helps.  If
     it doesn't, the library is probably not being loaded; make sure
-    you've:
-        Linux:   edited /etc/ld.so.conf, run 'ldconfig', and edited
-                 /etc/nsswitch.conf
-        Solaris:
-                Edited /etc/nsswitch.conf
+    you've added 'mysql' to /etc/nsswitch.conf.
+
 Solaris support:
     This is working on my Solaris8/x86 box.  It compiles on a Solaris8/sparc
     box but I don't have the root privs needed to test it.  If someone's got
