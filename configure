@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.4 
+# From configure.in Revision: 1.5 
 
 
 # Configure paths for mysql-client, GPLv2
