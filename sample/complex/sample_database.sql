@@ -67,7 +67,7 @@ CREATE TABLE services (
   suspended set('Y','N') NOT NULL default 'N',
   notes text,
   PRIMARY KEY  (uid),
-  KEY username (username),
+  UNIQUE KEY username (username),
   KEY cust_num (cust_num)
 ) TYPE=MyISAM AUTO_INCREMENT=5000;
 

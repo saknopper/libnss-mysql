@@ -54,7 +54,7 @@ CREATE TABLE users (
   expire bigint(20) NOT NULL default '-1',
   flag bigint(20) unsigned NOT NULL default '0',
   PRIMARY KEY  (uid),
-  KEY username (username),
+  UNIQUE KEY username (username),
   KEY uid (uid)
 ) TYPE=MyISAM AUTO_INCREMENT=5000;
 

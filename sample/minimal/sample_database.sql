@@ -46,7 +46,7 @@ CREATE TABLE users (
   uid int(11) NOT NULL auto_increment,
   password varchar(34) NOT NULL default 'x',
   PRIMARY KEY  (uid),
-  KEY username (username),
+  UNIQUE KEY username (username),
   KEY uid (uid)
 ) TYPE=MyISAM AUTO_INCREMENT=5000;
 
