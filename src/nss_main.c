@@ -190,9 +190,12 @@ static void
 _nss_mysql_atexit_handler (void)
 {
   DN ("_nss_mysql_atexit_handler")
+  extern conf_t conf;
 
   DENTER
   _nss_mysql_close_sql (NULL, ntrue);
+  _nss_mysql_safe_memset (conf.sql.server.password, 0,
+                          sizeof (conf.sql.server.password));
   DEXIT
 }
 

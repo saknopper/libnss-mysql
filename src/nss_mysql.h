@@ -279,6 +279,7 @@ NSS_STATUS _nss_mysql_escape_string (char *to, const char *from,
 void _nss_mysql_free(void *ptr);
 void *_nss_mysql_malloc(size_t size);
 void *_nss_mysql_realloc (void *ptr, size_t size);
+void *_nss_mysql_safe_memset (void *s, int c, size_t n);
 
 /* nss_config.c */
 NSS_STATUS _nss_mysql_load_config (void);

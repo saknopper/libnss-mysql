@@ -68,3 +68,18 @@ _nss_mysql_realloc (void *ptr, size_t size)
   DPRETURN (ptr)
 }
 
+/*
+ * Prevent the "dead store removal" problem present with stock memset()
+ */
+void *
+_nss_mysql_safe_memset (void *s, int c, size_t n)
+{
+  DN ("_nss_mysql_realloc")
+  volatile char *p = s;
+
+  DENTER
+  while (n--)
+    *p++ = c;
+  DPRETURN (s)
+}
+
