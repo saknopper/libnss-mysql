@@ -27,9 +27,6 @@ static const char rcsid[] =
 #endif
 #include <unistd.h>
 #include <stdlib.h>
-#ifdef HAVE_SYSLOG_H
-#include <syslog.h>
-#endif
 
 static field_info_t defaults_fields[] =
 {
@@ -52,9 +49,10 @@ static field_info_t defaults_fields[] =
 
 static field_info_t global_fields[]=
 {
-    {"retry",    FOFS (global_conf_t, retry),           FT_UINT},
-    {"facility", FOFS (global_conf_t, syslog_facility), FT_SYSLOG},
-    {"priority", FOFS (global_conf_t, syslog_priority), FT_SYSLOG},
+    {"retry",       FOFS (global_conf_t, retry),           FT_UINT},
+    {"facility",    FOFS (global_conf_t, syslog_facility), FT_SYSLOG},
+    {"priority",    FOFS (global_conf_t, syslog_priority), FT_SYSLOG},
+    {"debug_flags", FOFS (global_conf_t, debug_flags),     FT_UINT},
     {NULL}
 };
 
@@ -138,7 +136,7 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
   void *ptr;
 
   function_enter;
-  _nss_mysql_debug (FNAME, D_PARSE, "Load '%s' (%p)\n", key, structure);
+  _nss_mysql_debug (FNAME, D_PARSE, "Load '%s' (%p)", key, structure);
   for (f = fields; f->name; f++)
     {
       if (strcmp (key, f->name) == 0)
@@ -151,11 +149,12 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
               /* Set 'ptr' to addr of string */
               (intptr_t) ptr = *(intptr_t *) (b + f->ofs);
               /* allocate/reallocate space for incoming string */
-              _nss_mysql_debug (FNAME, D_MEMORY, "ptr = realloc (%p, %d)\n",
+              _nss_mysql_debug (FNAME, D_MEMORY, "ptr = realloc (%p, %d)",
                                 ptr, size);
               if ((ptr = realloc (ptr, size)) == NULL)
                 {
-                  _nss_mysql_log_error (FNAME, "realloc() failed");
+                  _nss_mysql_log (LOG_ALERT, "realloc of %d bytes failed",
+                                  size);
                   function_return (NSS_UNAVAIL);
                 }
               /* Set the pointer in structure to new pointer */
@@ -170,16 +169,14 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
               tmp = _nss_mysql_syslog_name_to_id (val);
               if (tmp == -1)
                 {
-                  _nss_mysql_log_error (FNAME,
-                                        "Syslog value '%s' invalid\n",
-                                        val);
+                  _nss_mysql_log (LOG_ERR, "Syslog value '%s' invalid", val);
                   break; 
                 }
               *(unsigned int *) (b + f->ofs) = (unsigned int) tmp;
               break;
             default:
-              _nss_mysql_log_error (FNAME, "BUG!  Unhandled type: %d\n",
-                                    f->type);
+              _nss_mysql_log (LOG_ERR, "%s: Unhandled type: %d", FNAME,
+                              f->type);
               break;
             }
         }
@@ -187,11 +184,11 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
   function_return (NSS_SUCCESS);
 }
 
-static int _nss_mysql_is_bracketed (char *line)
+static nboolean _nss_mysql_is_bracketed (char *line)
 {
   if (line && *line == '[' && index (line, ']'))
-    return 1;
-  return 0;
+    return ntrue;
+  return nfalse;
 }
 
 /*
@@ -217,12 +214,12 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
       previous_fpos = ftell (fh);
       if ((fgets (line, sizeof (line), fh)) == NULL)
         {
-          _nss_mysql_debug (FNAME, D_PARSE, "EOF\n");
+          _nss_mysql_debug (FNAME, D_PARSE, "EOF");
           break;
         }
       if (_nss_mysql_is_bracketed (line))
         {
-          _nss_mysql_debug (FNAME, D_PARSE, "End of section\n");
+          _nss_mysql_debug (FNAME, D_PARSE, "End of section");
           fseek (fh, previous_fpos, SEEK_SET);
           break;
         }
@@ -245,7 +242,7 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
       *ccil = '\0';
       strncpy (key, cur_key, key_size);
       strncpy (val, cur_val, val_size);
-      _nss_mysql_debug (FNAME, D_PARSE, "Found key = %s\n", key);
+      _nss_mysql_debug (FNAME, D_PARSE, "Found key = %s", key);
       function_return (NSS_SUCCESS);
     }
   function_return (NSS_NOTFOUND);
@@ -274,7 +271,7 @@ _nss_mysql_get_section (FILE *fh, int *section)
   function_enter;
   while (fgets (line, sizeof (line), fh) != NULL)
     {
-      if (_nss_mysql_is_bracketed (line))
+      if (_nss_mysql_is_bracketed (line) == ntrue)
         {
           p = index (line, ']');
           *p = '\0';
@@ -322,8 +319,7 @@ _nss_mysql_init_defaults (conf_t *conf, int num)
         {
         case FT_UINT:
         case FT_SYSLOG:
-          _nss_mysql_debug (FNAME, D_PARSE,
-                            "%s: copying\n", f->name);
+          _nss_mysql_debug (FNAME, D_PARSE, "%s: copying", f->name);
           *(unsigned int *) (s + f->ofs) = *(unsigned int *) (d + f->ofs);
           break;
         case FT_PCHAR:
@@ -332,23 +328,20 @@ _nss_mysql_init_defaults (conf_t *conf, int num)
             continue;
           (intptr_t) out = *(intptr_t *) (d + f->ofs);
           _nss_mysql_debug (FNAME, D_PARSE,
-                            "%s: copying from %p to %p\n", f->name, in, out);
+                            "%s: copying from %p to %p", f->name, in, out);
           size = strlen (in) + 1 + PADSIZE;
           _nss_mysql_debug (FNAME, D_MEMORY,
-                            "%s: out = realloc (%p %d)\n", f->name, out, size);
+                            "%s: out = realloc (%p %d)", f->name, out, size);
           if ((out = realloc (out, size)) == NULL)
             {
-              _nss_mysql_log_error (FNAME,
-                                    "%s: Unable to realloc (%p, %d)\n",
-                                    f->name, out, size);
+              _nss_mysql_log (LOG_ALERT, "Unable to realloc %d bytes", size);
               continue;
             }
           *(intptr_t *) (d + f->ofs) = (intptr_t) out;
           memcpy (out, in, size);
           break;
         default:
-          _nss_mysql_log_error (FNAME, "BUG!  Unhandled type: %d\n",
-                                f->type);
+          _nss_mysql_log (LOG_ERR, "%s: Unhandled type: %d", FNAME, f->type);
           break;
         }
     }
@@ -363,12 +356,12 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
   int to_return;
 
   function_enter;
-  _nss_mysql_debug (FNAME, D_FILE, "Opening %s\n", file);
+  _nss_mysql_debug (FNAME, D_FILE, "Opening %s", file);
   if ((fh = fopen (file, "r")) == NULL)
     function_return (NSS_UNAVAIL);
   while ((_nss_mysql_get_section (fh, &section)) == NSS_SUCCESS)
     {
-      _nss_mysql_debug (FNAME, D_PARSE, "Loading section type: %d\n",
+      _nss_mysql_debug (FNAME, D_PARSE, "Loading section type: %d",
                         section);
       switch (section)
         {
@@ -395,9 +388,9 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
           if (conf->num_servers >= MAX_SERVERS)
             {
               /* Let's not bomb because we have too many specified .. */
-              _nss_mysql_log_error (FNAME,
-                                    "Too many servers defined.  Max = %d\n",
-                                    MAX_SERVERS);
+              _nss_mysql_log (LOG_ERR,
+                              "Too many servers defined.  Max = %d",
+                              MAX_SERVERS);
               fclose (fh);
               function_return (NSS_SUCCESS);
             }
@@ -414,8 +407,8 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
             }
           break;
         default:
-          _nss_mysql_log_error (FNAME, "Unhandled section type: %d\n",
-                                section);
+          _nss_mysql_log (LOG_ERR, "%s: Unhandled section type: %d", FNAME,
+                          section);
           break;
         }
     }
@@ -428,13 +421,14 @@ _nss_mysql_load_config (conf_t *conf)
   int to_return;
 
   function_enter;
-  if (conf->valid)
+  if (conf->valid == ntrue)
     function_return (NSS_SUCCESS);
 
   memset (conf, 0, sizeof (conf_t));
-  conf->global.retry = 30;
-  conf->global.syslog_facility = LOG_AUTH;
-  conf->global.syslog_priority = LOG_ALERT;
+  conf->global.retry = DEF_RETRY;
+  conf->global.syslog_facility = DEF_FACIL;
+  conf->global.syslog_priority = DEF_PRIO;
+  conf->global.debug_flags = DEF_DFLAGS;
   to_return = _nss_mysql_load_config_file (MAINCFG, conf);
   if (to_return != NSS_SUCCESS)
     {
@@ -449,7 +443,7 @@ _nss_mysql_load_config (conf_t *conf)
           function_return (to_return);
         }
     }
-  conf->valid = 1;
+  conf->valid = ntrue;
   function_return (NSS_SUCCESS);
 }
 
