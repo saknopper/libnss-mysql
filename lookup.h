@@ -18,13 +18,15 @@
 #include "nss_mysql.h"
 
 #ifdef HAVE_NSS_H
-#define GET(fname, fields, ltype, argtype, restype)                          \
+#define GET(fname, fields, ltype, argtype, restype, restrict)                \
     NSS_STATUS                                                               \
     _nss_mysql_##fname##_r (argtype arg, restype result, char *buffer,       \
                            size_t buflen)                                    \
     {                                                                        \
       int retVal;                                                            \
       function_enter;                                                        \
+      if (restrict && geteuid() != 0)                                        \
+        function_return (NSS_NOTFOUND)                                       \
       LOCK;                                                                  \
       retVal = _nss_mysql_lookup_##ltype (arg,                               \
                                           FOFS (sql_query_t, fname),         \
@@ -36,17 +38,20 @@
         }                                                                    \
       retVal = _nss_mysql_load_result (result, buffer, buflen,               \
                                        fields);                              \
+      _nss_mysql_close_sql (CLOSE_RESULT);                                   \
       UNLOCK;                                                                \
       function_return (retVal);                                              \
     }
 
-#define GETENT(fname, fields, restype)                                       \
+#define GETENT(fname, fields, restype, restrict)                             \
     NSS_STATUS                                                               \
     _nss_mysql_##fname##_r (restype *result, char *buffer,                   \
                            size_t buflen)                                    \
     {                                                                        \
       int retVal;                                                            \
       function_enter;                                                        \
+      if (restrict && geteuid() != 0)                                        \
+        function_return (NSS_NOTFOUND)                                       \
       LOCK;                                                                  \
       if (_nss_mysql_active_result () == nfalse)                             \
         {                                                                    \

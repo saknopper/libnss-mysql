@@ -22,19 +22,19 @@ static const char rcsid[] =
 #include <pwd.h>
 
 #ifdef HAVE_NSS_H
-GET(getpwnam, passwd_fields, name, const char *, struct passwd *);
-GET(getpwuid, passwd_fields, number, uid_t, struct passwd *);
+GET(getpwnam, passwd_fields, name, const char *, struct passwd *, 0);
+GET(getpwuid, passwd_fields, number, uid_t, struct passwd *, 0);
 ENDENT(pwent);
 SETENT(pwent);
-GETENT(getpwent, passwd_fields, struct passwd *);
+GETENT(getpwent, passwd_fields, struct passwd *, 0);
 #endif
 
 #ifdef HAVE_NSS_COMMON_H
-GET(getpwnam, passwd_fields, name, key.name, struct passwd *);
-GET(getpwuid, passwd_fields, number, key.uid, struct passwd *);
+GET(getpwnam, passwd_fields, name, key.name, struct passwd *, 0);
+GET(getpwuid, passwd_fields, number, key.uid, struct passwd *, 0);
 ENDENT(pwent);
 SETENT(pwent);
-GETENT(getpwent, passwd_fields, struct passwd *);
+GETENT(getpwent, passwd_fields, struct passwd *, 0);
 
 static nss_backend_op_t passwd_ops[] = {
     _nss_mysql_default_destr,       /* NSS_DBOP_DESTRUCTOR */

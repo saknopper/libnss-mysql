@@ -22,17 +22,17 @@ static const char rcsid[] =
 #include <shadow.h>
 
 #ifdef HAVE_NSS_H
-GET(getspnam, spwd_fields, name, const char *, struct spwd *);
+GET(getspnam, spwd_fields, name, const char *, struct spwd *, 1);
 ENDENT(spent);
 SETENT(spent);
-GETENT(getspent, spwd_fields, struct spwd *);
+GETENT(getspent, spwd_fields, struct spwd *, 1);
 #endif
 
 #ifdef HAVE_NSS_COMMON_H
-GET(getspnam, spwd_fields, name, key.name, struct spwd *);
+GET(getspnam, spwd_fields, name, key.name, struct spwd *, 1);
 ENDENT(spent);
 SETENT(spent);
-GETENT(getspent, spwd_fields, struct spwd *);
+GETENT(getspent, spwd_fields, struct spwd *, 1);
 
 static nss_backend_op_t shadow_ops[] = {
     _nss_mysql_default_destr,       /* NSS_DBOP_DESTRUCTOR */

@@ -22,19 +22,19 @@ static const char rcsid[] =
 #include <grp.h>
 
 #ifdef HAVE_NSS_H
-GET(getgrnam, group_fields, name, const char *, struct group *);
-GET(getgrgid, group_fields, number, uid_t, struct group *);
+GET(getgrnam, group_fields, name, const char *, struct group *, 0);
+GET(getgrgid, group_fields, number, uid_t, struct group *, 0);
 ENDENT(grent);
 SETENT(grent);
-GETENT(getgrent, group_fields, struct group *);
+GETENT(getgrent, group_fields, struct group *, 0);
 #endif
 
 #ifdef HAVE_NSS_COMMON_H
-GET(getgrnam, group_fields, name, key.name, struct group *);
-GET(getgrgid, group_fields, number, key.uid, struct group *);
+GET(getgrnam, group_fields, name, key.name, struct group *, 0);
+GET(getgrgid, group_fields, number, key.uid, struct group *, 0);
 ENDENT(grent);
 SETENT(grent);
-GETENT(getgrent, group_fields, struct group *);
+GETENT(getgrent, group_fields, struct group *, 0);
 
 static nss_backend_op_t group_ops[] = {
     _nss_mysql_default_destr,       /* NSS_DBOP_DESTRUCTOR */
