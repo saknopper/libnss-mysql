@@ -19,31 +19,41 @@ For the impatient:
     On systems with older or nonstandard MySQL installations, you may
     need to use the --with-mysql-lib and/or --with-mysql-inc options.
 
-
 Debugging:
-    Configure with --enable-debug[=FILE].  FILE defaults to /tmp/debug
-    DO NOT LEAVE DEBUG SUPPORT COMPILED IN.  IT IS A SECURITY HAZZARD
+    Set the config option 'priority' (in the [global] section) to debug.
+    Since there are a LOT of debugging messages, you can pick which type(s)
+    you want.  Set the config option 'debug_flags' to be the sum of the
+    options below that you want:
 
-    Since there's a lot of debugging messages, you can pick which
-    type(s) you want.  Set the environment variable DEBUG_NSS to be the sum
-    of the options below you want:
+    MEMORY (malloc, free, etc)          1
+    FUNCTION (enter/exit w/ status)     2
+    CONNECT (MySQL connect/disconnect)  4
+    QUERY (MySQL queries)               8 
+    PARSE (File & query result parsing) 16
+    FILE (File opening/closing)         32
 
-    ERRORS                              1
-    MEMORY (malloc, free, etc)          2
-    FUNCTION (enter/exit w/ status)     4
-    CONNECT (MySQL connect/disconnect)  8
-    QUERY (MySQL queries)               16
-    PARSE (File parsing)                32
-    FILE (File opening/closing)         64
+    For example, if you want all options, set DEBUG_NSS to 63
+    If you want just CONNECT, set it to 4.  If you want CONNECT
+    and QUERY, set it to 12.
 
-    For example, if you want all options, set DEBUG_NSS to 127
-    If you want just CONNECT, set it to 8.  If you want CONNECT
-    and QUERY, set it to 24.
-
-    Note that debugging applies ONLY to the process that has
-    this environment variable set.  The entire system WILL NOT
-    debug to that file.  If you need to debug a daemon, set it
-    in the init script or in the xinetd conf etc.
+    Since there's a period of time where the library has not yet
+    loaded your config, the library defaults to logging to
+    auth.alert until the config is loaded and the defaults are
+    overridden.  If you're not getting ANY messages, it is possible
+    that the error is before the config is loaded.  You *should*
+    have an error message wherever your auth.alert messages go.
+    If you do not, I recommend doing a quick trace ('strace' on Linux)
+    of a quick command such as 'id' and looking for whether the
+    library even gets loaded, if the library tries to open your
+    config file, etc ...  Just 'strace id username-in-sql' should
+    do the trick.
+    You could also edit nss_mysql.h and change DEF_PRIO to
+    LOG_DEBUG, recompile & reinstall, and see if that helps.  If
+    it doesn't, the library is probably not being loaded; make sure
+    you've:
+        Linux:   edited /etc/ld.so.conf, run 'ldconfig', and edited
+                 /etc/nsswitch.conf
+        Solaris:
 
 Solaris support:
     Coming soon.  It actually compiles on my Solaris 8 x86 box, but
