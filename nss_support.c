@@ -131,10 +131,10 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
 #endif
 
 #if defined(sun)
-  pw->pw_class = memcpy (buffer + offsets[ROW_PW_AGE], row[ROW_PW_AGE],
+  pw->pw_age = memcpy (buffer + offsets[ROW_PW_AGE], row[ROW_PW_AGE],
                          lengths[ROW_PW_AGE]);
-  pw->pw_class = memcpy (buffer + offsets[ROW_PW_COMMENT], row[ROW_PW_COMMENT],
-                         lengths[ROW_PW_COMMENT]);
+  pw->pw_comment = memcpy (buffer + offsets[ROW_PW_COMMENT],
+                           row[ROW_PW_COMMENT], lengths[ROW_PW_COMMENT]);
 #endif
 
   DSRETURN (NSS_SUCCESS)
