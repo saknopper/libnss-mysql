@@ -29,6 +29,9 @@ static const char rcsid[] =
 
 conf_t  conf = CONF_INITIALIZER;
 
+typedef unsigned char byte;
+#define FOFS(x,y) ((int)&(((x *)0)->y))     /* Get Field OFfSet */
+
 /*
  * Map config keys to the struct offsets to load their values into
  */
@@ -62,9 +65,6 @@ static field_info_t query_fields[] =
 static field_info_t global_fields[]=
 {
     {"retry",       FOFS (global_conf_t, retry),           FT_UINT},
-    {"facility",    FOFS (global_conf_t, syslog_facility), FT_SYSLOG},
-    {"priority",    FOFS (global_conf_t, syslog_priority), FT_SYSLOG},
-    {"debug_flags", FOFS (global_conf_t, debug_flags),     FT_UINT},
     {NULL}
 };
 
@@ -97,49 +97,6 @@ static field_info_t section_info[] =
 };
 
 /*
- * Map string to syslog facilities/priorities
- * More overloading, whee!
- */
-static field_info_t syslog_names[] =
-{
-    /* priorities */
-    {"alert",    0, LOG_ALERT},
-    {"crit",     0, LOG_CRIT},
-    {"debug",    0, LOG_DEBUG},
-    {"emerg",    0, LOG_EMERG},
-    {"err",      0, LOG_ERR},
-    {"info",     0, LOG_INFO},
-    {"notice",   0, LOG_NOTICE},
-    {"warn",     0, LOG_WARNING},
-    /* facilities */
-    {"auth",     0, LOG_AUTH},
-#ifdef HAVE_LOG_AUTHPRIV
-    {"authpriv", 0, LOG_AUTHPRIV},
-#endif
-    {"cron",     0, LOG_CRON},
-    {"daemon",   0, LOG_DAEMON},
-#ifdef HAVE_LOG_FTP
-    {"ftp",      0, LOG_FTP},
-#endif
-    {"kern",     0, LOG_KERN},
-    {"lpr",      0, LOG_LPR},
-    {"mail",     0, LOG_MAIL},
-    {"news",     0, LOG_NEWS},
-    {"syslog",   0, LOG_SYSLOG},
-    {"user",     0, LOG_USER},
-    {"uucp",     0, LOG_UUCP},
-    {"local0",   0, LOG_LOCAL0},
-    {"local1",   0, LOG_LOCAL1},
-    {"local2",   0, LOG_LOCAL2},
-    {"local3",   0, LOG_LOCAL3},
-    {"local4",   0, LOG_LOCAL4},
-    {"local5",   0, LOG_LOCAL5},
-    {"local6",   0, LOG_LOCAL6},
-    {"local7",   0, LOG_LOCAL7},
-    {NULL}
-};
-
-/*
  * "translate" NAME to a number using FIELDS
  * IE translate "local7" to LOG_LOCAL7 using SYSLOG_NAMES above
  */
@@ -148,13 +105,12 @@ _nss_mysql_name_to_id (field_info_t *fields, const char *name)
 {
   field_info_t *f;
 
-  function_enter;
   for (f = fields; f->name; f++)
     {
       if (strcmp (name, f->name) == 0)
-        function_return (f->type);
+        return (f->type);
     }
-  function_return (-1);
+  return (-1);
 }
 
 /*
@@ -167,18 +123,17 @@ static NSS_STATUS
 _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
                 void *structure)
 {
+  static const char FNAME[] = "_nss_mysql_lis";
   field_info_t *f;
-  _nss_mysql_byte *b;
-  int size, tmp;
+  byte *b;
+  int size;
   void *ptr;
 
-  function_enter;
-  _nss_mysql_debug (FNAME, D_PARSE, "Load '%s' (%p)", key, structure);
   for (f = fields; f->name; f++)
     {
       if (strcmp (key, f->name) == 0)
         {
-          b = (_nss_mysql_byte *) structure;
+          b = (byte *) structure;
           switch (f->type)
             {
             case FT_PCHAR:
@@ -187,7 +142,7 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
               (uintptr_t) ptr = *(uintptr_t *) (b + f->ofs);
               /* allocate/reallocate space for incoming string */
               if ((ptr = _nss_mysql_realloc (ptr, size)) == NULL)
-                function_return (NSS_UNAVAIL);
+                return (NSS_UNAVAIL);
               /* Set the pointer in structure to new pointer */
               *(uintptr_t *) (b + f->ofs) = (uintptr_t) ptr;
               /* Copy value into newly-alloc'ed area */
@@ -196,15 +151,6 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
             case FT_UINT:
               *(unsigned int *) (b + f->ofs) = (unsigned int) atoi (val);
               break;
-            case FT_SYSLOG:
-              tmp = _nss_mysql_name_to_id (syslog_names, val);
-              if (tmp == -1)
-                {
-                  _nss_mysql_log (LOG_ERR, "Syslog value '%s' invalid", val);
-                  break; 
-                }
-              *(unsigned int *) (b + f->ofs) = (unsigned int) tmp;
-              break;
             default:
               _nss_mysql_log (LOG_ERR, "%s: Unhandled type: %d", FNAME,
                               f->type);
@@ -212,7 +158,7 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
             }
         }
     }
-  function_return (NSS_SUCCESS);
+  return (NSS_SUCCESS);
 }
 
 /*
@@ -240,7 +186,6 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
   char *cur_val;
   long previous_fpos;
 
-  function_enter;
   memset (key, 0, key_size);
   memset (val, 0, val_size);
 
@@ -248,13 +193,9 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
     {
       previous_fpos = ftell (fh);
       if ((fgets (line, sizeof (line), fh)) == NULL)
-        {
-          _nss_mysql_debug (FNAME, D_PARSE, "EOF");
-          break;
-        }
+        break;
       if (_nss_mysql_is_bracketed (line))
         {
-          _nss_mysql_debug (FNAME, D_PARSE, "End of section");
           fseek (fh, previous_fpos, SEEK_SET);
           break;
         }
@@ -277,10 +218,9 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
       *ccil = '\0';
       strncpy (key, cur_key, key_size);
       strncpy (val, cur_val, val_size);
-      _nss_mysql_debug (FNAME, D_PARSE, "Found key = %s", key);
-      function_return (NSS_SUCCESS);
+      return (NSS_SUCCESS);
     }
-  function_return (NSS_NOTFOUND);
+  return (NSS_NOTFOUND);
 }
 
 /*
@@ -292,7 +232,6 @@ _nss_mysql_get_section (FILE *fh, int *section)
   char line[MAX_LINE_LEN];
   char *p;
 
-  function_enter;
   while (fgets (line, sizeof (line), fh) != NULL)
     {
       if (_nss_mysql_is_bracketed (line) == ntrue)
@@ -303,10 +242,10 @@ _nss_mysql_get_section (FILE *fh, int *section)
           p++;
           *section = _nss_mysql_name_to_id (section_info, p);
           if (*section != SECTION_INVALID)
-              function_return (NSS_SUCCESS);
+              return (NSS_SUCCESS);
         }
     }
-  function_return (NSS_NOTFOUND);
+  return (NSS_NOTFOUND);
 }
 
 /*
@@ -325,9 +264,9 @@ _nss_mysql_load_section (FILE *fh, void *structure, field_info_t *fields)
     {
       to_return = _nss_mysql_lis (key, val, fields, structure);
       if (to_return != NSS_SUCCESS)
-        function_return (to_return);
+        return (to_return);
     }
-  function_return (NSS_SUCCESS);
+  return (NSS_SUCCESS);
 }
 
 /*
@@ -336,30 +275,21 @@ _nss_mysql_load_section (FILE *fh, void *structure, field_info_t *fields)
 static NSS_STATUS
 _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
 {
+  static const char FNAME[] = "_nss_mysql_load_config_file";
   FILE *fh;
   int section;
   int to_return;
   int server_num;
 
-  function_enter;
-  _nss_mysql_debug (FNAME, D_FILE, "Opening %s", file);
   if ((fh = fopen (file, "r")) == NULL)
     {
       if (errno == EACCES && eacces_is_fatal == nfalse)
-        {
-          _nss_mysql_debug (FNAME, D_FILE, "Permission denied, but it's OK");
-          function_return (NSS_SUCCESS);
-        }
+        return (NSS_SUCCESS);
       else
-        {
-          _nss_mysql_debug (FNAME, D_FILE, "Failed: %s", strerror (errno));
-          function_return (NSS_UNAVAIL);
-        }
+        return (NSS_UNAVAIL);
     }
   while ((_nss_mysql_get_section (fh, &section)) == NSS_SUCCESS)
     {
-      _nss_mysql_debug (FNAME, D_PARSE, "Loading section type: %d",
-                        section);
       switch (section)
         {
         case SECTION_GLOBAL:
@@ -368,7 +298,7 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
           if (to_return != NSS_SUCCESS)
             {
               fclose (fh);
-              function_return (to_return);
+              return (to_return);
             }
             break;
         /* Add to list if you edit MAX_SERVERS/sections_t/etc */
@@ -377,10 +307,8 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
           server_num = section - SECTION_PRIMARY;
           if (server_num >= MAX_SERVERS)
             {
-              _nss_mysql_debug (FNAME, D_PARSE, "Invalid server #: %d",
-                                section - SECTION_PRIMARY);
               fclose (fh);
-              function_return (NSS_UNAVAIL);
+              return (NSS_UNAVAIL);
             }
           to_return =
             _nss_mysql_load_section (fh, &(conf.sql.server[server_num]),
@@ -388,7 +316,7 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
           if (to_return != NSS_SUCCESS)
             {
               fclose (fh);
-              function_return (to_return);
+              return (to_return);
             }
           break;
         case SECTION_QUERIES:
@@ -397,7 +325,7 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
           if (to_return != NSS_SUCCESS)
             {
               fclose (fh);
-              function_return (to_return);
+              return (to_return);
             }
           break;
         default:
@@ -407,7 +335,7 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
         }
     }
   fclose (fh);
-  function_return (NSS_SUCCESS);
+  return (NSS_SUCCESS);
 }
 
 static nboolean
@@ -416,7 +344,6 @@ _nss_mysql_validate_servers (void)
   int i;
   nboolean is_valid = nfalse;
 
-  function_enter;
 
   for (i = 0; i < MAX_SERVERS; i++)
     {
@@ -432,7 +359,7 @@ _nss_mysql_validate_servers (void)
       is_valid = ntrue;
     }
 
-  function_return (is_valid);
+  return (is_valid);
 }
 
 /*
@@ -444,26 +371,22 @@ _nss_mysql_load_config (void)
 {
   int to_return;
 
-  function_enter;
   if (conf.valid == ntrue)
-    function_return (NSS_SUCCESS);
+    return (NSS_SUCCESS);
 
   memset (&conf, 0, sizeof (conf));
   conf.global.retry = DEF_RETRY;
-  conf.global.syslog_facility = DEF_FACIL;
-  conf.global.syslog_priority = DEF_PRIO;
-  conf.global.debug_flags = DEF_DFLAGS;
   to_return = _nss_mysql_load_config_file (MAINCFG, ntrue);
   if (to_return != NSS_SUCCESS)
-    function_return (to_return);
+    return (to_return);
 
   to_return = _nss_mysql_load_config_file (ROOTCFG, nfalse);
   if (to_return != NSS_SUCCESS)
-    function_return (to_return);
+    return (to_return);
   if (_nss_mysql_validate_servers () == nfalse)
-    function_return (NSS_UNAVAIL);
+    return (NSS_UNAVAIL);
   conf.valid = ntrue;
-  function_return (NSS_SUCCESS);
+  return (NSS_SUCCESS);
 }
 
 /*
@@ -488,16 +411,13 @@ _nss_mysql_reset_config (void)
     {
       /* I use variables for clarity here.  This is ugly */
       char *q;
-      _nss_mysql_byte *b;
-      b = (_nss_mysql_byte *)&conf.sql.query + f->ofs;
+      byte *b;
+      b = (byte *)&conf.sql.query + f->ofs;
       (uintptr_t *)q = *(uintptr_t *)b;
       _nss_mysql_free (q);
     }
 
   memset (&conf, 0, sizeof (conf));
   conf.global.retry = DEF_RETRY;
-  conf.global.syslog_facility = DEF_FACIL;
-  conf.global.syslog_priority = DEF_PRIO;
-  conf.global.debug_flags = DEF_DFLAGS;
 }
 
