@@ -119,6 +119,17 @@ _nss_mysql_validate_socket (void)
   return (ntrue);
 }
 
+static NSS_STATUS
+_nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful)
+{
+
+  _nss_mysql_close_result (mresult);
+  if (graceful && ci.valid)
+    mysql_close (&(ci.link));
+  ci.valid = nfalse;
+  return (NSS_SUCCESS);
+}
+
 /*
  * Attempt to connect to specified server number
  */
@@ -228,7 +239,7 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
   return (ntrue);
 }
 
-NSS_STATUS
+static NSS_STATUS
 _nss_mysql_pick_server (void)
 {
   time_t curTime;
@@ -300,20 +311,7 @@ _nss_mysql_close_result (MYSQL_RES **mresult)
   *mresult = NULL;
 }
 
-/*
- */
-NSS_STATUS
-_nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful)
-{
-
-  _nss_mysql_close_result (mresult);
-  if (graceful && ci.valid)
-    mysql_close (&(ci.link));
-  ci.valid = nfalse;
-  return (NSS_SUCCESS);
-}
-
-void
+static void
 _nss_mysql_fail_server (MYSQL_RES **mresult, int server_num)
 {
   _nss_mysql_close_sql (mresult, ntrue);
@@ -371,36 +369,6 @@ _nss_mysql_fetch_row (MYSQL_ROW *row, MYSQL_RES *mresult)
     }
   return (NSS_SUCCESS);
 }
-
-my_ulonglong
-_nss_mysql_num_rows (MYSQL_RES *mresult)
-{
-  return (mysql_num_rows (mresult));
-}
-
-unsigned long *
-_nss_mysql_fetch_lengths (MYSQL_RES *mresult)
-{
-  return (mysql_fetch_lengths (mresult));
-}
-
-unsigned int
-_nss_mysql_num_fields (MYSQL_RES *mresult)
-{
-  return (mysql_num_fields (mresult));
-}
-
-/*
- * SET/END ent's call this.  While the definition of endent is to close
- * the file, I see no reason to actually do that - just clear the
- * current result set.
- */
-void
-_nss_mysql_reset_ent (MYSQL_RES **mresult)
-{
-  _nss_mysql_close_result (mresult);
-}
-
 
 NSS_STATUS
 _nss_mysql_escape_string (char *to, const char *from, MYSQL_RES **mresult)
