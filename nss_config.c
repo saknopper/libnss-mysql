@@ -149,14 +149,8 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
               /* Set 'ptr' to addr of string */
               (intptr_t) ptr = *(intptr_t *) (b + f->ofs);
               /* allocate/reallocate space for incoming string */
-              _nss_mysql_debug (FNAME, D_MEMORY, "ptr = realloc (%p, %d)",
-                                ptr, size);
-              if ((ptr = realloc (ptr, size)) == NULL)
-                {
-                  _nss_mysql_log (LOG_ALERT, "realloc of %d bytes failed",
-                                  size);
-                  function_return (NSS_UNAVAIL);
-                }
+              if ((ptr = xrealloc (ptr, size)) == NULL)
+                function_return (NSS_UNAVAIL);
               /* Set the pointer in structure to new pointer */
               *(intptr_t *) (b + f->ofs) = (intptr_t) ptr;
               /* Copy value into newly-alloc'ed area */
@@ -330,13 +324,8 @@ _nss_mysql_init_defaults (conf_t *conf, int num)
           _nss_mysql_debug (FNAME, D_PARSE,
                             "%s: copying from %p to %p", f->name, in, out);
           size = strlen (in) + 1 + PADSIZE;
-          _nss_mysql_debug (FNAME, D_MEMORY,
-                            "%s: out = realloc (%p %d)", f->name, out, size);
-          if ((out = realloc (out, size)) == NULL)
-            {
-              _nss_mysql_log (LOG_ALERT, "Unable to realloc %d bytes", size);
-              continue;
-            }
+          if ((out = xrealloc (out, size)) == NULL)
+            continue;
           *(intptr_t *) (d + f->ofs) = (intptr_t) out;
           memcpy (out, in, size);
           break;
