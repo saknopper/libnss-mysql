@@ -28,22 +28,27 @@ static const char rcsid[] =
 #include <unistd.h>
 #include <stdlib.h>
 
-static field_info_t defaults_fields[] =
+static field_info_t server_fields[] =
 {
-    {"host",     FOFS (sql_conf_t, server.host),     FT_PCHAR},
-    {"port",     FOFS (sql_conf_t, server.port),     FT_UINT},
-    {"socket",   FOFS (sql_conf_t, server.socket),   FT_PCHAR},
-    {"username", FOFS (sql_conf_t, server.username), FT_PCHAR},
-    {"password", FOFS (sql_conf_t, server.password), FT_PCHAR},
-    {"database", FOFS (sql_conf_t, server.database), FT_PCHAR},
-    {"getpwnam", FOFS (sql_conf_t, query.getpwnam),  FT_PCHAR},
-    {"getpwuid", FOFS (sql_conf_t, query.getpwuid),  FT_PCHAR},
-    {"getspnam", FOFS (sql_conf_t, query.getspnam),  FT_PCHAR},
-    {"getpwent", FOFS (sql_conf_t, query.getpwent),  FT_PCHAR},
-    {"getspent", FOFS (sql_conf_t, query.getspent),  FT_PCHAR},
-    {"getgrnam", FOFS (sql_conf_t, query.getgrnam),  FT_PCHAR},
-    {"getgrgid", FOFS (sql_conf_t, query.getgrgid),  FT_PCHAR},
-    {"getgrent", FOFS (sql_conf_t, query.getgrent),  FT_PCHAR},
+    {"host",     FOFS (sql_server_t, host),     FT_PCHAR},
+    {"port",     FOFS (sql_server_t, port),     FT_UINT},
+    {"socket",   FOFS (sql_server_t, socket),   FT_PCHAR},
+    {"username", FOFS (sql_server_t, username), FT_PCHAR},
+    {"password", FOFS (sql_server_t, password), FT_PCHAR},
+    {"database", FOFS (sql_server_t, database), FT_PCHAR},
+    {NULL}
+};
+
+static field_info_t query_fields[] =
+{
+    {"getpwnam", FOFS (sql_query_t, getpwnam),  FT_PCHAR},
+    {"getpwuid", FOFS (sql_query_t, getpwuid),  FT_PCHAR},
+    {"getspnam", FOFS (sql_query_t, getspnam),  FT_PCHAR},
+    {"getpwent", FOFS (sql_query_t, getpwent),  FT_PCHAR},
+    {"getspent", FOFS (sql_query_t, getspent),  FT_PCHAR},
+    {"getgrnam", FOFS (sql_query_t, getgrnam),  FT_PCHAR},
+    {"getgrgid", FOFS (sql_query_t, getgrgid),  FT_PCHAR},
+    {"getgrent", FOFS (sql_query_t, getgrent),  FT_PCHAR},
     {NULL}
 };
 
@@ -60,16 +65,16 @@ typedef enum
 {
   SECTION_INVALID,
   SECTION_GLOBAL,
-  SECTION_DEFAULTS,
-  SECTION_SERVER
+  SECTION_SERVER,
+  SECTION_QUERIES
 } sections_t;
 
 /* I'm overloading the 'purpose' of field_info_t here ... */
 static field_info_t section_info[] =
 {
     {"global",   0, SECTION_GLOBAL},
-    {"defaults", 0, SECTION_DEFAULTS},
     {"server",   0, SECTION_SERVER},
+    {"queries",  0, SECTION_QUERIES},
     {NULL}
 };
 
@@ -296,47 +301,6 @@ _nss_mysql_load_section (FILE *fh, void *structure, field_info_t *fields)
   function_return (NSS_SUCCESS);
 }
 
-static void
-_nss_mysql_init_defaults (conf_t *conf, int num)
-{
-  field_info_t *f;
-  _nss_mysql_byte *s, *d;
-  char *in, *out;
-  int size;
-
-  function_enter;
-  s = (_nss_mysql_byte *) &(conf->defaults);
-  d = (_nss_mysql_byte *) &(conf->sql[num]);
-  for (f = defaults_fields; f->name; f++)
-    {
-      switch (f->type)
-        {
-        case FT_UINT:
-        case FT_SYSLOG:
-          _nss_mysql_debug (FNAME, D_PARSE, "%s: copying", f->name);
-          *(unsigned int *) (s + f->ofs) = *(unsigned int *) (d + f->ofs);
-          break;
-        case FT_PCHAR:
-          (intptr_t) in = *(intptr_t *) (s + f->ofs);
-          if (!in)
-            continue;
-          (intptr_t) out = *(intptr_t *) (d + f->ofs);
-          _nss_mysql_debug (FNAME, D_PARSE,
-                            "%s: copying from %p to %p", f->name, in, out);
-          size = strlen (in) + 1 + PADSIZE;
-          if ((out = xrealloc (out, size)) == NULL)
-            continue;
-          *(intptr_t *) (d + f->ofs) = (intptr_t) out;
-          memcpy (out, in, size);
-          break;
-        default:
-          _nss_mysql_log (LOG_ERR, "%s: Unhandled type: %d", FNAME, f->type);
-          break;
-        }
-    }
-  function_leave;
-}
-
 static NSS_STATUS
 _nss_mysql_load_config_file (char *file, conf_t *conf)
 {
@@ -363,15 +327,6 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
               function_return (to_return);
             }
             break;
-        case SECTION_DEFAULTS:
-          to_return = _nss_mysql_load_section (fh, &conf->defaults,
-                                               defaults_fields);
-          if (to_return != NSS_SUCCESS)
-            {
-              fclose (fh);
-              function_return (to_return);
-            }
-          break;
         case SECTION_SERVER:
           conf->num_servers++;
           if (conf->num_servers >= MAX_SERVERS)
@@ -383,12 +338,19 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
               fclose (fh);
               function_return (NSS_SUCCESS);
             }
-          /* First copy defaults over */
-          _nss_mysql_init_defaults (conf, conf->num_servers - 1);
           to_return =
             _nss_mysql_load_section (fh,
-                                     &(conf->sql[conf->num_servers - 1]),
-                                     defaults_fields);
+                                     &(conf->sql.server[conf->num_servers - 1]),
+                                     server_fields);
+          if (to_return != NSS_SUCCESS)
+            {
+              fclose (fh);
+              function_return (to_return);
+            }
+          break;
+        case SECTION_QUERIES:
+          to_return = _nss_mysql_load_section (fh, &conf->sql.query,
+                                               query_fields);
           if (to_return != NSS_SUCCESS)
             {
               fclose (fh);
@@ -420,17 +382,13 @@ _nss_mysql_load_config (conf_t *conf)
   conf->global.debug_flags = DEF_DFLAGS;
   to_return = _nss_mysql_load_config_file (MAINCFG, conf);
   if (to_return != NSS_SUCCESS)
-    {
-      function_return (to_return);
-    }
+    function_return (to_return);
   if (geteuid() == 0)
     {
       conf->num_servers = 0;
       to_return = _nss_mysql_load_config_file (ROOTCFG, conf);
       if (to_return != NSS_SUCCESS)
-        {
-          function_return (to_return);
-        }
+        function_return (to_return);
     }
   conf->valid = ntrue;
   function_return (NSS_SUCCESS);
