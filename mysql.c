@@ -193,6 +193,10 @@ _nss_mysql_try_server (MYSQL_RES **mresult)
         }
       ci.valid = ntrue;
       server->status.up = ntrue;
+#if MYSQL_VERSION_ID >= 32118
+      ci.link.reconnect = 0; /* Safety: We can't let MySQL assume socket is
+                                still valid; see _nss_mysql_validate_socket */
+#endif
       DSRETURN (NSS_SUCCESS)
     }
   _nss_mysql_log (LOG_ALERT, "Connection to server '%s' failed: %s",
@@ -288,7 +292,14 @@ _nss_mysql_pick_server (void)
             }
         }
     }
-  DSRETURN (NSS_UNAVAIL)
+  /* If we get this far, simply try server #0 (if it's "valid") */
+  if (conf.sql.server[0].status.valid)
+    {
+      ci.server_num = 0;
+      DSRETURN (NSS_SUCCESS)
+    }
+  else
+    DSRETURN (NSS_UNAVAIL)
 }
 
 /*
@@ -307,7 +318,7 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
   if (_nss_mysql_check_existing_connection (mresult) == ntrue)
     DSRETURN (NSS_SUCCESS)
 
-  /* Because check_existig_connection can try to reload the config */
+  /* Because check_existing_connection can try to reload the config */
   if (conf.valid == nfalse)
     DSRETURN (NSS_UNAVAIL)
 
