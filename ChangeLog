@@ -6,6 +6,8 @@
               forced-static-link from RPM spec file since this change makes
               it unnecessary
 
+    * CHANGE: Moved sources to src/ and aux files to aux/
+
     * BUGFIX: Added missing Makefile path to <OS>.sym
 
 1.1 - 1.2
