@@ -248,12 +248,13 @@ nboolean _nss_mysql_active_result (void);
 NSS_STATUS _nss_mysql_escape_string (char *to, const char *from);
 
 /* memory.c */
-void xfree(void *ptr);
-void *xmalloc(size_t size);
-void *xrealloc (void *ptr, size_t size);
+void _nss_mysql_free(void *ptr);
+void *_nss_mysql_malloc(size_t size);
+void *_nss_mysql_realloc (void *ptr, size_t size);
 
 /* nss_config.c */
 NSS_STATUS _nss_mysql_load_config (conf_t *conf);
+void _nss_mysql_reset_config (conf_t *conf);
 
 /* nss_structures.c */
 extern field_info_t passwd_fields[];

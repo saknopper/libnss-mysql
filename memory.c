@@ -27,7 +27,7 @@ static const char rcsid[] =
 #include <stdlib.h>
 
 void
-xfree (void *ptr)
+_nss_mysql_free (void *ptr)
 {
   function_enter;
   _nss_mysql_debug (FNAME, D_MEMORY, "free %p", ptr);
@@ -38,7 +38,7 @@ xfree (void *ptr)
 }
 
 void *
-xmalloc (size_t size)
+_nss_mysql_malloc (size_t size)
 {
   static void *ptr;
 
@@ -52,7 +52,7 @@ xmalloc (size_t size)
 }
 
 void *
-xrealloc (void *ptr, size_t size)
+_nss_mysql_realloc (void *ptr, size_t size)
 {
   void *before = ptr;
 

@@ -48,21 +48,21 @@ _nss_mysql_lookup_name (const char *name, int qofs, const char *caller)
     }
 
   qsize = strlen ((char *)q) + PADSIZE + 1;
-  query = xmalloc (qsize);
+  query = _nss_mysql_malloc (qsize);
   if (query == NULL)
     function_return (NSS_UNAVAIL);
-  clean_name = xmalloc (strlen (name) * 2 + 1);
+  clean_name = _nss_mysql_malloc (strlen (name) * 2 + 1);
   if (clean_name == NULL)
     {
-      xfree (query);
+      _nss_mysql_free (query);
       function_return (NSS_UNAVAIL);
     }
   _nss_mysql_escape_string (clean_name, name);
   snprintf (query, qsize, (char *)q, clean_name);
-  xfree (clean_name);
+  _nss_mysql_free (clean_name);
   _nss_mysql_reset_ent ();
   retVal = _nss_mysql_run_query (conf, query);
-  xfree (query);
+  _nss_mysql_free (query);
   function_return (retVal);
 }
 
@@ -85,13 +85,13 @@ _nss_mysql_lookup_number (unsigned int num, int qofs, const char *caller)
     }
 
   qsize = strlen ((char *)q) + PADSIZE + 1;
-  query = xmalloc (qsize);
+  query = _nss_mysql_malloc (qsize);
   if (query == NULL)
     function_return (NSS_UNAVAIL);
   snprintf (query, qsize, (char *)q, num);
   _nss_mysql_reset_ent ();
   retVal = _nss_mysql_run_query (conf, query);
-  xfree (query);
+  _nss_mysql_free (query);
   function_return (retVal);
 }
 

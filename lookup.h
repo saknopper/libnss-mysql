@@ -179,7 +179,7 @@
     {                                                                        \
       nss_backend_t *be;                                                     \
       function_enter;                                                        \
-      be = (nss_backend_t *) xmalloc (sizeof (*be));                         \
+      be = (nss_backend_t *) _nss_mysql_malloc (sizeof (*be));               \
       be->ops = type##_ops;                                                  \
       be->n_ops = sizeof (type##_ops) / sizeof (nss_backend_op_t);           \
       function_leave;                                                        \

@@ -173,7 +173,7 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
               /* Set 'ptr' to addr of string */
               (intptr_t) ptr = *(intptr_t *) (b + f->ofs);
               /* allocate/reallocate space for incoming string */
-              if ((ptr = xrealloc (ptr, size)) == NULL)
+              if ((ptr = _nss_mysql_realloc (ptr, size)) == NULL)
                 function_return (NSS_UNAVAIL);
               /* Set the pointer in structure to new pointer */
               *(intptr_t *) (b + f->ofs) = (intptr_t) ptr;
@@ -434,5 +434,37 @@ _nss_mysql_load_config (conf_t *conf)
     }
   conf->valid = ntrue;
   function_return (NSS_SUCCESS);
+}
+
+/*
+ * Free all memory related to conf and reset it back to the defaults
+ */
+void
+_nss_mysql_reset_config (conf_t *conf)
+{
+  int i;
+  field_info_t *f;
+
+  for (i = 0; i < MAX_SERVERS; i++)
+  {
+    _nss_mysql_free (conf->sql.server[i].host);
+    _nss_mysql_free (conf->sql.server[i].socket);
+    _nss_mysql_free (conf->sql.server[i].username);
+    _nss_mysql_free (conf->sql.server[i].password);
+    _nss_mysql_free (conf->sql.server[i].database);
+  }
+
+  for (f = query_fields; f->name; f++)
+    {
+      char *q;
+      (intptr_t *)q = *(intptr_t *)((_nss_mysql_byte *)&conf->sql.query + f->ofs);
+      _nss_mysql_free (q);
+    }
+
+  memset (conf, 0, sizeof (conf_t));
+  conf->global.retry = DEF_RETRY;
+  conf->global.syslog_facility = DEF_FACIL;
+  conf->global.syslog_priority = DEF_PRIO;
+  conf->global.debug_flags = DEF_DFLAGS;
 }
 

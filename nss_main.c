@@ -82,13 +82,15 @@ _nss_mysql_debug (const char *function, int flags, char *fmt, ...)
 NSS_STATUS
 _nss_mysql_default_destr (nss_backend_t *be, void *args)
 {
+  int i;
   function_enter;
-  xfree(be);
+  _nss_mysql_free (be);
   /*
    * We MUST close the link as the NSS subsystem unloads the module and thus
    * all static variables are lost
    */
   _nss_mysql_close_sql (CLOSE_LINK);
+  _nss_mysql_reset_config (&conf);
   function_return (NSS_SUCCESS);
 
 }

@@ -44,13 +44,13 @@ _nss_mysql_count_tokens (const char *buffer, int *count)
     function_return (NSS_SUCCESS);
 
   /* strtok destroys the input, so copy it somewhere safe first */
-  if ((p = (char *) xmalloc (buflen + 1)) == NULL)
+  if ((p = (char *) _nss_mysql_malloc (buflen + 1)) == NULL)
     function_return (NSS_UNAVAIL);
   memcpy (p, buffer, strlen (buffer) + 1);
 
   for (token = strtok (p, ", "); token; (*count)++)
     token = strtok (NULL, ", ");
-  xfree (p);
+  _nss_mysql_free (p);
   _nss_mysql_debug (FNAME, D_PARSE, "Found %d tokens", *count);
   function_return (NSS_SUCCESS);
 }
@@ -124,7 +124,7 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
         *bufused += (num_tokens + 1) * PTRSIZE;
 
         /* strtok destroys the input, so copy it somewhere safe first */
-        if ((copy_of_val = (char *) xmalloc (val_size)) == NULL)
+        if ((copy_of_val = (char *) _nss_mysql_malloc (val_size)) == NULL)
           function_return (NSS_UNAVAIL);
 
         memcpy (copy_of_val, val, val_size);
@@ -136,7 +136,7 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
             *bufused += token_size;
             if (*bufused > buflen)
               {
-                xfree (copy_of_val);
+                _nss_mysql_free (copy_of_val);
                 errno = ERANGE;
                 _nss_mysql_debug (FNAME, D_MEMORY,
                                   "Requesting more memory for BUFFER");
@@ -148,7 +148,7 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
 
             token = strtok (NULL, ", ");
           }
-        xfree (copy_of_val);
+        _nss_mysql_free (copy_of_val);
         /* Set structure pointer to point at start of pointers */
         *(intptr_t *) (b + fofs) = (intptr_t) buffer;
       }
