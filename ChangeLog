@@ -1,5 +1,18 @@
 # $Id$
 
+2002-08-23  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * lookup.c: Fixed memory leak 
+
+    * lookup.h: Added CLOSE_RESULT in GET on the HAVE_NSS_COMMON_H side
+      of the house (to match the HAVE_NSS_H side)
+
+    * nss_main.c: (HAVE_NSS_COMMON_H) default destructor now closes MySQL
+      link - required due to the fact that the module is unloaded and
+      thus static vars are lost
+
+    * nss_config.c: Close config file handle when done with it
+
 2002-08-22  Ben Goodwin  <cinergi@users.sourceforge.net>
 
     * mysql-grp.c, mysql-pwd.c, mysql-spwd.c: Added euid restrict -
