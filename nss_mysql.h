@@ -222,7 +222,9 @@ typedef struct {
 /* nss_main.c */
 void _nss_mysql_debug(const char *function, int flags, char *fmt, ...);
 void _nss_mysql_log (int priority, char *fmt, ...);
+#ifdef HAVE_NSS_COMMON_H
 NSS_STATUS _nss_mysql_default_destr (nss_backend_t *be, void *args);
+#endif
 
 /* nss_support.c */
 NSS_STATUS _nss_mysql_init(conf_t *conf);
