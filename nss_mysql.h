@@ -72,6 +72,7 @@ typedef nss_status_t NSS_STATUS;
 
 /* Use these as defaults until they're overridden via the config file */
 #define DEF_RETRY       30
+#define DEF_TIMEOUT     3
 
 #ifdef DEBUG
 void _nss_mysql_debug (char *fmt, ...);
