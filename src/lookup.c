@@ -47,7 +47,7 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
   DENTER
 
   /* Verify existence of input query, lest we crash */
-  if (!qin)
+  if (!qin || !qin[0])
     {
      _nss_mysql_log (LOG_CRIT, "%s has no valid query in config", caller);
      DSRETURN (NSS_UNAVAIL)
@@ -56,7 +56,7 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
   switch (ltype)
     {
     case BYNAME: /* This lookup key is a name/string */
-      if (!name)
+      if (!name || !name[0])
         DSRETURN (NSS_NOTFOUND)
       D ("%s: BYNAME, name = '%s'", FUNCNAME, name);
       if (strlen (name) >= MAX_NAME_SIZE)
