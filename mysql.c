@@ -31,6 +31,10 @@ static const char rcsid[] =
 #include <time.h>
 #include <netinet/in.h>
 
+#ifndef HAVE_SOCKLEN_T
+typedef size_t socklen_t;
+#endif
+
 con_info_t ci = { nfalse, 0, NULL };
 extern conf_t conf;
 
