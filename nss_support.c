@@ -98,7 +98,7 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
                             "Requesting more memory for BUFFER");
           function_return (NSS_TRYAGAIN);
         }
-      *(intptr_t *) (b + fofs) = (intptr_t) memcpy (buffer, val, val_size);
+      *(uintptr_t *) (b + fofs) = (uintptr_t) memcpy (buffer, val, val_size);
       *bufused += val_size;
       break;
     case FT_PPCHAR:
@@ -114,7 +114,7 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
 
         if (num_tokens == 0)
           {
-            *(intptr_t *) (b + fofs) = (intptr_t) buffer;
+            *(uintptr_t *) (b + fofs) = (uintptr_t) buffer;
             function_return (NSS_SUCCESS);
           }
 
@@ -142,7 +142,7 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
                                   "Requesting more memory for BUFFER");
                 function_return (NSS_TRYAGAIN);
               }
-            *(intptr_t *) p = (intptr_t) memcpy (s, token, token_size);
+            *p = (uintptr_t) memcpy (s, token, token_size);
             p += PTRSIZE;
             s += token_size;
 
@@ -150,7 +150,7 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
           }
         _nss_mysql_free (copy_of_val);
         /* Set structure pointer to point at start of pointers */
-        *(intptr_t *) (b + fofs) = (intptr_t) buffer;
+        *(uintptr_t *) (b + fofs) = (uintptr_t) buffer;
       }
       break;
     default:
