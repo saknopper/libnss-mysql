@@ -4,6 +4,7 @@ Better/more generic parser?
 Support other NSS calls (like group_bymember)
 Solaris 9 support
 Check current error returns/conditions; properly use errno, herrno etc
+PAM/passwd solution for Solaris
 
 BUGFIXES
     Turn off socket keepalive?
