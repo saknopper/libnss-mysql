@@ -96,7 +96,7 @@ AC_CHECK_LIB(mysqlclient, main, ,
 
 AC_HEADER_STDC
 AC_CHECK_HEADER(mysql.h, , [AC_MSG_ERROR([Unable to find mysql.h])])
-AC_CHECK_HEADERS(syslog.h stdint.h nss.h nss_common.h strings.h shadow.h)
+AC_CHECK_HEADERS(syslog.h stdint.h nss.h nss_common.h shadow.h)
 
 AC_C_CONST
 AC_TYPE_UID_T

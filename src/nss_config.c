@@ -20,12 +20,8 @@ static const char rcsid[] =
     "$Id$";
 
 #include "nss_mysql.h"
-#include <stdio.h>
-#include <string.h>
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
-#endif
-#include <stdlib.h>
+#include <stdio.h>      /* fopen() */
+#include <string.h>     /* strlen() */
 
 /* global var 'conf' contains data loaded from config files */
 conf_t  conf = CONF_INITIALIZER;

@@ -20,13 +20,13 @@ static const char rcsid[] =
     "$Id$";
 
 #include "nss_mysql.h"
-#include <stdlib.h>
-#include <string.h>
-#include <pwd.h>
+#include <stdlib.h>     /* atoi() */
+#include <string.h>     /* memset() */
+#include <pwd.h>        /* struct passwd */
 #ifdef HAVE_SHADOW_H
-#include <shadow.h>
+#include <shadow.h>     /* struct spwd */
 #endif
-#include <grp.h>
+#include <grp.h>        /* struct group */
 
 extern conf_t conf;
 

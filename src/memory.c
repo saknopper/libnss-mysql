@@ -24,7 +24,7 @@ static const char rcsid[] =
     "$Id$";
 
 #include "nss_mysql.h"
-#include <stdlib.h>
+#include <stdlib.h>     /* free() */
 
 void
 _nss_mysql_free (void *ptr)
