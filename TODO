@@ -1,5 +1,4 @@
 develop tests - including multi-threaded
-Better MySQL autoconf find/check
 Solaris support
 Make my own, non-destructive, strtok replacement?
 Align pointers stored in buffer
