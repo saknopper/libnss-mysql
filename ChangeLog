@@ -9,6 +9,9 @@
 
     * BUGFIX: Added missing Makefile path to <OS>.sym
 
+    * CHANGE: Big changes in config parsing; [section]'s are meaningless
+              and safely ignored, but should be removed
+
     * CHANGE: Prefer static MySQL libraries over dynamic; Removed
               forced-static-link from RPM spec file since this change makes
               it unnecessary
