@@ -25,7 +25,6 @@ static const char rcsid[] =
 
 #include "nss_mysql.h"
 #include <stdio.h>      /* fprintf() */
-#include <stdlib.h>     /* atoi() */
 #include <stdarg.h>     /* va_start() */
 #include <sys/stat.h>   /* umask() */
 
@@ -246,7 +245,11 @@ _nss_mysql_default_destr (nss_backend_t *be, void *args)
 {
   DN ("_nss_mysql_default_destr")
   DENTER
-  _nss_mysql_free (be);
+  if (be)
+    {
+      free (be);
+      be = NULL;
+    }
   /* Closing link & freeing memory unnecessary due to link w/ '-znodelete' */
   DSRETURN (NSS_SUCCESS)
 
