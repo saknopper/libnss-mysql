@@ -159,6 +159,20 @@ _nss_mysql_pthread_once_init (void)
 }
 
 /*
+ * Make an attempt to close the link when the process exits
+ * Set in _nss_mysql_init() below
+ */
+static void
+_nss_mysql_atexit_handler (void)
+{
+  DN ("_nss_mysql_atexit_handler")
+
+  DENTER
+  _nss_mysql_close_sql (NULL, ntrue);
+  DEXIT
+}
+
+/*
  * Setup pthread_once if it's available in the current namespace
  * Load config file(s)
  */
@@ -167,11 +181,18 @@ _nss_mysql_init (void)
 {
   DN ("_nss_mysql_init")
   int (*pthread_once)();
+  static int atexit_isset = nfalse;
 
   DENTER
   pthread_once = (int (*)(int))dlsym (RTLD_DEFAULT, "pthread_once");
   if (pthread_once)
     (*pthread_once) (&_nss_mysql_once_control, _nss_mysql_pthread_once_init);
+  if (atexit_isset == nfalse)
+    {
+      if (atexit(_nss_mysql_atexit_handler) == RETURN_SUCCESS)
+        atexit_isset = ntrue;
+    }
+  UNLOCK;
   DSRETURN (_nss_mysql_load_config ())
 }
 

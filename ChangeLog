@@ -1,5 +1,12 @@
 # $Id$
 
+1.3 - 1.4
+
+    * BUGFIX: Added atexit() handler to close MySQL connection upon process
+              exit.  Should clear up any "Aborted connection [...]
+              Got an error reading communication packets" messages in the
+              MySQL server logs if you have warnings turned on
+
 1.2 - 1.3
 
     * CHANGE: Prefer static MySQL libraries over dynamic; Removed
