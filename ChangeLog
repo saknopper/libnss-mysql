@@ -1,6 +1,8 @@
 # $Id$
 
-0.7a - xxx
+0.7a - 0.8
+
+    * NEW:    Added RPM SPEC file to distribution
 
     * BUGFIX: Disable MySQL automatic reconnect.  It's not safe in this
               environment
@@ -10,6 +12,8 @@
 
     * CHANGE: Create debug file with a umask of '000' so any process
               can write to it
+
+    * CHANGE: Many updates to various documentation
 
 0.7 - 0.7a
 
