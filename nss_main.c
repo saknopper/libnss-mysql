@@ -35,29 +35,16 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 #define LOCK pthread_mutex_lock (&lock);
 #define UNLOCK pthread_mutex_unlock (&lock);
 
-conf_t  conf = { 0, 0, { DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
-
-#define _nss_mysql_free_query_list                                            \
-    {                                                                         \
-      int i;                                                                  \
-      for (i = 0; i < MAX_SERVERS; i++)                                       \
-        {                                                                     \
-          if (query_list[i])                                                  \
-            {                                                                 \
-              xfree (query_list[i]);                                          \
-              query_list[i] = NULL;                                           \
-            }                                                                 \
-        }                                                                     \
-    }
+conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
 
 #define GET(funcname, sname, argtype, restrict)                               \
   NSS_STATUS                                                                  \
   _nss_mysql_##funcname##_r (argtype arg, struct sname *result,               \
                              char *buffer, size_t buflen)                     \
   {                                                                           \
-    int retVal, i;                                                            \
+    int retVal;                                                               \
     int size;                                                                 \
-    char *query_list[MAX_SERVERS];                                            \
+    char *query;                                                              \
                                                                               \
     function_enter;                                                           \
     if (restrict && geteuid () != 0)                                          \
@@ -69,40 +56,36 @@ conf_t  conf = { 0, 0, { DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
       }                                                                       \
     if (!buffer)                                                              \
       {                                                                       \
-        _nss_mysql_log (LOG_CRIT, "%s was passed a NULL buffer", FNAME);      \
+        _nss_mysql_log (LOG_CRIT, "%s was passed a NULL BUFFER", FNAME);      \
         function_return (NSS_UNAVAIL);                                        \
       }                                                                       \
     LOCK;                                                                     \
-    memset (query_list, 0, sizeof (query_list));                              \
     if (_nss_mysql_init (&conf) != NSS_SUCCESS)                               \
       {                                                                       \
         UNLOCK;                                                               \
         function_return (NSS_UNAVAIL);                                        \
       }                                                                       \
-    for (i = 0; i < MAX_SERVERS; i++)                                         \
+    if (!conf.sql.query.funcname)                                             \
       {                                                                       \
-        if (!conf.sql[i].query.funcname)                                      \
-          continue;                                                           \
-        size = strlen (conf.sql[i].query.funcname) + 1 + PADSIZE;             \
-        query_list[i] = xmalloc (size);                                       \
-        if (query_list[i] == NULL)                                            \
-          {                                                                   \
-            _nss_mysql_free_query_list;                                       \
-            UNLOCK;                                                           \
-            function_return (NSS_UNAVAIL);                                    \
-          }                                                                   \
-        snprintf (query_list[i], size, conf.sql[i].query.funcname, arg);      \
+        UNLOCK;                                                               \
+        function_return (NSS_UNAVAIL);                                        \
       }                                                                       \
-    _nss_mysql_reset_ent ();                                                  \
-    if (_nss_mysql_run_query (conf, query_list) != NSS_SUCCESS)               \
+    size = strlen (conf.sql.query.funcname) + 1 + PADSIZE;                    \
+    query = xmalloc (size);                                                   \
+    if (query == NULL)                                                        \
       {                                                                       \
-        _nss_mysql_free_query_list;                                           \
+        UNLOCK;                                                               \
+        function_return (NSS_UNAVAIL);                                        \
+      }                                                                       \
+    snprintf (query, size, conf.sql.query.funcname, arg);                     \
+    _nss_mysql_reset_ent ();                                                  \
+    if (_nss_mysql_run_query (conf, query) != NSS_SUCCESS)                    \
+      {                                                                       \
         UNLOCK;                                                               \
         function_return (NSS_UNAVAIL);                                        \
       }                                                                       \
     retVal = _nss_mysql_load_result (result, buffer, buflen, sname##_fields); \
     _nss_mysql_close_sql (CLOSE_RESULT);                                      \
-    _nss_mysql_free_query_list;                                               \
     UNLOCK;                                                                   \
     function_return (retVal);                                                 \
   }
@@ -135,8 +118,8 @@ conf_t  conf = { 0, 0, { DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
                             size_t buflen)                                    \
   {                                                                           \
     int retVal;                                                               \
-    int i, size;                                                              \
-    char *query_list[MAX_SERVERS];                                            \
+    int size;                                                                 \
+    char *query;                                                              \
                                                                               \
     function_enter;                                                           \
     if (!result)                                                              \
@@ -146,11 +129,10 @@ conf_t  conf = { 0, 0, { DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
       }                                                                       \
     if (!buffer)                                                              \
       {                                                                       \
-        _nss_mysql_log (LOG_CRIT, "%s was passed a NULL buffer", FNAME);      \
+        _nss_mysql_log (LOG_CRIT, "%s was passed a NULL BUFFER", FNAME);      \
         function_return (NSS_UNAVAIL);                                        \
       }                                                                       \
     LOCK;                                                                     \
-    memset (query_list, 0, sizeof (query_list));                              \
     if (_nss_mysql_init (&conf) != NSS_SUCCESS)                               \
       {                                                                       \
         UNLOCK;                                                               \
@@ -158,48 +140,49 @@ conf_t  conf = { 0, 0, { DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
       }                                                                       \
     if (_nss_mysql_active_result () == nfalse)                                \
       {                                                                       \
-        for (i = 0; i < MAX_SERVERS; i++)                                     \
+        if (!conf.sql.query.get##type)                                        \
           {                                                                   \
-            if (!conf.sql[i].query.get##type)                                 \
-              continue;                                                       \
-            size = strlen (conf.sql[i].query.get##type) + 1;                  \
-            query_list[i] = xmalloc (size);                                   \
-            if (query_list[i] == NULL)                                        \
-              {                                                               \
-                _nss_mysql_free_query_list;                                   \
-                UNLOCK;                                                       \
-                function_return (NSS_UNAVAIL);                                \
-              }                                                               \
-            strcpy (query_list[i], conf.sql[i].query.get##type);              \
+            UNLOCK;                                                           \
+            function_return (NSS_UNAVAIL);                                    \
           }                                                                   \
-        if (_nss_mysql_run_query (conf, query_list) != NSS_SUCCESS)           \
+        size = strlen (conf.sql.query.get##type) + 1;                         \
+        query = xmalloc (size);                                               \
+        if (query == NULL)                                                    \
           {                                                                   \
-            _nss_mysql_free_query_list;                                       \
+            UNLOCK;                                                           \
+            function_return (NSS_UNAVAIL);                                    \
+          }                                                                   \
+        strcpy (query, conf.sql.query.get##type);                             \
+                                                                              \
+        if (_nss_mysql_run_query (conf, query) != NSS_SUCCESS)                \
+          {                                                                   \
             UNLOCK;                                                           \
             function_return (NSS_UNAVAIL);                                    \
           }                                                                   \
       }                                                                       \
     retVal = _nss_mysql_load_result (result, buffer, buflen, sname##_fields); \
-    _nss_mysql_inc_ent ();                                                    \
-    _nss_mysql_free_query_list;                                               \
     UNLOCK;                                                                   \
     function_return (retVal);                                                 \
   }
 
+/*
+ * Do *NOT* change this to maintain persistent connection - it will fail
+ * under certain circumstances where programs using this library open and
+ * close their own file descriptors.  I save the MySQL socket information
+ * for later comparison for the same reason.
+ */
 void
 _nss_mysql_log (int priority, char *fmt, ...)
 {
   va_list ap;
-  char string[2000];
 
   if (priority > conf.global.syslog_priority)
     return;
 
+  openlog (PACKAGE, OPENLOG_OPTIONS, conf.global.syslog_facility);
   va_start (ap, fmt);
-  vsnprintf (string, 2000, fmt, ap);
+  vsyslog (priority, fmt, ap);
   va_end (ap);
-  openlog ("nss_mysql", 0, conf.global.syslog_facility);
-  syslog (priority, string);
   closelog ();
 }
 
@@ -207,7 +190,7 @@ void
 _nss_mysql_debug (char *function, int flags, char *fmt, ...)
 {
   va_list ap;
-  char string[2000];
+  char string[MAX_LOG_LEN];
 
   if (conf.global.syslog_priority < LOG_DEBUG)
     return;
@@ -215,9 +198,9 @@ _nss_mysql_debug (char *function, int flags, char *fmt, ...)
   if (!(flags & conf.global.debug_flags))
     return;
 
-  snprintf (string, 2000, "%s: ", function);
+  snprintf (string, MAX_LOG_LEN, "%s: ", function);
   va_start (ap, fmt);
-  vsnprintf (string + strlen (string), 2000, fmt, ap);
+  vsnprintf (string + strlen (string), MAX_LOG_LEN, fmt, ap);
   va_end (ap);
   _nss_mysql_log (LOG_DEBUG, "%s", string);
 }
