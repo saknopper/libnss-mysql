@@ -24,7 +24,7 @@ static const char rcsid[] =
 
 extern conf_t conf;
 
-NSS_STATUS
+static NSS_STATUS
 _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
                         char **qin, char **qout, MYSQL_RES **mresult,
                         const char *caller)
