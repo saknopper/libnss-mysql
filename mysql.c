@@ -254,7 +254,7 @@ _nss_mysql_pick_server (void)
       else
         {
           if (conf.sql.server[i].status.last_attempt == 0 ||
-              conf.sql.server[i].status.last_attempt + conf.global.retry <
+              conf.sql.server[i].status.last_attempt + conf.global.retry <=
                 curTime)
             {
               _nss_mysql_debug (FNAME, D_CONNECT, "Picked %d (time)", i);
