@@ -17,9 +17,12 @@ dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 dnl
 dnl $Id$ */
 
+dnl Autoconf 2.53 is REQUIRED
+
 AC_REVISION($Revision$)dnl
-AC_INIT(nss_main.c)
-AC_CANONICAL_SYSTEM
+AC_INIT
+AC_CONFIG_SRCDIR([nss_main.c])
+AC_CANONICAL_TARGET([])
 AC_PREFIX_DEFAULT()
 AM_INIT_AUTOMAKE(libnss_mysql, 0.4dev)
 AM_CONFIG_HEADER(config.h)
@@ -57,7 +60,7 @@ linux*)
 solaris*)
     LIBVER=1
     TOS=solaris
-    if test "$ac_cv_prog_gcc" = "yes"; then
+    if test "$ac_cv_c_compiler_gnu" = "yes"; then
         CPPFLAGS="-m32 $CPPFLAGS"
     fi
     test "$prefix" = "NONE" && prefix= && libdir=/usr/lib
@@ -73,22 +76,21 @@ AC_SUBST(LIBVER)
 FIND_MYSQL()
 
 AC_CHECK_LIB(mysqlclient, mysql_connect, ,
-             [AC_MSG_ERROR(Unable find a functioning MySQL library)])
-
+             [AC_MSG_ERROR([Unable find a functioning MySQL library])])
 AC_CHECK_LIB(socket, getsockname)
 
-AC_CHECK_HEADER(mysql.h, , [AC_MSG_ERROR(Unable to find mysql.h)])
-
 AC_HEADER_STDC
+AC_CHECK_HEADER(mysql.h, , [AC_MSG_ERROR([Unable to find mysql.h])])
 AC_CHECK_HEADERS(syslog.h stdint.h nss.h nss_common.h strings.h)
 
 AC_C_CONST
 AC_TYPE_UID_T
 AC_TYPE_SIZE_T
+AC_CHECK_TYPE(socklen_t, size_t)
 
 AC_CHECK_FUNCS(strcspn strspn strtok, ,
-               [AC_MSG_ERROR(The above function is required)])
-AC_CHECK_FUNCS(mysql_connect mysql_init)
+               [AC_MSG_ERROR([The above function is required])])
+AC_CHECK_FUNCS(mysql_init)
 
 AC_TRY_COMPILE([
 #include <stdio.h>],
@@ -96,7 +98,8 @@ AC_TRY_COMPILE([
 [have_func=yes],
 [have_func=no])
 case "$have_func" in
-  yes) AC_DEFINE(HAVE___FUNC__) ;;
+  yes) AC_DEFINE([HAVE___FUNC__], 1,
+                 [Recent GCCs have built-in __FUNC__]) ;;
    no) ;;
 esac
 
@@ -106,7 +109,8 @@ AC_TRY_COMPILE([
 [have_authpriv=yes],
 [have_authpriv=no])
 case "$have_authpriv" in
-  yes) AC_DEFINE(HAVE_LOG_AUTHPRIV) ;;
+  yes) AC_DEFINE([HAVE_LOG_AUTHPRIV], 1,
+                 [Some systems have a LOG_AUTHPRIV syslog facility]) ;;
    no) ;;
 esac
 
@@ -116,12 +120,16 @@ AC_TRY_COMPILE([
 [have_logftp=yes],
 [have_logftp=no])
 case "$have_logftp" in
-  yes) AC_DEFINE(HAVE_LOG_FTP) ;;
+  yes) AC_DEFINE([HAVE_LOG_FTP], 1,
+                 [Some systems have a LOG_FTP syslog facility]) ;;
    no) ;;
 esac
 
 EXPANDED_SYSCONFDIR=`eval echo $sysconfdir`
-AC_DEFINE_UNQUOTED(MAINCFG,"$EXPANDED_SYSCONFDIR/nss_mysql.cfg")
-AC_DEFINE_UNQUOTED(ROOTCFG,"$EXPANDED_SYSCONFDIR/nss_mysql_root.cfg")
+AC_DEFINE_UNQUOTED([MAINCFG], "$EXPANDED_SYSCONFDIR/nss_mysql.cfg",
+                   [Main config file])
+AC_DEFINE_UNQUOTED([ROOTCFG],"$EXPANDED_SYSCONFDIR/nss_mysql_root.cfg",
+                   [Root config file])
 
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
