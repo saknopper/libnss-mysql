@@ -124,7 +124,7 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
 
   /* BYNONE indicates *ent; don't kill the result here, endent does that */
   if (ltype != BYNONE)
-    mysql_free_result (*mresult);
+    _nss_mysql_close_result (mresult);
 
   return (retVal);
 }
