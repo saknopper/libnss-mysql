@@ -85,7 +85,7 @@ libnss_mysql_la_SOURCES = nss_config.c nss_mysql.c nss_structures.c \
 libnss_mysql_la_LDFLAGS = -version-info 2:0:0
 noinst_HEADERS = nss_mysql.h
 CPPFLAGS = @CPPFLAGS@ -Wall -D_REENTRANT
-EXTRA_DIST = INTERNALS TODO sample 
+EXTRA_DIST = INTERNALS TODO sample/*.cfg
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
@@ -305,6 +305,7 @@ distdir: $(DISTFILES)
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
 	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Makefile
+	$(mkinstalldirs) $(distdir)/sample
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
