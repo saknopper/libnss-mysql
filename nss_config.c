@@ -118,7 +118,7 @@ static field_info_t section_info[] =
 
 /*
  * "translate" NAME to a number using FIELDS
- * IE translate "local7" to LOG_LOCAL7 using SYSLOG_NAMES above
+ * IE translate "global" to SECTION_GLOBAL using SECTION_INFO above
  */
 static int
 _nss_mysql_name_to_id (field_info_t *fields, const char *name)
@@ -143,7 +143,6 @@ static NSS_STATUS
 _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
                 void *structure)
 {
-  static const char FNAME[] = "_nss_mysql_lis";
   field_info_t *f;
   nbyte *b;
   int size;
@@ -157,7 +156,7 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
           switch (f->type)
             {
             case FT_PCHAR:
-              size = strlen (val) + 1 + PADSIZE;
+              size = strlen (val) + 1;
               /* Set 'ptr' to addr of string */
               (uintptr_t) ptr = *(uintptr_t *) (b + f->ofs);
               /* allocate/reallocate space for incoming string */
@@ -171,11 +170,8 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
             case FT_UINT:
               *(unsigned int *) (b + f->ofs) = (unsigned int) atoi (val);
               break;
-            default:
-              _nss_mysql_log (LOG_ERR, "%s: Unhandled type: %d", FNAME,
-                              f->type);
-              break;
             }
+          return (NSS_SUCCESS);
         }
     }
   return (NSS_SUCCESS);
@@ -295,7 +291,6 @@ _nss_mysql_load_section (FILE *fh, void *structure, field_info_t *fields)
 static NSS_STATUS
 _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
 {
-  static const char FNAME[] = "_nss_mysql_load_config_file";
   FILE *fh;
   int section;
   int to_return;
@@ -348,10 +343,6 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
               return (to_return);
             }
           break;
-        default:
-          _nss_mysql_log (LOG_ERR, "%s: Unhandled section type: %d", FNAME,
-                          section);
-          break;
         }
     }
   fclose (fh);
@@ -373,7 +364,7 @@ _nss_mysql_validate_servers (void)
         continue;
       if ((conf.sql.server[i].port == 0) &&
           (!conf.sql.server[i].socket || !strlen (conf.sql.server[i].socket)))
-          continue;
+        continue;
 
       conf.sql.server[i].status.valid = ntrue;
       is_valid = ntrue;
