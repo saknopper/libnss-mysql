@@ -27,7 +27,7 @@ libnss_mysql_la_LDFLAGS = -module -version-info @LIBVER@:0:0
  
 noinst_HEADERS = nss_mysql.h lookup.h
 CPPFLAGS = @CPPFLAGS@ -Wall -D_REENTRANT
-EXTRA_DIST = INTERNALS TODO FAQ sample/*.cfg sample/*.sql
+EXTRA_DIST = INTERNALS TODO FAQ THANKS sample/*.cfg sample/*.sql
 
 if SOLARIS
 export LD_OPTIONS=-z nodelete
