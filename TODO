@@ -12,3 +12,4 @@ BUGFIXES
     full fork/pid-change handling
     sigpipe handling
     Allow mysql connect options in config (to pass to mysql_options())
+    Solaris doesn't show MySQL groups for users in /etc/passwd
