@@ -31,53 +31,62 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
 {
   DN ("_nss_mysql_build_query")
   char *clean_name;
-  size_t qout_size;
+  size_t qout_size, clean_name_size;
+  size_t name_len, qin_len;
 
   DENTER
   *qout = NULL;
 
-  if (!qin || strlen (qin) == 0)
+  if (!qin || (qin_len = strlen (qin)) == 0)
     {
      _nss_mysql_log (LOG_CRIT, "%s has no valid query in config", caller);
      DSRETURN (NSS_UNAVAIL)
     }
 
-  qout_size = strlen (qin) + PADSIZE + 1;
-  *qout = _nss_mysql_malloc (qout_size);
-  if (*qout == NULL)
-    DSRETURN (NSS_UNAVAIL)
-
   switch (ltype)
     {
     case BYNAME:
-      if (strlen (name) == 0)
-        {
-          _nss_mysql_free (*qout);
-          DSRETURN (NSS_NOTFOUND)
-        }
-      clean_name = _nss_mysql_malloc (strlen (name) * 2 + 1);
+      name_len = strlen (name);
+      if (name_len == 0)
+        DSRETURN (NSS_NOTFOUND)
+      clean_name_size = name_len * 2 + 1;
+      clean_name = _nss_mysql_malloc (clean_name_size);
       if (clean_name == NULL)
-        {
-          _nss_mysql_free (*qout);
-          DSRETURN (NSS_UNAVAIL)
-        }
+        DSRETURN (NSS_UNAVAIL)
       if (_nss_mysql_escape_string (clean_name, name, mresult) != NSS_SUCCESS)
         {
-          _nss_mysql_free (*qout);
           _nss_mysql_free (clean_name);
           DSRETURN (NSS_UNAVAIL)
         }
+      qout_size = qin_len + clean_name_size;
+      *qout = _nss_mysql_malloc (qout_size);
+      if (*qout == NULL)
+        {
+          _nss_mysql_free (clean_name);
+          DSRETURN (NSS_UNAVAIL)
+        }
+      /* I won't bother checking return value as qout size is correct */
       snprintf (*qout, qout_size, qin, clean_name);
       _nss_mysql_free (clean_name);
       _nss_mysql_reset_ent (mresult);
       break;
     case BYNUM:
+      qout_size = qin_len + 10 + 1; /* 10 = unsigned 32 bit integer (%u) */
+      *qout = _nss_mysql_malloc (qout_size);
+      if (*qout == NULL)
+        DSRETURN (NSS_UNAVAIL)
+      /* I won't bother checking return value as qout size is correct */
       snprintf (*qout, qout_size, qin, num);
       _nss_mysql_reset_ent (mresult);
       break;
     case BYNONE:
       if (!mresult || !*mresult)
-        strcpy (*qout, qin);
+        {
+          *qout = _nss_mysql_malloc (qin_len + 1);
+          if (*qout == NULL)
+            DSRETURN (NSS_UNAVAIL)
+          strcpy (*qout, qin);
+        }
       break;
     default:
       _nss_mysql_free (*qout);
