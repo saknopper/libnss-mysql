@@ -37,7 +37,7 @@ SETENT(pwent);
 GETENT(getpwent, passwd_fields, struct passwd *);
 
 static nss_backend_op_t passwd_ops[] = {
-    NULL,                           /* NSS_DBOP_DESTRUCTOR */
+    _nss_mysql_default_destr,       /* NSS_DBOP_DESTRUCTOR */
     _nss_mysql_endpwent_r,          /* NSS_DBOP_ENDENT */
     _nss_mysql_setpwent_r,          /* NSS_DBOP_SETENT */
     _nss_mysql_getpwent_r,          /* NSS_DBOP_GETENT */

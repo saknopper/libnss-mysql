@@ -35,7 +35,7 @@ SETENT(spent);
 GETENT(getspent, spwd_fields, struct spwd *);
 
 static nss_backend_op_t shadow_ops[] = {
-    NULL,                           /* NSS_DBOP_DESTRUCTOR */
+    _nss_mysql_default_destr,       /* NSS_DBOP_DESTRUCTOR */
     _nss_mysql_endspent_r,          /* NSS_DBOP_ENDENT */
     _nss_mysql_setspent_r,          /* NSS_DBOP_SETENT */
     _nss_mysql_getspent_r,          /* NSS_DBOP_GETENT */

@@ -37,7 +37,7 @@ SETENT(grent);
 GETENT(getgrent, group_fields, struct group *);
 
 static nss_backend_op_t group_ops[] = {
-    NULL,                           /* NSS_DBOP_DESTRUCTOR */
+    _nss_mysql_default_destr,       /* NSS_DBOP_DESTRUCTOR */
     _nss_mysql_endgrent_r,          /* NSS_DBOP_ENDENT */
     _nss_mysql_setgrent_r,          /* NSS_DBOP_SETENT */
     _nss_mysql_getgrent_r,          /* NSS_DBOP_GETENT */
