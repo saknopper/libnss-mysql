@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.6 
+# From configure.in Revision: 1.7 
 
 
 # Configure paths for mysql-client, GPLv2
@@ -1066,7 +1066,7 @@ fi
 
 PACKAGE=libnss_mysql
 
-VERSION=0.2d
+VERSION=0.2
 
 if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
   { echo "configure: error: source directory already configured; run "make distclean" there first" 1>&2; exit 1; }
