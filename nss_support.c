@@ -250,14 +250,19 @@ _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
   group_info_t *gi = (group_info_t *)result;
   gid_t *groups;
   int retVal;
+  gid_t gid;
 
   function_enter;
   num_rows = _nss_mysql_num_rows (mresult);
   if (num_rows == 0)
     function_return (NSS_NOTFOUND);
 
-  // FIXME: realloc
-  if (num_rows + *gi->start > gi->limit) {}
+  if (num_rows + *gi->start > gi->limit)
+    function_return (NSS_UNAVAIL);  // TODO: Proper return value? errno?
+
+  // FIXME: realloc instead
+  if ((num_rows + *gi->start) * sizeof (gid_t) > *gi->size)
+    function_return (NSS_UNAVAIL);
 
   groups = *gi->groupsp;
   for (i = 0; i < num_rows; i++)
@@ -265,9 +270,10 @@ _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
       retVal = _nss_mysql_fetch_row (&row, mresult);
       if (retVal != NSS_SUCCESS)
         function_return (retVal);
-      groups[(*gi->start)++] = atoi(row[0]);
+      gid = atoi (row[0]);
+      if (gid != gi->group)
+        groups[(*gi->start)++] = gid;
     }
-  // groups[(*gi->start)++] = 5000;
 
   function_return (NSS_SUCCESS);
 }
