@@ -2,6 +2,13 @@
 
 1.2 - 1.3 (NOT YET RELEASED)
 
+    * NEW:    Configuration file line continuation is now supported.  See
+              samples for examples.
+
+    * NEW:    Static allocation of query line (2048 chars) allows multiple
+              references to the key being looked up - e.g. "SELECT ... FROM
+              ... WHERE foo='%1$s' AND bar='%1$s'"
+
     * BUGFIX: Removed extraneous UNLOCK that caused thread instability
               due to changes in version 1.2
 
@@ -16,6 +23,8 @@
 
     * CHANGE: Big changes in config parsing; [section]'s are meaningless
               and safely ignored, but should be removed
+
+    * CHANGE: Static allocation of configuration variables
 
     * CHANGE: Prefer static MySQL libraries over dynamic; Removed
               forced-static-link from RPM spec file since this change makes
