@@ -385,9 +385,6 @@ _nss_mysql_validate_servers (void)
         continue;
       if (!conf.sql.server[i].database || !strlen (conf.sql.server[i].database))
         continue;
-      if ((conf.sql.server[i].port == 0) &&
-          (!conf.sql.server[i].socket || !strlen (conf.sql.server[i].socket)))
-        continue;
 
       conf.sql.server[i].status.valid = ntrue;
       is_valid = ntrue;
