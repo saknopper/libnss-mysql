@@ -71,7 +71,7 @@ _nss_mysql_is_same_sockaddr (struct sockaddr orig, struct sockaddr cur)
   sa_family_t family;
 
   DENTER
-  family = *(sa_family_t *)&orig;
+  family = ((struct sockaddr_in *)&ci.sock_info.local)->sin_family;
   switch (family)
     {
     case AF_INET:
