@@ -26,11 +26,54 @@ static const char rcsid[] =
 #include "nss_mysql.h"
 #include <stdarg.h>
 
+/* There's probably a better way than this hack; if so, please tell me */
+#ifndef __USE_GNU
+#define __USE_GNU
+#include <dlfcn.h>
+#undef __USE_GNU
+#endif
+
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_once_t _nss_mysql_once_control = {PTHREAD_ONCE_INIT};
+
+static void
+_nss_mysql_atfork_prepare (void)
+{
+  LOCK;
+}
+
+static void
+_nss_mysql_atfork_parent (void)
+{
+  UNLOCK;
+}
+
+static void
+_nss_mysql_atfork_child (void)
+{
+  _nss_mysql_close_sql (NULL, ntrue);
+  UNLOCK;
+}
+
+static void
+_nss_mysql_pthread_once_init (void)
+{
+  int (*pthread_atfork)();
+
+  pthread_atfork = dlsym (RTLD_DEFAULT, "pthread_atfork");
+  if (pthread_atfork)
+    (*pthread_atfork) (_nss_mysql_atfork_prepare, _nss_mysql_atfork_parent,
+                       _nss_mysql_atfork_child);
+}
 
 NSS_STATUS
 _nss_mysql_init (void)
 {
+  int (*pthread_once)();
+
+  pthread_once = dlsym (RTLD_DEFAULT, "pthread_once");
+  if (pthread_once)
+    (*pthread_once) (&_nss_mysql_once_control, _nss_mysql_pthread_once_init);
   return (_nss_mysql_load_config ());
 }
 
