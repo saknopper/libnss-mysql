@@ -289,6 +289,10 @@ _nss_mysql_connect_sql (void)
     }
 #endif /* HAVE_MYSQL_INIT */
 
+#ifdef MYSQL_READ_DEFAULT_GROUP
+  mysql_options(&(ci.link), MYSQL_READ_DEFAULT_GROUP, PACKAGE);
+#endif /* MYSQL_READ_DEFAULT_GROUP */
+
   while (_nss_mysql_pick_server () == NSS_SUCCESS)
     {
       if (_nss_mysql_try_server () == NSS_SUCCESS)
