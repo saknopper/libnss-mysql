@@ -1,36 +1,46 @@
 #
 # $Id$
 #
-# Use 'mysql -u root < sample_database.sql' to load this example into your
+# sample_database.sql revision      compatible libnss-mysql versions
+# -------------------------------------------------------------------
+# 1.1                               0.1 - 0.4
+# 1.2                               0.5+
+#
+# Use 'mysql -u root -p < sample_database.sql' to load this example into your
 # MySQL server.
-# This example will create a database called 'auth', add two tables called
-# 'users' and 'groups', add a single entry to each, and create two MySQL
-# users ('nss-user' and 'nss-root') with appropriate SELECT privs.
+# This example will:
+#   1) create a database called 'auth'
+#   2) add three tables: 'users', 'groups' and 'grouplist'
+#   3) add some data to each table
+#   4) create two MySQL users ('nss-user' and 'nss-root') with appropriate
+#      SELECT privs.
 #
 # With a properly-functioning libnss-mysql, you should be able to log into
-# the system as 'cinergi' with a password of 'cinergi'
+# the system as 'cinergi' with a password of 'cinergi'.  'cinergi' should be
+# a member of the group 'foobaz' as well.
 #
 # This is intended as an *example* and is perhaps not the best use of
-# datatypes, space/size, etc.  I (Ben Goodwin) have used this database
-# with 186,000 entries, consuming about 25 meg of disk space (8-character
-# username and gecos), resulting in 0.00 to 0.01 second lookups for the
-# getpw* routines, and 2.5 seconds for full get*ent (IE finger w/out the
-# '-m' switch) routines on an athlon 1333.
+# datatypes, space/size, data normalization, etc.
 #
 
-create database auth ;
-use auth ;
+create database auth;
+use auth;
 
+# The tables ...
 CREATE TABLE groups (
   rowid int(11) NOT NULL auto_increment,
   name varchar(16) NOT NULL default '',
   password varchar(34) NOT NULL default '',
   gid int(11) NOT NULL default '5000',
-  members varchar(255) NOT NULL default '',
   PRIMARY KEY  (rowid)
 ) TYPE=MyISAM;
 
-INSERT INTO groups VALUES (1, 'foobaz', 'x', 5000, 'cinergi');
+CREATE TABLE grouplist (
+  rowid int(11) NOT NULL auto_increment,
+  gid int(11) NOT NULL default '0',
+  username char(16) NOT NULL default '',
+  PRIMARY KEY  (rowid)
+) TYPE=MyISAM;
 
 CREATE TABLE users (
   rowid int(11) NOT NULL auto_increment,
@@ -54,14 +64,21 @@ CREATE TABLE users (
   KEY uid (uid)
 ) TYPE=MyISAM;
 
+# The data ...
 INSERT INTO users VALUES (1, 'cinergi', 5000, 5000, 'Ben Goodwin', '/home/cinergi', '/bin/bash', ENCRYPT('cinergi'), 1, 0, 99999, 0, 0, -1, 0);
+INSERT INTO groups VALUES (1, 'foobaz', 'x', 5000);
+INSERT INTO grouplist VALUES (1,5000,'cinergi');
 
-GRANT USAGE ON *.* TO `nss-root`@`localhost` IDENTIFIED BY 'rootpass' ;
-GRANT USAGE ON *.* TO `nss-user`@`localhost` IDENTIFIED BY 'userpass' ;
+# The permissions ...
+GRANT USAGE ON *.* TO `nss-root`@`localhost` IDENTIFIED BY 'rootpass';
+GRANT USAGE ON *.* TO `nss-user`@`localhost` IDENTIFIED BY 'userpass';
 
-GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`, `password`, `lstchg`, `min`, `max`, `warn`, `inact`, `expire`, `flag`) ON `auth`.`users` TO 'nss-root'@'localhost' ;
-GRANT Select (`name`, `password`, `gid`, `members`) ON `auth`.`groups` TO 'nss-root'@'localhost' ;
+GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`, `password`, `lstchg`, `min`, `max`, `warn`, `inact`, `expire`, `flag`) ON `auth`.`users` TO 'nss-root'@'localhost';
+GRANT Select (`name`, `password`, `gid`) ON `auth`.`groups` TO 'nss-root'@'localhost';
 
-GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`) ON `auth`.`users` TO 'nss-user'@'localhost' ;
-GRANT Select (`name`, `password`, `gid`, `members`) ON `auth`.`groups` TO 'nss-user'@'localhost' ;
+GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`) ON `auth`.`users` TO 'nss-user'@'localhost';
+GRANT Select (`name`, `password`, `gid`) ON `auth`.`groups` TO 'nss-user'@'localhost';
+
+GRANT Select (`username`, `gid`) ON `auth`.`grouplist` TO 'nss-user'@'localhost';
+GRANT Select (`username`, `gid`) ON `auth`.`grouplist` TO 'nss-root'@'localhost';
 
