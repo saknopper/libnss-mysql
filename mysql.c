@@ -182,7 +182,6 @@ static nboolean
 _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
 {
   DN ("_nss_mysql_check_existing_connection")
-  static int euid = -1;
   static pid_t pid = -1;
 
   DENTER
@@ -206,17 +205,6 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
       D ("%s: invalid socket detected", FUNCNAME);
       _nss_mysql_close_sql (mresult, nfalse);
       ci.valid = nfalse;
-      DBRETURN (nfalse)
-    }
-   /* Make sure euid hasn't changed, thus changing our access abilities */
-  if (euid == -1)
-    euid = geteuid ();
-  else if (euid != geteuid ())
-    {
-      D ("%s:, euid changed", FUNCNAME);
-      _nss_mysql_close_sql (mresult, ntrue);
-      conf.valid = nfalse;
-      euid = geteuid ();
       DBRETURN (nfalse)
     }
 

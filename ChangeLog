@@ -1,5 +1,11 @@
 # $Id$
 
+1.1 - 1.2
+
+    * BUGFIX: euid-change detection was broken, causing things like
+              privsep-enabled SSH daemons to be unable to log in a MySQL user.
+              Thanks to Mike Noordermeer for pointing it out and a patch.
+
 1.0 - 1.1
 
     * CHANGE: 'configure' now takes just --with-mysql to specify MySQL

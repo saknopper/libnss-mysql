@@ -107,10 +107,23 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
   char *query;
   int retVal;
   int attempts = MAX_QUERY_ATTEMPTS;
+  static int euid = -1;
 
   DENTER
   if (restricted == ntrue && geteuid () != 0)
     DSRETURN (NSS_NOTFOUND)
+
+   /* Make sure euid hasn't changed, thus changing our access abilities */
+  if (euid == -1)
+    euid = geteuid ();
+  else if (euid != geteuid ())
+    {
+      D ("%s:, euid changed", FUNCNAME);
+      /* Close MySQL and config to force reload of config and reconnect */
+      _nss_mysql_close_sql (mresult, ntrue);
+      conf.valid = nfalse;
+      euid = geteuid ();
+    }
 
   if (_nss_mysql_init () != NSS_SUCCESS)
     DSRETURN (NSS_UNAVAIL)
