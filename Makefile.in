@@ -59,14 +59,19 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_alias = @build_alias@
+build_triplet = @build@
 host_alias = @host_alias@
 host_triplet = @host@
+target_alias = @target_alias@
+target_triplet = @target@
 AS = @AS@
 CC = @CC@
 DLLTOOL = @DLLTOOL@
 ECHO = @ECHO@
 EXEEXT = @EXEEXT@
 LIBTOOL = @LIBTOOL@
+LIBVER = @LIBVER@
 LN_S = @LN_S@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
@@ -78,11 +83,13 @@ STRIP = @STRIP@
 VERSION = @VERSION@
 
 lib_LTLIBRARIES = libnss_mysql.la
-libnss_mysql_la_SOURCES = nss_config.c nss_main.c nss_structures.c \
-                          nss_support.c memory.c mysql.c mysql-pwd.c \
-                          lookup.c mysql-spwd.c mysql-grp.c
 
-libnss_mysql_la_LDFLAGS = -version-info 2:0:0
+libnss_mysql_la_SOURCES = nss_config.c nss_main.c nss_structures.c \
+                          nss_support.c memory.c mysql.c lookup.c \
+                          mysql-pwd.c mysql-spwd.c mysql-grp.c
+
+libnss_mysql_la_LDFLAGS = -version-info @LIBVER@:0:0
+
 noinst_HEADERS = nss_mysql.h lookup.h
 CPPFLAGS = @CPPFLAGS@ -Wall -D_REENTRANT
 EXTRA_DIST = INTERNALS TODO FAQ sample/*.cfg sample/*.sql
@@ -98,7 +105,7 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libnss_mysql_la_LIBADD = 
 libnss_mysql_la_OBJECTS =  nss_config.lo nss_main.lo nss_structures.lo \
-nss_support.lo memory.lo mysql.lo mysql-pwd.lo lookup.lo mysql-spwd.lo \
+nss_support.lo memory.lo mysql.lo lookup.lo mysql-pwd.lo mysql-spwd.lo \
 mysql-grp.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -361,7 +368,7 @@ installcheck: installcheck-am
 all-recursive-am: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
-install-exec-am: install-libLTLIBRARIES
+install-exec-am: install-libLTLIBRARIES install-exec-local
 install-exec: install-exec-am
 
 install-data-am: install-data-local
@@ -429,19 +436,27 @@ maintainer-clean-libtool tags mostlyclean-tags distclean-tags \
 clean-tags maintainer-clean-tags distdir mostlyclean-depend \
 distclean-depend clean-depend maintainer-clean-depend info-am info \
 dvi-am dvi check check-am installcheck-am installcheck all-recursive-am \
-install-exec-am install-exec install-data-local install-data-am \
-install-data install-am install uninstall-am uninstall all-redirect \
-all-am all installdirs mostlyclean-generic distclean-generic \
-clean-generic maintainer-clean-generic clean mostlyclean distclean \
-maintainer-clean
+install-exec-local install-exec-am install-exec install-data-local \
+install-data-am install-data install-am install uninstall-am uninstall \
+all-redirect all-am all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
+
+
+install-exec-local:
+	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.la
+@SOLARIS_TRUE@	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.so
+@SOLARIS_TRUE@	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.so.@LIBVER@
+@SOLARIS_TRUE@	-mv -f $(DESTDIR)$(libdir)/libnss_mysql.so.@LIBVER@.0.0 \
+@SOLARIS_TRUE@           $(DESTDIR)$(libdir)/nss_mysql.so.1
 
 install-data-local:
-	@if test ! -e ${DESTDIR}${sysconfdir}/nss_mysql.cfg; then \
+	@if test ! -f ${DESTDIR}${sysconfdir}/nss_mysql.cfg; then \
 		${srcdir}/mkinstalldirs ${DESTDIR}${sysconfdir}; \
 		${INSTALL_DATA} ${srcdir}/sample/nss_mysql.cfg \
 			${DESTDIR}${sysconfdir}/nss_mysql.cfg; \
 	fi
-	@if test ! -e ${DESTDIR}${sysconfdir}/nss_mysql_root.cfg; then \
+	@if test ! -f ${DESTDIR}${sysconfdir}/nss_mysql_root.cfg; then \
 		${srcdir}/mkinstalldirs ${DESTDIR}${sysconfdir}; \
 		${INSTALL_DATA} -m 600 ${srcdir}/sample/nss_mysql_root.cfg \
 			${DESTDIR}${sysconfdir}/nss_mysql_root.cfg; \
