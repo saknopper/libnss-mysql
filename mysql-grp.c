@@ -152,7 +152,6 @@ _nss_mysql_getgrmem (nss_backend_t *be, void *args)
   group_info_t gi;
 #ifdef HAVE_NSS_COMMON_H
   const char *user = ((struct nss_groupsbymem *)args)->username;
-  long int size;
 #endif
 
   function_enter;
@@ -167,8 +166,7 @@ _nss_mysql_getgrmem (nss_backend_t *be, void *args)
 #elif defined(HAVE_NSS_COMMON_H)
   gi.start = (long int *)&((struct nss_groupsbymem *)args)->numgids;
   gi.limit = ((struct nss_groupsbymem *)args)->maxgids;
-  size = sizeof (gid_t) * gi.limit;
-  gi.size = &size;
+  gi.size = &gi.limit;
   gi.groupsp = &(((struct nss_groupsbymem *)args)->gid_array);
   gi.group = -1;
 #endif
@@ -177,10 +175,13 @@ _nss_mysql_getgrmem (nss_backend_t *be, void *args)
                               nfalse, &gi, NULL, 0,
                               _nss_mysql_load_gidsbymem, &mresult, FNAME);
 
+  if (retVal != NSS_SUCCESS)
+    function_return (retVal);
+
 #ifdef HAVE_NSS_COMMON_H
-  return NSS_NOTFOUND;
+  function_return (NSS_NOTFOUND);
 #else
-  return NSS_SUCCESS;
+  function_return (NSS_SUCCESS);
 #endif
 }
 
