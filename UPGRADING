@@ -5,6 +5,21 @@ $Id$
 *** unless you know the complete list of daemons to restart.
 
 0.7a -> 0.8
+    * The /etc/my.cnf section, [libnss_mysql], is no longer supported.
+      Use the new options in /etc/nss_mysql.cfg instead (see below).
+
+    * The "port" and "socket" options are no longer required options
+      in /etc/nss_mysql.cfg.  Remove them from your config to use your
+      MySQL client defaults.
+
+    * New options in /etc/nss_mysql.cfg (that go in the [primary] and/or
+      [secondary] sections):
+      Option    Values  Default  Description
+      -----------------------------------------------------------------
+      ssl       0|1     0        Use SSL (MySQL 4.x only)?
+      timeout   0+      3        Connect timeout in seconds
+      compress  0|1     0        Use MySQL compressed protocol?
+      initcmd   string  ""       Execute this statement at connect time
 
 0.7 -> 0.7a
     This is a maintenance release.  No changes are needed on your part.
