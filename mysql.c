@@ -416,7 +416,11 @@ NSS_STATUS
 _nss_mysql_escape_string (char *to, const char *from)
 {
   function_enter;
+#if MYSQL_VERSION_ID >= 32300 /* comes from mysql.h, NOT config.h! */
   mysql_real_escape_string (&(ci.link), to, from, strlen(from));
+#else
+  mysql_escape_string (to, from, strlen(from));
+#endif
   function_return (NSS_SUCCESS);
 }
 
