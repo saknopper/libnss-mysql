@@ -72,16 +72,18 @@ typedef enum
 {
   SECTION_INVALID,
   SECTION_GLOBAL,
-  SECTION_SERVER,
+  SECTION_PRIMARY,
+  SECTION_SECONDARY,
   SECTION_QUERIES
 } sections_t;
 
 /* I'm overloading the 'purpose' of field_info_t here ... */
 static field_info_t section_info[] =
 {
-    {"global",   0, SECTION_GLOBAL},
-    {"server",   0, SECTION_SERVER},
-    {"queries",  0, SECTION_QUERIES},
+    {"global",    0, SECTION_GLOBAL},
+    {"primary",   0, SECTION_PRIMARY},
+    {"secondary", 0, SECTION_SECONDARY},
+    {"queries",   0, SECTION_QUERIES},
     {NULL}
 };
 
@@ -366,20 +368,11 @@ _nss_mysql_load_config_file (char *file)
               function_return (to_return);
             }
             break;
-        case SECTION_SERVER:
-          conf.num_servers++;
-          if (conf.num_servers >= MAX_SERVERS)
-            {
-              /* Let's not bomb because we have too many specified .. */
-              _nss_mysql_log (LOG_ERR,
-                              "Too many servers defined.  Max = %d",
-                              MAX_SERVERS);
-              fclose (fh);
-              function_return (NSS_SUCCESS);
-            }
+        case SECTION_PRIMARY:
+        case SECTION_SECONDARY:
           to_return =
             _nss_mysql_load_section (fh,
-                                     &(conf.sql.server[conf.num_servers - 1]),
+                                     &(conf.sql.server[section - SECTION_PRIMARY]),
                                      server_fields);
           if (to_return != NSS_SUCCESS)
             {
@@ -406,6 +399,29 @@ _nss_mysql_load_config_file (char *file)
   function_return (NSS_SUCCESS);
 }
 
+static nboolean
+_nss_mysql_validate_servers (void)
+{
+  function_enter;
+  if (!conf.sql.server[0].host || !strlen (conf.sql.server[0].host))
+    function_return (nfalse);
+  if (!conf.sql.server[0].database || !strlen (conf.sql.server[0].database))
+    function_return (nfalse);
+  if (conf.sql.server[0].port == 0)
+    if (!conf.sql.server[0].socket || !strlen (conf.sql.server[0].socket))
+      function_return (nfalse);
+
+  conf.sql.server[0].valid = ntrue;
+
+  if (conf.sql.server[1].host && strlen (conf.sql.server[1].host))
+    if (conf.sql.server[1].database && strlen (conf.sql.server[1].database))
+      if (conf.sql.server[1].port == 0)
+        if (conf.sql.server[1].socket && strlen (conf.sql.server[1].socket))
+          conf.sql.server[1].valid = ntrue;
+
+  function_return (ntrue);
+}
+
 /*
  * Load main and, if appropriate, root configs.  Set some defaults.
  * Set CONF->VALID to NTRUE and return NSS_SUCCESS if all goes well.
@@ -429,11 +445,12 @@ _nss_mysql_load_config (void)
     function_return (to_return);
   if (geteuid() == 0)
     {
-      conf.num_servers = 0;
       to_return = _nss_mysql_load_config_file (ROOTCFG);
       if (to_return != NSS_SUCCESS)
         function_return (to_return);
     }
+  if (_nss_mysql_validate_servers () == nfalse)
+    function_return (NSS_UNAVAIL);
   conf.valid = ntrue;
   function_return (NSS_SUCCESS);
 }

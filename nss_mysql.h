@@ -73,7 +73,7 @@ typedef enum
 
 #define MAX_LINE_LEN    1024            /* Max line length in config file */
 #define MAX_KEY_LEN     128             /* Max length of a key in config file */
-#define MAX_SERVERS     3               /* Max # of configured SQL servers */
+#define MAX_SERVERS     2               /* Max # of configured SQL servers */
 #define PADSIZE         64              /* malloc this much more for queries
                                            to allow for format expansion.
                                            Max username length ~ 1/2 this val */
@@ -183,6 +183,9 @@ typedef struct {
     char        *username;  /* Username to connect as */
     char        *password;  /* Password to connect with */
     char        *database;  /* SQL Database to open */
+    nboolean    valid;
+    time_t      last_attempt;   /* Last time we tried this server */
+    int         status;     /* 0 = 'up', otherwise error */
 } sql_server_t;
 
 typedef struct {
@@ -199,7 +202,6 @@ typedef struct {
 
 typedef struct {
     nboolean        valid;              /* Have we loaded config yet? */
-    int             num_servers;        /* 1 .. MAX_SERVERS */
     global_conf_t   global;             /* settings that apply everywhere */
     sql_conf_t      sql;                /* [server] sections */
 } conf_t;
@@ -217,7 +219,6 @@ typedef struct {
 /* All information regarding existing MySQL link */
 typedef struct {
     nboolean        valid;          /* Are we connected to a server? */
-    time_t          last_attempt;   /* Last time we tried server #0 */
     int             server_num;     /* 0 .. MAX_SERVERS - 1 */
     MYSQL_RES       *result;
     MYSQL           link;
