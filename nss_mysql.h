@@ -208,7 +208,6 @@ typedef struct {
     nboolean        valid;          /* Are we connected to a server? */
     time_t          last_attempt;   /* Last time we tried server #0 */
     int             server_num;     /* 0 .. MAX_SERVERS - 1 */
-    int             idx;            /* 0 .. # - For *ent routines */
     MYSQL_RES       *result;
     MYSQL           link;
     socket_info_t   sock_info;      /* See above */
