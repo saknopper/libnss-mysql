@@ -1,9 +1,9 @@
 Summary: NSS library for MySQL.
 Name: libnss-mysql
-Version: 0.9
-Release: 2
+Version: 1.0
+Release: 1
 Source0: http://prdownloads.sourceforge.net/libnss-mysql/libnss-mysql-%{version}.tar.gz
-URL: http://libnss-mysql.sourceforge.net/
+URL: http://libnss-mysql.sourceforge.net
 License: GPL
 Group: System Environment/Base
 BuildRoot: %{_tmppath}/%{name}-root
@@ -43,6 +43,11 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %doc sample
 
 %changelog
+* Sat Jul 12 2003 Ben Goodwin <cinergi@users.sourceforge.net> 1.0-1
+- Update to 1.0
+- Use *.lo instead of individual .lo names in re-link
+- Removed -Bgroup and --allow-shlib-undefined linker options
+
 * Thu Jun 19 2003 Ben Goodwin <cinergi@users.sourceforge.net> 0.9-2
 - Added ugly hack to relink some libraries static.  It will probably
   break rpm builds on some hosts ...
