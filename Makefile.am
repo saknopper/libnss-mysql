@@ -29,7 +29,8 @@ libnss_mysql_la_LDFLAGS = -module -version-info @LIBVER@:0:0
  
 noinst_HEADERS = nss_mysql.h lookup.h
 CPPFLAGS = @CPPFLAGS@ -D_REENTRANT
-EXTRA_DIST = TODO FAQ THANKS UPGRADING DEBUGGING sample/*.cfg sample/*.sql
+EXTRA_DIST = TODO FAQ THANKS UPGRADING DEBUGGING sample/*.cfg sample/*.sql \
+             libnss_mysql.spec
 
 install-exec-hook:
 	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.la
