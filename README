@@ -72,6 +72,13 @@ For the impatient
         init-command
         user
         password
+        connect-timeout
+
+   *************************************************************************
+   * IT IS HIGHLY RECOMMENDED THAT YOU SET connect-timeout TO A RELATIVELY *
+   * LOW NUMBER, ELSE YOU MAY FIND YOURSELF UNABLE TO LOG IN (EVEN AS ROOT)*
+   * IF A SERVER BECOMES UNREACHABLE                                       *
+   *************************************************************************
 
 Debugging
 =========
