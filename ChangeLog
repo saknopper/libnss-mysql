@@ -12,6 +12,8 @@
 
     * BUGFIX: Added missing Makefile path to <OS>.sym
 
+    * CHANGE: Safely purge MySQL password at program exit
+
     * CHANGE: Big changes in config parsing; [section]'s are meaningless
               and safely ignored, but should be removed
 
