@@ -27,7 +27,9 @@ static const char rcsid[] =
 #endif
 #include <unistd.h>
 #include <stdlib.h>
-#include <errno.h>
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
+#endif
 
 static field_info_t defaults_fields[] =
 {
@@ -50,7 +52,9 @@ static field_info_t defaults_fields[] =
 
 static field_info_t global_fields[]=
 {
-    {"retry",    FOFS (global_conf_t, retry),        FT_UINT},
+    {"retry",    FOFS (global_conf_t, retry),           FT_UINT},
+    {"facility", FOFS (global_conf_t, syslog_facility), FT_SYSLOG},
+    {"priority", FOFS (global_conf_t, syslog_priority), FT_SYSLOG},
     {NULL}
 };
 
@@ -71,6 +75,58 @@ static field_info_t section_info[] =
     {NULL}
 };
 
+/* More overloading, whee! */
+static field_info_t syslog_names[] =
+{
+    /* priorities */
+    {"alert",    0, LOG_ALERT},
+    {"crit",     0, LOG_CRIT},
+    {"debug",    0, LOG_DEBUG},
+    {"emerg",    0, LOG_EMERG},
+    {"err",      0, LOG_ERR},
+    {"info",     0, LOG_INFO},
+    {"notice",   0, LOG_NOTICE},
+    {"warn",     0, LOG_WARNING},
+    /* facilities */
+    {"auth",     0, LOG_AUTH},
+#ifdef HAVE_LOG_AUTHPRIV
+    {"authpriv", 0, LOG_AUTHPRIV},
+#endif
+    {"cron",     0, LOG_CRON},
+    {"daemon",   0, LOG_DAEMON},
+    {"ftp",      0, LOG_FTP},
+    {"kern",     0, LOG_KERN},
+    {"lpr",      0, LOG_LPR},
+    {"mail",     0, LOG_MAIL},
+    {"news",     0, LOG_NEWS},
+    {"syslog",   0, LOG_SYSLOG},
+    {"user",     0, LOG_USER},
+    {"uucp",     0, LOG_UUCP},
+    {"local0",   0, LOG_LOCAL0},
+    {"local1",   0, LOG_LOCAL1},
+    {"local2",   0, LOG_LOCAL2},
+    {"local3",   0, LOG_LOCAL3},
+    {"local4",   0, LOG_LOCAL4},
+    {"local5",   0, LOG_LOCAL5},
+    {"local6",   0, LOG_LOCAL6},
+    {"local7",   0, LOG_LOCAL7},
+    {NULL}
+};
+
+static int
+_nss_mysql_syslog_name_to_id (const char *name)
+{
+  field_info_t *f;
+
+  function_enter;
+  for (f = syslog_names; f->name; f++)
+    {
+      if (strcmp (name, f->name) == 0)
+        function_return (f->type);
+    }
+  function_return (-1);
+}
+
 /* 'lis' = Load Into Structure */
 static NSS_STATUS
 _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
@@ -78,7 +134,7 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
 {
   field_info_t *f;
   _nss_mysql_byte *b;
-  int size;
+  int size, tmp;
   void *ptr;
 
   function_enter;
@@ -109,6 +165,17 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
               break;
             case FT_UINT:
               *(unsigned int *) (b + f->ofs) = (unsigned int) atoi (val);
+              break;
+            case FT_SYSLOG:
+              tmp = _nss_mysql_syslog_name_to_id (val);
+              if (tmp == -1)
+                {
+                  _nss_mysql_log_error (FNAME,
+                                        "Syslog value '%s' invalid\n",
+                                        val);
+                  break; 
+                }
+              *(unsigned int *) (b + f->ofs) = (unsigned int) tmp;
               break;
             default:
               _nss_mysql_log_error (FNAME, "BUG!  Unhandled type: %d\n",
@@ -254,6 +321,7 @@ _nss_mysql_init_defaults (conf_t *conf, int num)
       switch (f->type)
         {
         case FT_UINT:
+        case FT_SYSLOG:
           _nss_mysql_debug (FNAME, D_PARSE,
                             "%s: copying\n", f->name);
           *(unsigned int *) (s + f->ofs) = *(unsigned int *) (d + f->ofs);
@@ -279,7 +347,7 @@ _nss_mysql_init_defaults (conf_t *conf, int num)
           memcpy (out, in, size);
           break;
         default:
-	      _nss_mysql_log_error (FNAME, "BUG!  Unhandled type: %d\n",
+          _nss_mysql_log_error (FNAME, "BUG!  Unhandled type: %d\n",
                                 f->type);
           break;
         }
@@ -365,6 +433,8 @@ _nss_mysql_load_config (conf_t *conf)
 
   memset (conf, 0, sizeof (conf_t));
   conf->global.retry = 30;
+  conf->global.syslog_facility = LOG_AUTH;
+  conf->global.syslog_priority = LOG_ALERT;
   to_return = _nss_mysql_load_config_file (MAINCFG, conf);
   if (to_return != NSS_SUCCESS)
     {
