@@ -19,6 +19,7 @@ static const char rcsid[] =
     "$Id$ ";
 
 #include "lookup.h"
+#ifdef HAVE_SHADOW_H
 #include <shadow.h>
 
 extern conf_t conf;
@@ -118,4 +119,4 @@ static nss_backend_op_t shadow_ops[] = {
 CONSTR(shadow)
 
 #endif
-
+#endif /* HAVE_SHADOW_H */
