@@ -29,7 +29,7 @@ static const char rcsid[] =
 
 conf_t  conf = CONF_INITIALIZER;
 
-typedef unsigned char byte;
+typedef unsigned char nbyte;
 #define FOFS(x,y) ((int)&(((x *)0)->y))     /* Get Field OFfSet */
 
 /*
@@ -125,7 +125,7 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
 {
   static const char FNAME[] = "_nss_mysql_lis";
   field_info_t *f;
-  byte *b;
+  nbyte *b;
   int size;
   void *ptr;
 
@@ -133,7 +133,7 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
     {
       if (strcmp (key, f->name) == 0)
         {
-          b = (byte *) structure;
+          b = (nbyte *) structure;
           switch (f->type)
             {
             case FT_PCHAR:
@@ -411,8 +411,8 @@ _nss_mysql_reset_config (void)
     {
       /* I use variables for clarity here.  This is ugly */
       char *q;
-      byte *b;
-      b = (byte *)&conf.sql.query + f->ofs;
+      nbyte *b;
+      b = (nbyte *)&conf.sql.query + f->ofs;
       (uintptr_t *)q = *(uintptr_t *)b;
       _nss_mysql_free (q);
     }
