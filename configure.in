@@ -21,8 +21,9 @@ dnl Autoconf 2.53 is REQUIRED
 
 AC_REVISION($Revision$)dnl
 AC_INIT
+AC_CONFIG_AUX_DIR(aux)
 AC_PREREQ(2.53)
-AC_CONFIG_SRCDIR([nss_main.c])
+AC_CONFIG_SRCDIR([src/nss_main.c])
 AC_CANONICAL_TARGET([])
 AC_PREFIX_DEFAULT()
 AM_INIT_AUTOMAKE(libnss-mysql, 1.3)
@@ -111,5 +112,5 @@ AC_DEFINE_UNQUOTED([MAINCFG], "$EXPANDED_SYSCONFDIR/libnss-mysql.cfg",
 AC_DEFINE_UNQUOTED([ROOTCFG],"$EXPANDED_SYSCONFDIR/libnss-mysql-root.cfg",
                    [Root config file])
 
-AC_CONFIG_FILES([Makefile version.c])
+AC_CONFIG_FILES([Makefile src/Makefile src/version.c])
 AC_OUTPUT

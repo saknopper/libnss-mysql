@@ -19,34 +19,20 @@
 # From Makefile.am $Revision$
 
 AUTOMAKE_OPTIONS = foreign 1.6
+SUBDIRS = src
 
-if RENAME
-lib_LTLIBRARIES         = nss_mysql.la
-nss_mysql_la_LDFLAGS    = -module -version-info @LIBVER@:0:0 -export-symbols $(srcdir)/@OS@.sym
-nss_mysql_la_SOURCES    = version.c nss_config.c nss_main.c \
-                          nss_support.c memory.c mysql.c lookup.c \
-                          mysql-pwd.c mysql-spwd.c mysql-grp.c
-else
-lib_LTLIBRARIES         = libnss_mysql.la
-libnss_mysql_la_LDFLAGS = -module -version-info @LIBVER@:0:0 -export-symbols $(srcdir)/@OS@.sym
-libnss_mysql_la_SOURCES = version.c nss_config.c nss_main.c \
-                          nss_support.c memory.c mysql.c lookup.c \
-                          mysql-pwd.c mysql-spwd.c mysql-grp.c
-endif
- 
-noinst_HEADERS = nss_mysql.h lookup.h
-EXTRA_DIST = FAQ UPGRADING DEBUGGING libnss-mysql.spec *.sym \
+EXTRA_DIST = FAQ UPGRADING DEBUGGING libnss-mysql.spec src/*.sym \
              sample/README sample/complex/*.* sample/minimal/*.* \
              sample/linux/*.* sample/solaris/*.* sample/freebsd/*.*
 
 install-data-hook:
 	@if test ! -f ${DESTDIR}${sysconfdir}/libnss-mysql.cfg; then \
-		${srcdir}/mkinstalldirs ${DESTDIR}${sysconfdir}; \
+		${srcdir}/aux/mkinstalldirs ${DESTDIR}${sysconfdir}; \
 		${INSTALL_DATA} ${srcdir}/sample/@OS@/libnss-mysql.cfg \
 			${DESTDIR}${sysconfdir}/libnss-mysql.cfg; \
 	fi
 	@if test ! -f ${DESTDIR}${sysconfdir}/libnss-mysql-root.cfg; then \
-		${srcdir}/mkinstalldirs ${DESTDIR}${sysconfdir}; \
+		${srcdir}/aux/mkinstalldirs ${DESTDIR}${sysconfdir}; \
 		${INSTALL_DATA} -m 600 ${srcdir}/sample/@OS@/libnss-mysql-root.cfg \
 			${DESTDIR}${sysconfdir}/libnss-mysql-root.cfg; \
 	fi
