@@ -26,94 +26,110 @@ static const char rcsid[] =
 extern conf_t conf;
 
 NSS_STATUS
-_nss_mysql_lookup_name (const char *name, int qofs, const char *caller)
+_nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
+                        char **qin, char **qout, MYSQL_RES **mresult,
+                        const char *caller)
 {
-  _nss_mysql_byte *q;
   char *clean_name;
-  char *query;
-  size_t qsize;
-  int retVal;
+  size_t qout_size;
 
-  if (!name || strlen (name) == 0)
-    function_return (NSS_UNAVAIL);
+  function_enter;
+  *qout = NULL;
 
-  if (_nss_mysql_init () != NSS_SUCCESS)
-    function_return (NSS_UNAVAIL);
-
-  (uintptr_t *)q =  *(uintptr_t *)((_nss_mysql_byte *)&conf.sql.query + qofs);
-  if (!q || strlen ((char *)q) == 0)
+  if (!*qin || strlen (*qin) == 0)
     {
-      _nss_mysql_log (LOG_CRIT, "%s has no valid query in config", caller);
-      function_return (NSS_UNAVAIL);
+     _nss_mysql_log (LOG_CRIT, "%s has no valid query in config", caller);
+     function_return (NSS_UNAVAIL);
     }
 
-  qsize = strlen ((char *)q) + PADSIZE + 1;
-  query = _nss_mysql_malloc (qsize);
-  if (query == NULL)
+  qout_size = strlen (*qin) + PADSIZE + 1;
+  *qout = _nss_mysql_malloc (qout_size);
+  if (*qout == NULL)
     function_return (NSS_UNAVAIL);
-  clean_name = _nss_mysql_malloc (strlen (name) * 2 + 1);
-  if (clean_name == NULL)
+
+  switch (ltype)
     {
-      _nss_mysql_free (query);
+    case BYNAME:
+      if (strlen (name) == 0)
+        {
+          _nss_mysql_free (*qout);
+          function_return (NSS_NOTFOUND);
+        }
+      clean_name = _nss_mysql_malloc (strlen (name) * 2 + 1);
+      if (clean_name == NULL)
+        {
+          _nss_mysql_free (*qout);
+          function_return (NSS_UNAVAIL);
+        }
+      if (_nss_mysql_escape_string (clean_name, name, mresult) != NSS_SUCCESS)
+        {
+          _nss_mysql_free (*qout);
+          _nss_mysql_free (clean_name);
+          function_return (NSS_UNAVAIL);
+        }
+      snprintf (*qout, qout_size, *qin, clean_name);
+      _nss_mysql_free (clean_name);
+      _nss_mysql_reset_ent (mresult);
+      break;
+    case BYNUM:
+      snprintf (*qout, qout_size, *qin, num);
+      _nss_mysql_reset_ent (mresult);
+      break;
+    case BYNONE:
+      if (!mresult || !*mresult)
+        strcpy (*qout, *qin);
+      break;
+    default:
+      _nss_mysql_free (*qout);
       function_return (NSS_UNAVAIL);
     }
-  if (_nss_mysql_escape_string (clean_name, name) != NSS_SUCCESS)
-    function_return (NSS_UNAVAIL);
-  snprintf (query, qsize, (char *)q, clean_name);
-  _nss_mysql_free (clean_name);
-  _nss_mysql_reset_ent ();
-  retVal = _nss_mysql_run_query (query);
-  _nss_mysql_free (query);
-  function_return (retVal);
+  function_return (NSS_SUCCESS);
 }
 
 NSS_STATUS
-_nss_mysql_lookup_number (unsigned int num, int qofs, const char *caller)
+_nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
+                   char **q, nboolean restrict, void *result,
+                   char *buffer, size_t buflen,
+                   NSS_STATUS (*load_func)(void *, char *, size_t,
+                                           MYSQL_RES *mresult),
+                   MYSQL_RES **mresult, const char *caller)
 {
-  _nss_mysql_byte *q;
   char *query;
-  size_t qsize;
   int retVal;
+  nboolean run_query = ntrue;
 
+  function_enter;
   if (_nss_mysql_init () != NSS_SUCCESS)
     function_return (NSS_UNAVAIL);
 
-  (uintptr_t *)q =  *(uintptr_t *)((_nss_mysql_byte *)&conf.sql.query + qofs);
-  if (!q || strlen ((char *)q) == 0)
-    {
-      _nss_mysql_log (LOG_CRIT, "%s has no valid query in config", caller);
-      function_return (NSS_UNAVAIL);
-    }
+  /* Create query string using config & args; QUERY is malloc'ed! */
+  retVal = _nss_mysql_build_query (ltype, name, num, q, &query, mresult,
+                                   caller);
+  if (retVal != NSS_SUCCESS)
+    function_return (retVal);
 
-  qsize = strlen ((char *)q) + PADSIZE + 1;
-  query = _nss_mysql_malloc (qsize);
-  if (query == NULL)
-    function_return (NSS_UNAVAIL);
-  snprintf (query, qsize, (char *)q, num);
-  _nss_mysql_reset_ent ();
-  retVal = _nss_mysql_run_query (query);
+  /* BYNONE indicates *ent; don't run the query if we already did */
+  if (ltype == BYNONE && *mresult)
+    run_query = nfalse;
+
+  /* Send just-build query string to MySQL server */
+  if (run_query)
+    retVal = _nss_mysql_run_query (query, mresult);
+  else
+    retVal = NSS_SUCCESS;
+
   _nss_mysql_free (query);
+  if (retVal != NSS_SUCCESS)
+    function_return (retVal);
+
+  /* Take result of query and load RESULT & BUFFER */
+  retVal = load_func (result, buffer, buflen, *mresult);
+
+  /* BYNONE indicates *ent; don't kill the result here, endent does that */
+  if (ltype != BYNONE)
+    // _nss_mysql_close_sql (CLOSE_RESULT);
+    mysql_free_result (*mresult);
+
   function_return (retVal);
 }
-
-NSS_STATUS
-_nss_mysql_lookup_ent (int qofs, const char *caller)
-{
-  _nss_mysql_byte *q;
-  int retVal;
-
-  if (_nss_mysql_init () != NSS_SUCCESS)
-    function_return (NSS_UNAVAIL);
-
-  (uintptr_t *)q =  *(uintptr_t *)((_nss_mysql_byte *)&conf.sql.query + qofs);
-  if (!q || strlen ((char *)q) == 0)
-    {
-      _nss_mysql_log (LOG_CRIT, "%s has no valid query in config", caller);
-      function_return (NSS_UNAVAIL);
-    }
-
-  retVal = _nss_mysql_run_query (q);
-  function_return (retVal);
-}
-
 
