@@ -11,5 +11,4 @@ BUGFIXES
     Turn off socket keepalive?
     full fork/pid-change handling
     sigpipe handling
-    If # servers mismatch between root/non-root config, be graceful;
-        extend to bad/missing config data
+    Allow mysql connect options in config (to pass to mysql_options())
