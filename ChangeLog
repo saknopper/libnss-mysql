@@ -1,5 +1,10 @@
 # $Id$
 
+2002-08-19  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * mysql.c: _nss_mysql_run_query(): Check for valid query ONCE before
+      while loop
+
 2002-08-17  Ben Goodwin  <cinergi@users.sourceforge.net>
 
     * acconfig.h: Added HAVE_LOG_FTP - configure.in sets this value now
