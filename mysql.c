@@ -182,10 +182,23 @@ static nboolean
 _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
 {
   static int euid = -1;
+  static pid_t pid = -1;
   time_t curTime;
 
   if (ci.valid == nfalse)
     return (nfalse);
+
+  if (pid == -1)
+    {
+      pid = getpid ();
+    }
+  else if (pid == getppid ())
+    {
+      /* saved pid == ppid = we've forked; We MUST create a new connection */
+      ci.valid = nfalse;
+      pid = getpid ();
+      return (nfalse);
+    }
 
   if (_nss_mysql_validate_socket () == nfalse)
     {
@@ -283,10 +296,8 @@ void
 _nss_mysql_close_result (MYSQL_RES **mresult)
 {
   if (mresult && *mresult && ci.valid)
-    {
-      mysql_free_result (*mresult);
-      *mresult = NULL;
-    }
+    mysql_free_result (*mresult);
+  *mresult = NULL;
 }
 
 /*
