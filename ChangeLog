@@ -2,6 +2,8 @@
 
 1.0 - 1.1
 
+    * BUGFIX: Groups without members weren't showing up in getgrent's
+
     * BUGFIX: Don't leak any symbols except what's necessary - prevents
               problems with our RPM and some programs that use a different
               version of MySQL shared lib (e.g. apache with php); currently
