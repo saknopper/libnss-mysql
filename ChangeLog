@@ -1,5 +1,13 @@
 # $Id$
 
+1.2 - 1.3
+
+    * CHANGE: Prefer static MySQL libraries over dynamic; Removed
+              forced-static-link from RPM spec file since this change makes
+              it unnecessary
+
+    * BUGFIX: Added missing Makefile path to <OS>.sym
+
 1.1 - 1.2
 
     * BUGFIX: euid-change detection was broken, causing things like
