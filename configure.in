@@ -42,19 +42,14 @@ case "${withval}" in
    *) MYSQL_LIB_DIR=${withval} ;;
 esac
 ])
-if test -n "$MYSQL_INCLUDE_DIR"; then
-  CPPFLAGS="-I $MYSQL_INCLUDE_DIR $CPPFLAGS"
-  export CPPFLAGS
-fi
-if test -n "$MYSQL_LIB_DIR"; then
-  LIBS="-L$MYSQL_LIB_DIR $LIBS"
-  export LIBS
-fi
+
+FIND_MYSQL()
+
 AC_CHECK_LIB(mysqlclient, mysql_connect, ,
              [AC_MSG_ERROR(Unable find a functioning MySQL library)])
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS(syslog.h unistd.h mysql/mysql.h mysql.h nss.h strings.h)
+AC_CHECK_HEADERS(syslog.h unistd.h mysql.h nss.h strings.h)
 
 AC_C_CONST
 AC_TYPE_UID_T
