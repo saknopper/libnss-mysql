@@ -1,5 +1,32 @@
 $Id$
 
+0.4 -> 0.5
+    NOTE: This included a lot of redesign/rewriting.  It's very possible
+          I broke something that used to work.  Please report bugs to me.
+
+    Since this version supports initgroups, the design of the group
+    database needs to be altered.  You *must* alter your database/data
+    in order for groups to work.  If you're not using groups, then you can
+    stop reading.
+    * First, alter your database such that you have a way to associate
+      gids with a username.  Check the sample database for the 'grouplist'
+      table to see what I mean.
+    * Second, populate this new table with the appropriate data.
+    * Third, REMOVE the fourth column in your SELECT statements for the
+      getgr* configuration entries (getgrnam, getgrgid, & getgrent)
+    * Fourth, add two new configuration entries for 'memsbygid' and
+      'gidsbymem'.  See the new sample configuration file for examples.
+    * Fifth, when you're comfortable you've converted the data, you can
+      remove the fourth column mentioned above from your database - it's no
+      longer needed.
+    Two select calls will be made when retrieving group information - one
+    for the getgr* call, and another to fetch the list of usernames that
+    are members of that group (using the memsbygid call).
+    The gidsbymem call is used for initgroups support.  This allows the
+    system to find out all the groups a user is a member of *much* more
+    efficiently.  In fact, some programs ONLY do it this way, and weren't
+    seeing the supplemental groups users were in - until now.
+
 0.3 -> 0.4
     First, you should note that the code currently supports only TWO
     servers.  That's easily changed, and I'll probably up it to a
