@@ -28,7 +28,7 @@
 #undef ROOTCFG
 
 /* */
-#undef HAVE_UUFUNCUU
+#undef HAVE___FUNC__
 
 /* Define if you have the mysql_connect function.  */
 #undef HAVE_MYSQL_CONNECT

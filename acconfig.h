@@ -11,4 +11,4 @@
 #undef ROOTCFG
 
 /* */
-#undef HAVE_UUFUNCUU
+#undef HAVE___FUNC__
