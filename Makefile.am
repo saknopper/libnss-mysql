@@ -29,7 +29,7 @@ noinst_HEADERS = nss_mysql.h lookup.h
 CPPFLAGS = @CPPFLAGS@ -D_REENTRANT
 EXTRA_DIST = TODO FAQ THANKS UPGRADING DEBUGGING sample/*.cfg sample/*.sql
 
-install-exec-local:
+install-exec-hook:
 	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.la
 if SOLARIS
 	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.so
@@ -38,7 +38,7 @@ if SOLARIS
            $(DESTDIR)$(libdir)/nss_mysql.so.1
 endif
 
-install-data-local:
+install-data-hook:
 	@if test ! -f ${DESTDIR}${sysconfdir}/nss_mysql.cfg; then \
 		${srcdir}/mkinstalldirs ${DESTDIR}${sysconfdir}; \
 		${INSTALL_DATA} ${srcdir}/sample/nss_mysql.cfg \
