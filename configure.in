@@ -33,22 +33,16 @@ AC_PROG_CC
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 
-AC_ARG_WITH(mysql-inc, [  --with-mysql-inc=DIR    Location of your MySQL include files],
-[
-case "${withval}" in
- yes) ;;
-  no) ;;
-   *) MYSQL_INCLUDE_DIR=${withval} ;;
-esac
-])
-AC_ARG_WITH(mysql-lib, [  --with-mysql-lib=DIR    Location of your MySQL libraries],
-[
-case "${withval}" in
- yes) ;;
-  no) ;;
-   *) MYSQL_LIB_DIR=${withval} ;;
-esac
-])
+AC_ARG_WITH(mysql-inc,
+            [  --with-mysql-inc=DIR    Location of your MySQL include files])
+AC_ARG_WITH(mysql-lib,
+            [  --with-mysql-lib=DIR    Location of your MySQL libraries])
+AC_ARG_WITH(log-facility,
+            [  --with-log-facility=ARG Log to specified facility ])
+
+test -z "$with_log_facility" && with_log_facility=LOG_AUTH
+AC_DEFINE_UNQUOTED([SYSLOG_FACILITY], $with_log_facility,
+                   [Log important messages to this facility])
 
 case "$target_os" in
 linux*)
@@ -71,10 +65,13 @@ AC_SUBST(LIBVER)
 
 FIND_MYSQL()
 
+AC_CHECK_LIB(socket, getsockname)
+AC_CHECK_LIB(nsl, gethostbyname)
+AC_CHECK_LIB(m, floor)
+
 AC_CHECK_LIB(mysqlclient_r, mysql_connect, ,
              [AC_CHECK_LIB(mysqlclient, mysql_connect, ,
                            [AC_MSG_ERROR([Unable find a functioning MySQL library])])])
-AC_CHECK_LIB(socket, getsockname)
 
 AC_HEADER_STDC
 AC_CHECK_HEADER(mysql.h, , [AC_MSG_ERROR([Unable to find mysql.h])])
@@ -88,42 +85,9 @@ AC_CHECK_TYPES([socklen_t], , , [
 #include <sys/socket.h>
 ])
 
-AC_CHECK_FUNCS(strcspn strspn strtok, ,
+AC_CHECK_FUNCS(strcspn strspn, ,
                [AC_MSG_ERROR([The above function is required])])
 AC_CHECK_FUNCS(mysql_init)
-
-AC_TRY_COMPILE([
-#include <stdio.h>],
-[printf ("Foo: %s\n", __func__);],
-[have_func=yes],
-[have_func=no])
-case "$have_func" in
-  yes) AC_DEFINE([HAVE___FUNC__], 1,
-                 [Recent GCCs have built-in __FUNC__]) ;;
-   no) ;;
-esac
-
-AC_TRY_COMPILE([
-#include <syslog.h>],
-[int foo = LOG_AUTHPRIV;],
-[have_authpriv=yes],
-[have_authpriv=no])
-case "$have_authpriv" in
-  yes) AC_DEFINE([HAVE_LOG_AUTHPRIV], 1,
-                 [Some systems have a LOG_AUTHPRIV syslog facility]) ;;
-   no) ;;
-esac
-
-AC_TRY_COMPILE([
-#include <syslog.h>],
-[int foo = LOG_FTP;],
-[have_logftp=yes],
-[have_logftp=no])
-case "$have_logftp" in
-  yes) AC_DEFINE([HAVE_LOG_FTP], 1,
-                 [Some systems have a LOG_FTP syslog facility]) ;;
-   no) ;;
-esac
 
 EXPANDED_SYSCONFDIR=`eval echo $sysconfdir`
 AC_DEFINE_UNQUOTED([MAINCFG], "$EXPANDED_SYSCONFDIR/nss_mysql.cfg",
