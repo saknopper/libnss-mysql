@@ -289,9 +289,9 @@ _nss_mysql_connect_sql (void)
     }
 #endif /* HAVE_MYSQL_INIT */
 
-#ifdef MYSQL_READ_DEFAULT_GROUP
+#if MYSQL_VERSION_ID >= 32210
   mysql_options(&(ci.link), MYSQL_READ_DEFAULT_GROUP, PACKAGE);
-#endif /* MYSQL_READ_DEFAULT_GROUP */
+#endif /* MYSQL_VERSION_ID */
 
   while (_nss_mysql_pick_server () == NSS_SUCCESS)
     {
