@@ -137,27 +137,12 @@ static void
 _nss_mysql_set_options (sql_server_t *server)
 {
   DN ("_nss_mysql_set_options")
-  unsigned int timeout;
 
   DENTER
-  if (server->options.timeout)
-    timeout = (unsigned int) atoi (server->options.timeout);
-  else
-    timeout = DEF_TIMEOUT;
-  D ("%s: Setting connect timeout to %d", FUNCNAME, timeout);
-  mysql_options(&ci.link, MYSQL_OPT_CONNECT_TIMEOUT,
-                (char *)&timeout);
-  if (server->options.compress && atoi (server->options.compress))
-    {
-      D ("%s: Setting compressed protocol", FUNCNAME);
-      mysql_options(&ci.link, MYSQL_OPT_COMPRESS, 0);
-    }
-  if (server->options.initcmd && strlen (server->options.initcmd))
-    {
-      D ("%s: Setting init-command to '%s'", FUNCNAME, server->options.initcmd);
-      mysql_options(&ci.link, MYSQL_INIT_COMMAND,
-                    (char *)server->options.initcmd);
-    }
+
+  mysql_options(&ci.link, MYSQL_OPT_CONNECT_TIMEOUT, DEF_TIMEOUT);
+  mysql_options(&ci.link, MYSQL_READ_DEFAULT_GROUP, "libnss-mysql");
+
   DEXIT
 }
 

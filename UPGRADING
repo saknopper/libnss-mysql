@@ -5,6 +5,12 @@ $Id$
 *** unless you know the complete list of daemons to restart.
 *** On Linux, try (as root) "lsof /lib/libnss_mysql.so" 
 
+1.3 -> 1.4
+    * No changes are *required* but the following options have been removed
+      from libnss-mysql.cfg in favor of using "my.cnf" options: timeout,
+      compress, initcmd.  Specify them in either the [client] section or a
+      new [libnss-mysql] section in my.cnf
+
 1.2 -> 1.3
     * No changes are *required* but the [section] names in the config files
       are now meaningless - remove them to avoid additional parsing overhead

@@ -1,5 +1,11 @@
 # $Id$
 
+1.3 - 1.4
+
+    * CHANGE: Read [libnss-mysql] and [client] sections in /etc/my.cnf;
+              Removed these options from libnss-mysql.cfg: timeout, compress,
+              initcmd
+
 1.2 - 1.3
 
     * NEW:    Configuration file line continuation is now supported.  See

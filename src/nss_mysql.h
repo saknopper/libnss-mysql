@@ -69,8 +69,8 @@ typedef nss_status_t NSS_STATUS;
 #define MAX_VAL_SIZE        1024        /* Max length of a val in cfg file */
 #define MAX_QUERY_ATTEMPTS  3           /* # of query retries */
 
-/* Use these as defaults until they're overridden via the config file */
-#define DEF_TIMEOUT     3
+/* Default initializers */
+#define DEF_TIMEOUT     "3"
 
 #ifdef DEBUG
 void _nss_mysql_debug (char *fmt, ...);
@@ -208,19 +208,12 @@ typedef struct {
 } sql_query_t;
 
 typedef struct {
-    char        timeout[MAX_VAL_SIZE];         /* Connect timeout in seconds */
-    char        compress[MAX_VAL_SIZE];        /* Use compressed MySQL protocol? */
-    char        initcmd[MAX_VAL_SIZE];         /* Send to server at time of connect */
-} server_options_t;
-
-typedef struct {
     char        host[MAX_VAL_SIZE];            /* SQL Server to connect to */
     char        port[MAX_VAL_SIZE];            /* SQL port to connect to */
     char        socket[MAX_VAL_SIZE];          /* SQL socket path to use */
     char        username[MAX_VAL_SIZE];        /* Username to connect as */
     char        password[MAX_VAL_SIZE];        /* Password to connect with */
     char        database[MAX_VAL_SIZE];        /* SQL Database to open */
-    server_options_t options;
 } sql_server_t;
 
 typedef struct {

@@ -160,9 +160,6 @@ _nss_mysql_load_config_file (char *file)
       {"username",  conf.sql.server.username},
       {"password",  conf.sql.server.password},
       {"database",  conf.sql.server.database},
-      {"timeout",   conf.sql.server.options.timeout},
-      {"compress",  conf.sql.server.options.compress},
-      {"initcmd",   conf.sql.server.options.initcmd},
 
       {NULL}
   };
