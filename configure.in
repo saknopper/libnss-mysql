@@ -134,5 +134,5 @@ AC_DEFINE_UNQUOTED([MAINCFG], "$EXPANDED_SYSCONFDIR/nss_mysql.cfg",
 AC_DEFINE_UNQUOTED([ROOTCFG],"$EXPANDED_SYSCONFDIR/nss_mysql_root.cfg",
                    [Root config file])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile version.c])
 AC_OUTPUT
