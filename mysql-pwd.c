@@ -36,6 +36,7 @@ _nss_mysql_getpwnam_r (const char *name, struct passwd *result, char *buffer,
 _nss_mysql_getpwnam_r (nss_backend_t *be, void *args)
 #endif
 {
+  static const char FNAME[] = "_nss_mysql_getpwnam_r";
   int retVal;
   MYSQL_RES *mresult = NULL;
 #ifdef HAVE_NSS_COMMON_H
@@ -45,7 +46,6 @@ _nss_mysql_getpwnam_r (nss_backend_t *be, void *args)
   size_t buflen = NSS_ARGS(args)->buf.buflen;
 #endif
 
-  function_enter;
   LOCK;
 
   retVal = _nss_mysql_lookup (BYNAME, name, 0, &conf.sql.query.getpwnam,
@@ -56,7 +56,7 @@ _nss_mysql_getpwnam_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  function_return (retVal);
+  return (retVal);
 }
 
 /*
@@ -70,6 +70,7 @@ _nss_mysql_getpwuid_r (uid_t uid, struct passwd *result, char *buffer,
 _nss_mysql_getpwuid_r (nss_backend_t *be, void *args)
 #endif
 {
+  static const char FNAME[] = "_nss_mysql_getpwuid_r";
   int retVal;
   MYSQL_RES *mresult = NULL;
 #ifdef HAVE_NSS_COMMON_H
@@ -79,7 +80,6 @@ _nss_mysql_getpwuid_r (nss_backend_t *be, void *args)
   size_t buflen = NSS_ARGS(args)->buf.buflen;
 #endif
 
-  function_enter;
   LOCK;
 
   retVal = _nss_mysql_lookup (BYNUM, NULL, uid, &conf.sql.query.getpwuid,
@@ -90,7 +90,7 @@ _nss_mysql_getpwuid_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  function_return (retVal);
+  return (retVal);
 }
 
 /*
@@ -113,6 +113,7 @@ _nss_mysql_getpwent_r (struct passwd *result, char *buffer, size_t buflen)
 _nss_mysql_getpwent_r (nss_backend_t *be, void *args)
 #endif
 {
+  static const char FNAME[] = "_nss_mysql_getpwent_r";
   int retVal;
 #ifdef HAVE_NSS_COMMON_H
   struct passwd *result = NSS_ARGS(args)->buf.result;
@@ -120,7 +121,6 @@ _nss_mysql_getpwent_r (nss_backend_t *be, void *args)
   size_t buflen = NSS_ARGS(args)->buf.buflen;
 #endif
 
-  function_enter;
   LOCK;
 
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, &conf.sql.query.getpwent,
@@ -131,7 +131,7 @@ _nss_mysql_getpwent_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  function_return (retVal);
+  return (retVal);
 }
 
 #ifdef HAVE_NSS_COMMON_H

@@ -36,6 +36,7 @@ _nss_mysql_getspnam_r (const char *name, struct spwd *result, char *buffer,
 _nss_mysql_getspnam_r (nss_backend_t *be, void *args)
 #endif
 {
+  static const char FNAME[] = "_nss_mysql_getspnam_r";
   int retVal;
   MYSQL_RES *mresult = NULL;
 #ifdef HAVE_NSS_COMMON_H
@@ -45,7 +46,6 @@ _nss_mysql_getspnam_r (nss_backend_t *be, void *args)
   size_t buflen = NSS_ARGS(args)->buf.buflen;
 #endif
 
-  function_enter;
   LOCK;
 
   retVal = _nss_mysql_lookup (BYNAME, name, 0, &conf.sql.query.getspnam,
@@ -56,7 +56,7 @@ _nss_mysql_getspnam_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  function_return (retVal);
+  return (retVal);
 }
 
 /*
@@ -79,6 +79,7 @@ _nss_mysql_getspent_r (struct spwd *result, char *buffer, size_t buflen)
 _nss_mysql_getspent_r (nss_backend_t *be, void *args)
 #endif
 {
+  static const char FNAME[] = "_nss_mysql_getspent_r";
   int retVal;
 #ifdef HAVE_NSS_COMMON_H
   struct spwd *result = NSS_ARGS(args)->buf.result;
@@ -86,7 +87,6 @@ _nss_mysql_getspent_r (nss_backend_t *be, void *args)
   size_t buflen = NSS_ARGS(args)->buf.buflen;
 #endif
 
-  function_enter;
   LOCK;
 
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, &conf.sql.query.getspent,
@@ -97,7 +97,7 @@ _nss_mysql_getspent_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  function_return (retVal);
+  return (retVal);
 }
 
 #ifdef HAVE_NSS_COMMON_H
