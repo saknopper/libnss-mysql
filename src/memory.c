@@ -24,36 +24,6 @@ static const char rcsid[] =
     "$Id$";
 
 #include "nss_mysql.h"
-#include <stdlib.h>     /* free() */
-
-void
-_nss_mysql_free (void *ptr)
-{
-  DN ("_nss_mysql_free")
-
-  DENTER
-  if (ptr)
-    {
-      D ("%s: free (%p)", FUNCNAME, ptr);
-      free (ptr);
-    }
-  ptr = NULL;
-  DEXIT
-}
-
-void *
-_nss_mysql_malloc (size_t size)
-{
-  DN ("_nss_mysql_malloc")
-  static void *ptr;
-
-  DENTER
-  D ("%s: malloc (%u)", FUNCNAME, size);
-  ptr = malloc (size);
-  if (ptr == NULL)
-    _nss_mysql_log (LOG_ALERT, "malloc of %d bytes failed", size);
-  DPRETURN (ptr)
-}
 
 void *
 _nss_mysql_realloc (void *ptr, size_t size)
@@ -78,8 +48,11 @@ _nss_mysql_safe_memset (void *s, int c, size_t n)
   volatile char *p = s;
 
   DENTER
-  while (n--)
-    *p++ = c;
+  if (p)
+    {
+      while (n--)
+        *p++ = c;
+    }
   DPRETURN (s)
 }
 
