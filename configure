@@ -826,7 +826,7 @@ echo > confdefs.h
 
 # A filename unique to this package, relative to the directory that
 # configure is in, which we can look for to find out if srcdir is correct.
-ac_unique_file=nss_mysql.c
+ac_unique_file=nss_main.c
 
 # Find the source files, if location was not specified.
 if test -z "$srcdir"; then

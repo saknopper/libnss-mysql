@@ -81,8 +81,8 @@ STRIP = @STRIP@
 VERSION = @VERSION@
 
 lib_LTLIBRARIES = libnss_mysql.la
-libnss_mysql_la_SOURCES = nss_config.c nss_mysql.c nss_structures.c \
-                          nss_support.c memory.c
+libnss_mysql_la_SOURCES = nss_config.c nss_main.c nss_structures.c \
+                          nss_support.c memory.c mysql.c
 
 libnss_mysql_la_LDFLAGS = -version-info 2:0:0
 noinst_HEADERS = nss_mysql.h
@@ -99,8 +99,8 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I.
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libnss_mysql_la_LIBADD = 
-libnss_mysql_la_OBJECTS =  nss_config.lo nss_mysql.lo nss_structures.lo \
-nss_support.lo memory.lo
+libnss_mysql_la_OBJECTS =  nss_config.lo nss_main.lo nss_structures.lo \
+nss_support.lo memory.lo mysql.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -118,8 +118,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/memory.P .deps/nss_config.P .deps/nss_mysql.P \
-.deps/nss_structures.P .deps/nss_support.P
+DEP_FILES =  .deps/memory.P .deps/mysql.P .deps/nss_config.P \
+.deps/nss_main.P .deps/nss_structures.P .deps/nss_support.P
 SOURCES = $(libnss_mysql_la_SOURCES)
 OBJECTS = $(libnss_mysql_la_OBJECTS)
 
