@@ -10,6 +10,8 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+# From Makefile.am $Revision$
+
 
 SHELL = @SHELL@
 
