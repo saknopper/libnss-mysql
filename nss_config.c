@@ -400,6 +400,7 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
           break;
         }
     }
+  fclose (fh);
   function_return (NSS_SUCCESS);
 }
 
