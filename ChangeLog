@@ -7,11 +7,14 @@
     * BUGFIX: Groups without members weren't showing up in getgrent's
 
     * BUGFIX: Don't leak any symbols except what's necessary - prevents
-              problems with our RPM and some programs that use a different
-              version of MySQL shared lib (e.g. apache with php); Requires
-              libtool >= 1.5.2
+              problems with differing MySQL library versions.  Classic
+              example is Apache/PHP using different version than the one
+              statically linked in the libnss-mysql RPM.  On Linux, this
+              requires libtool >= 1.5.2
 
     * DOCS:   Updated README to better suit FreeBSD installations
+
+    * DOCS:   Added Q&A about -R necessity under older Solaris installations.
 
 0.9 - 1.0
 
