@@ -7,13 +7,17 @@
               Got an error reading communication packets" messages in the
               MySQL server logs if you have warnings turned on
 
+    * BUGFIX: Added missing Makefile path to <OS>.sym
+
     * CHANGE: Prefer static MySQL libraries over dynamic; Removed
               forced-static-link from RPM spec file since this change makes
               it unnecessary
 
     * CHANGE: Moved sources to src/ and aux files to aux/
 
-    * BUGFIX: Added missing Makefile path to <OS>.sym
+    * CHANGE: Send a syslog if number of columns returned != expected #
+
+    * CHANGE: (Internal) Code cleanup
 
 1.1 - 1.2
 
