@@ -41,6 +41,7 @@ _nss_mysql_count_tokens (const char *buffer, int *count)
   int buflen;
 
   function_enter;
+  *count = 0;
   buflen = strlen (buffer);
   if (buflen == 0)
     function_return (NSS_SUCCESS);
@@ -50,7 +51,7 @@ _nss_mysql_count_tokens (const char *buffer, int *count)
     function_return (NSS_UNAVAIL);
   memcpy (p, buffer, strlen (buffer) + 1);
 
-  for (*count = 0, token = strtok (p, ", "); token; (*count)++)
+  for (token = strtok (p, ", "); token; (*count)++)
     token = strtok (NULL, ", ");
   xfree (p);
   _nss_mysql_debug (FNAME, D_PARSE, "Found %d tokens", *count);
@@ -115,7 +116,10 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
           function_return (NSS_UNAVAIL);
 
         if (num_tokens == 0)
-          function_return (NSS_SUCCESS);
+          {
+            *(intptr_t *) (b + fofs) = (intptr_t) buffer;
+            function_return (NSS_SUCCESS);
+          }
 
         /* Leave room for n+1 pointers (last must be NULL) */
         p = buffer;
