@@ -1,7 +1,7 @@
 Summary: NSS library for MySQL.
 Name: libnss-mysql
 Version: 0.9
-Release: 1
+Release: 2
 Source0: http://prdownloads.sourceforge.net/libnss-mysql/libnss-mysql-%{version}.tar.gz
 URL: http://libnss-mysql.sourceforge.net/
 License: GPL
@@ -17,6 +17,14 @@ Store your UNIX user accounts in MySQL
 %build
 ./configure
 make
+
+# Manually relink libnss-mysql with a few libraries static
+# This is really quite ugly .. one of these days I'll stop
+# using libtool ...
+# This also assumes libmysqlclient.so* is in default linker path or
+# /usr/lib/mysql ...
+rm .libs/libnss_mysql.so.2.0.0
+gcc -shared  version.lo nss_config.lo nss_main.lo nss_support.lo memory.lo mysql.lo lookup.lo mysql-pwd.lo mysql-spwd.lo mysql-grp.lo  -L/usr/lib/mysql -Wl,-Bstatic -lmysqlclient -lz -Wl,-Bdynamic -ldl -lm -lcrypt -lnsl -Wl,-Bgroup -Wl,-znodelete -Wl,-soname -Wl,libnss_mysql.so.2 -o .libs/libnss_mysql.so.2.0.0
 
 %install
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
@@ -35,6 +43,10 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %doc sample
 
 %changelog
+* Thu Jun 19 2003 Ben Goodwin <cinergi@users.sourceforge.net> 0.9-2
+- Added ugly hack to relink some libraries static.  It will probably
+  break rpm builds on some hosts ...
+
 * Wed Jun 18 2003 Ben Goodwin <cinergi@users.sourceforge.net> 0.9-1
 - Update to 0.9
 
