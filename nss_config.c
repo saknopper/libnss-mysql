@@ -57,13 +57,16 @@ typedef struct {
  */
 static field_info_t server_fields[] =
 {
-    {"host",     FOFS (sql_server_t, host),     FT_PCHAR},
-    {"port",     FOFS (sql_server_t, port),     FT_UINT},
-    {"socket",   FOFS (sql_server_t, socket),   FT_PCHAR},
-    {"username", FOFS (sql_server_t, username), FT_PCHAR},
-    {"password", FOFS (sql_server_t, password), FT_PCHAR},
-    {"database", FOFS (sql_server_t, database), FT_PCHAR},
-    {"ssl",      FOFS (sql_server_t, ssl),      FT_UINT},
+    {"host",     FOFS (sql_server_t, host),             FT_PCHAR},
+    {"port",     FOFS (sql_server_t, port),             FT_UINT},
+    {"socket",   FOFS (sql_server_t, socket),           FT_PCHAR},
+    {"username", FOFS (sql_server_t, username),         FT_PCHAR},
+    {"password", FOFS (sql_server_t, password),         FT_PCHAR},
+    {"database", FOFS (sql_server_t, database),         FT_PCHAR},
+    {"timeout",  FOFS (sql_server_t, options.timeout),  FT_UINT},
+    {"compress", FOFS (sql_server_t, options.compress), FT_UINT},
+    {"initcmd",  FOFS (sql_server_t, options.initcmd),  FT_PCHAR},
+    {"ssl",      FOFS (sql_server_t, options.ssl),      FT_UINT},
     {NULL}
 };
 
@@ -393,6 +396,32 @@ _nss_mysql_validate_servers (void)
   DBRETURN (is_valid)
 }
 
+static void
+_nss_mysql_set_defaults (void)
+{
+  DN ("_nss_mysql_set_defaults")
+  int i;
+
+  conf.global.retry = DEF_RETRY;
+  for (i = 0; i < MAX_SERVERS; i++)
+    {
+      conf.sql.server[i].options.timeout = 2;
+      if (!conf.sql.server[i].host)
+        conf.sql.server[i].host = strdup ("");
+      if (!conf.sql.server[i].socket)
+        conf.sql.server[i].socket = strdup ("");
+      if (!conf.sql.server[i].username)
+        conf.sql.server[i].username = strdup ("");
+      if (!conf.sql.server[i].password)
+        conf.sql.server[i].password = strdup ("");
+      if (!conf.sql.server[i].database)
+        conf.sql.server[i].database = strdup ("");
+      if (!conf.sql.server[i].options.initcmd)
+        conf.sql.server[i].options.initcmd = strdup ("");
+    }
+  DEXIT
+}
+
 /*
  * Load main and, if appropriate, root configs.  Set some defaults.
  * Set CONF->VALID to NTRUE and return NSS_SUCCESS if all goes well.
@@ -408,7 +437,7 @@ _nss_mysql_load_config (void)
     DSRETURN (NSS_SUCCESS)
 
   memset (&conf, 0, sizeof (conf));
-  conf.global.retry = DEF_RETRY;
+  _nss_mysql_set_defaults ();
   to_return = _nss_mysql_load_config_file (MAINCFG, ntrue);
   if (to_return != NSS_SUCCESS)
     DSRETURN (to_return)
