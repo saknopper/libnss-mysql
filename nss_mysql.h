@@ -212,7 +212,7 @@ typedef struct {
 } con_info_t;
 
 /* nss_main.c */
-void _nss_mysql_debug(char *function, int flags, char *fmt, ...);
+void _nss_mysql_debug(const char *function, int flags, char *fmt, ...);
 void _nss_mysql_log (int priority, char *fmt, ...);
 
 /* nss_support.c */

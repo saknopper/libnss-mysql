@@ -209,7 +209,7 @@ _nss_mysql_log (int priority, char *fmt, ...)
  * string to the log function above.
  */
 void
-_nss_mysql_debug (char *function, int flags, char *fmt, ...)
+_nss_mysql_debug (const char *function, int flags, char *fmt, ...)
 {
   va_list ap;
   char string[MAX_LOG_LEN];
