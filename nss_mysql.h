@@ -51,7 +51,8 @@
 #define NSS_UNAVAIL     NSS_STATUS_UNAVAIL
 #define NSS_TRYAGAIN    NSS_STATUS_TRYAGAIN
 typedef enum nss_status NSS_STATUS;
-#elif defined HAVE_NSSWITCH_H
+#elif defined HAVE_NSS_COMMON_H
+typedef nss_status_t NSS_STATUS;
 #else
 typedef enum
 {
