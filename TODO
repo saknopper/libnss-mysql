@@ -1,8 +1,10 @@
+Protect the *spent routines from euid != 0
+Reconnect upon euid change
+Escape the username with mysql_real_escape. 
+
 develop tests - including multi-threaded
 Better MySQL autoconf find/check
-Reconnect upon euid change
 Solaris support
-Make my own, non-destructive, strtok replacement ?
+Make my own, non-destructive, strtok replacement?
 Align pointers stored in buffer
-Escape the username with mysql_real_escape. 
-Better/more generic parser
+Better/more generic parser?
