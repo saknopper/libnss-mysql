@@ -146,6 +146,11 @@ _nss_mysql_try_server (MYSQL_RES **mresult)
 
   time (&server->status.last_attempt);
   server->status.up = nfalse;
+
+#if MYSQL_VERSION_ID >= 32210
+  mysql_options(&(ci.link), MYSQL_READ_DEFAULT_GROUP, PACKAGE);
+#endif /* MYSQL_VERSION_ID */
+
 #ifdef HAVE_MYSQL_REAL_CONNECT /* comes from mysql.h, NOT config.h! */
 #if MYSQL_VERSION_ID >= 32200  /* ditto */
   if (mysql_real_connect (&(ci.link), server->host, server->username,
@@ -289,10 +294,6 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
       return (NSS_UNAVAIL);
     }
 #endif /* HAVE_MYSQL_INIT */
-
-#if MYSQL_VERSION_ID >= 32210
-  mysql_options(&(ci.link), MYSQL_READ_DEFAULT_GROUP, PACKAGE);
-#endif /* MYSQL_VERSION_ID */
 
   while (_nss_mysql_pick_server () == NSS_SUCCESS)
     {
