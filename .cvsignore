@@ -13,4 +13,15 @@ stamp-h1
 .deps
 .libs
 *.gz
-autom4te-2.53.cache
+autom4te*.cache
+Makefile.in
+aclocal.m4
+config.guess
+config.h.in
+config.sub
+configure
+depcomp
+install-sh
+ltmain.sh
+missing
+mkinstalldirs
