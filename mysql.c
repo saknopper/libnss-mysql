@@ -27,9 +27,6 @@ static const char rcsid[] =
 #include "nss_mysql.h"
 #include <stdio.h>
 #include <string.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include <stdarg.h>
 #include <time.h>
 #include <netinet/in.h>
@@ -193,7 +190,7 @@ _nss_mysql_check_existing_connection (void)
        _nss_mysql_debug (FNAME, D_CONNECT,
                          "Socket changed - forcing reconnect");
        /* Do *NOT* CLOSE_LINK - the socket is invalid! */
-      _nss_mysql_close_sql (CLOSE_RESULT);
+      _nss_mysql_close_sql (CLOSE_NOGRACE);
       ci.valid = nfalse;
       function_return (nfalse);
     }
@@ -288,6 +285,17 @@ _nss_mysql_close_sql (int flags)
       _nss_mysql_debug (FNAME, D_CONNECT, "Closing link");
       mysql_close (&(ci.link));
       ci.valid = nfalse;
+    }
+  if (flags & CLOSE_NOGRACE)
+    {
+      /* 
+       * This leaks memory.  But if something stomped on our connection,
+       * we don't have much choice ...
+       */
+      _nss_mysql_debug (FNAME, D_CONNECT,
+                        "Ungracefully closing link & result");
+      ci.valid = nfalse;
+      ci.result = NULL;
     }
   function_return (NSS_SUCCESS);
 }
