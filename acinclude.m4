@@ -25,6 +25,7 @@ headerlist="$with_mysql_inc \
             /usr/local/include \
             /usr/local/include/mysql \
             /usr/local/mysql/include \
+            /usr/local/mysql/include/mysql \
             /opt/local/include \
             /opt/local/mysql/include"
 
@@ -46,6 +47,7 @@ liblist="$with_mysql_lib \
          /usr/local/lib \
          /usr/local/lib/mysql \
          /usr/local/mysql/lib \
+         /usr/local/mysql/lib/mysql \
          /opt/local/lib \
          /opt/local/mysql/lib"
 
