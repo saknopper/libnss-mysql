@@ -9,6 +9,5 @@ BUGFIXES
     Turn off socket keepalive?
     full fork/pid-change handling
     sigpipe handling
-    Allow mysql connect options in config (to pass to mysql_options())
     Solaris doesn't show auxiliary MySQL groups
     64-bit library support
