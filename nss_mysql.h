@@ -62,11 +62,6 @@ typedef nss_status_t NSS_STATUS;
 
 #define MAX_LINE_LEN    1024            /* Max line length in config file */
 #define MAX_KEY_LEN     128             /* Max length of a key in config file */
-#define PADSIZE         64              /* malloc this much more for queries
-                                           to allow for format expansion.
-                                           Max username length ~ 1/2 this val */
-#define OPENLOG_OPTIONS LOG_PID         /* Flags to use when syslogging */
-#define MAX_LOG_LEN     2000            /* Max length of syslog entry */
 
 /* Use these as defaults until they're overridden via the config file */
 #define DEF_TIMEOUT     3
@@ -272,7 +267,7 @@ NSS_STATUS _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
 /* mysql.c */
 NSS_STATUS _nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful);
 void _nss_mysql_close_result (MYSQL_RES **mresult);
-NSS_STATUS _nss_mysql_run_query(char *query, MYSQL_RES **mresult);
+NSS_STATUS _nss_mysql_run_query (char *query, MYSQL_RES **mresult);
 NSS_STATUS _nss_mysql_fetch_row (MYSQL_ROW *row, MYSQL_RES *mresult);
 NSS_STATUS _nss_mysql_escape_string (char *to, const char *from,
                                      MYSQL_RES **mresult);
