@@ -291,7 +291,7 @@ _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
       if (retVal != NSS_SUCCESS)
         function_return (retVal);
       gid = atoi (row[0]);
-      if ((long int)gid != gi->group)
+      if ((long int)gid != gi->group && (long int)gid != groups[0])
         groups[(*gi->start)++] = gid;
     }
 
