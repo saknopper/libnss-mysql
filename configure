@@ -1641,7 +1641,7 @@ fi
 
 PACKAGE=libnss_mysql
 
-VERSION=0.4
+VERSION=0.5dev
 
 if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
   { { echo "$as_me:$LINENO: error: source directory already configured; run \"make distclean\" there first" >&5
@@ -7235,6 +7235,70 @@ fi
 
 
 
+echo "$as_me:$LINENO: checking for mysql_connect in -lmysqlclient_r" >&5
+echo $ECHO_N "checking for mysql_connect in -lmysqlclient_r... $ECHO_C" >&6
+if test "${ac_cv_lib_mysqlclient_r_mysql_connect+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lmysqlclient_r  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+#include "confdefs.h"
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char mysql_connect ();
+#ifdef F77_DUMMY_MAIN
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+#endif
+int
+main ()
+{
+mysql_connect ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_mysqlclient_r_mysql_connect=yes
+else
+  echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+ac_cv_lib_mysqlclient_r_mysql_connect=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_mysqlclient_r_mysql_connect" >&5
+echo "${ECHO_T}$ac_cv_lib_mysqlclient_r_mysql_connect" >&6
+if test $ac_cv_lib_mysqlclient_r_mysql_connect = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBMYSQLCLIENT_R 1
+_ACEOF
+
+  LIBS="-lmysqlclient_r $LIBS"
+
+else
+
 echo "$as_me:$LINENO: checking for mysql_connect in -lmysqlclient" >&5
 echo $ECHO_N "checking for mysql_connect in -lmysqlclient... $ECHO_C" >&6
 if test "${ac_cv_lib_mysqlclient_mysql_connect+set}" = set; then
@@ -7301,6 +7365,8 @@ else
   { { echo "$as_me:$LINENO: error: Unable find a functioning MySQL library" >&5
 echo "$as_me: error: Unable find a functioning MySQL library" >&2;}
    { (exit 1); exit 1; }; }
+fi
+
 fi
 
 

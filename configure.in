@@ -24,7 +24,7 @@ AC_INIT
 AC_CONFIG_SRCDIR([nss_main.c])
 AC_CANONICAL_TARGET([])
 AC_PREFIX_DEFAULT()
-AM_INIT_AUTOMAKE(libnss_mysql, 0.4)
+AM_INIT_AUTOMAKE(libnss_mysql, 0.5dev)
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
@@ -71,8 +71,9 @@ AC_SUBST(LIBVER)
 
 FIND_MYSQL()
 
-AC_CHECK_LIB(mysqlclient, mysql_connect, ,
-             [AC_MSG_ERROR([Unable find a functioning MySQL library])])
+AC_CHECK_LIB(mysqlclient_r, mysql_connect, ,
+             [AC_CHECK_LIB(mysqlclient, mysql_connect, ,
+                           [AC_MSG_ERROR([Unable find a functioning MySQL library])])])
 AC_CHECK_LIB(socket, getsockname)
 
 AC_HEADER_STDC
