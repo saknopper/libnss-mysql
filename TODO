@@ -3,3 +3,6 @@ Better MySQL autoconf find/check
 Reconnect upon euid change
 better connect/query code (esp WRT failover & errors etc)
 Solaris support
+Make my own, non-destructive, strtok replacement
+Create xfree/xmalloc/etc functions with logging
+Align pointers stored in buffer
