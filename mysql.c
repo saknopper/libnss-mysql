@@ -303,6 +303,13 @@ _nss_mysql_run_query (conf_t conf, char *query)
   int attempts;
 
   function_enter;
+
+  if (!query || !strlen (query))
+    {
+      _nss_mysql_log (LOG_ALERT, "Empty/NULL query");
+      function_return (NSS_UNAVAIL);
+    }
+
   attempts = 0;
 
   while (attempts < conf.num_servers)
@@ -313,11 +320,6 @@ _nss_mysql_run_query (conf_t conf, char *query)
                       % conf.num_servers;
       if (_nss_mysql_connect_sql (conf) != NSS_SUCCESS)
         continue;
-      if (!query || !strlen (query))
-        {
-          _nss_mysql_log (LOG_ALERT, "Empty/NULL query");
-          continue;
-        }
       _nss_mysql_debug (FNAME, D_QUERY, "Executing query on server #%d: %s",
                         ci.server_num, query);
       if ((mysql_query (&(ci.link), query)) != RETURN_SUCCESS)
