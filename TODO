@@ -1,15 +1,15 @@
 develop tests - including multi-threaded
 Make my own, non-destructive, strtok replacement?
-Align pointers stored in buffer
 Better/more generic parser?
 Support other NSS calls (like group_bymember)
 Solaris 9 support
 Check current error returns/conditions; properly use errno, herrno etc
 
 BUGFIXES
-    csh ~username is very unhappy on solaris - why?
+    csh ~username bus error's on solaris - why?  External bug.
     Turn off socket keepalive?
     full fork/pid-change handling
     sigpipe handling
     Allow mysql connect options in config (to pass to mysql_options())
     Solaris doesn't show MySQL groups for users in /etc/passwd
+    64-bit library support
