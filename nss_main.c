@@ -30,7 +30,6 @@ static const char rcsid[] =
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
-// conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
 extern conf_t conf;
 
 /*
