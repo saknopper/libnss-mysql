@@ -1,5 +1,33 @@
 # $Id$
 
+2002-08-15  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * nss_mysql.h: Added proto for _nss_mysql_escape_string().
+
+    * nss_support.c: Fixed segfault WRT loading an empty PTCHAR
+      in _nss_mysql_liswb() and _nss_mysql_count_tokens().
+
+    * samples/sample_database.sql: New file
+
+    * nss_main.c: Protect getspent from being used by euid != 0.
+      Split #define's up for readability/flexibility.
+      Run arg passed (username/uid/etc.) through MySQL's string cleanser;
+      AS A RESULT ALL STRING FORMATS IN YOUR CONFIG MUST BE %s !!!
+
+    * mysql.c: Check for euid change.
+      Added _nss_mysql_escape_string().
+
+    * configure, configure.in: Version -> 0.3dev.
+
+    * TODO: Couple new items, prioritization; Got most-needed items done!
+
+    * README: Typo fix (s/DEBUG_NSS/debug_flags/).  Better information
+      RE: ld.so/ldconfig.
+
+2002-08-14  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * *: CVS tag 0.2; Public release
+
 2002-05-31  Ben Goodwin  <ben@localhost>
 
     * sample/nss_mysql.cfg: Added new debug_flags to [global] section
