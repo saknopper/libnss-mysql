@@ -42,6 +42,8 @@
 
     * CHANGE: port & socket are now optional parameters in the config file
 
+    * CHANGE: Added another directory set to search for MySQL libs/includes
+
     * CHANGE: Many updates to various documentation
 
 0.7 - 0.7a
