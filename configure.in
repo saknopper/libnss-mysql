@@ -48,8 +48,10 @@ FIND_MYSQL()
 AC_CHECK_LIB(mysqlclient, mysql_connect, ,
              [AC_MSG_ERROR(Unable find a functioning MySQL library)])
 
+AC_CHECK_HEADER(mysql.h, , [AC_MSG_ERROR(Unable to find mysql.h)])
+
 AC_HEADER_STDC
-AC_CHECK_HEADERS(syslog.h unistd.h mysql.h nss.h strings.h)
+AC_CHECK_HEADERS(syslog.h unistd.h nss.h nss_common.h strings.h)
 
 AC_C_CONST
 AC_TYPE_UID_T
@@ -88,6 +90,16 @@ AC_TRY_COMPILE([
 [have_authpriv=no])
 case "$have_authpriv" in
   yes) AC_DEFINE(HAVE_LOG_AUTHPRIV) ;;
+   no) ;;
+esac
+
+AC_TRY_COMPILE([
+#include <syslog.h>],
+[int foo = LOG_FTP;],
+[have_logftp=yes],
+[have_logftp=no])
+case "$have_logftp" in
+  yes) AC_DEFINE(HAVE_LOG_FTP) ;;
    no) ;;
 esac
 
