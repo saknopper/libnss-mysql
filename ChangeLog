@@ -1,5 +1,9 @@
 # $Id$
 
+1.0 - 1.1
+
+    * DOCS:   Updated README to better suit FreeBSD installations
+
 0.9 - 1.0
 
     * NEW:    FreeBSD (5.1+) is now supported
