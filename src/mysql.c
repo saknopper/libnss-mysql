@@ -66,19 +66,16 @@ static nboolean
 _nss_mysql_is_same_sockaddr (struct sockaddr orig, struct sockaddr cur)
 {
   DN ("_nss_mysql_is_same_sockaddr")
-  struct sockaddr_in orig_sin, cur_sin;
-  sa_family_t family;
 
   DENTER
-  family = ((struct sockaddr_in *)&ci.sock_info.local)->sin_family;
-  switch (family)
+  switch (((struct sockaddr_in *)&ci.sock_info.local)->sin_family)
     {
     case AF_INET:
-        orig_sin = *(struct sockaddr_in *) &orig;
-        cur_sin = *(struct sockaddr_in *) &cur;
-        if (orig_sin.sin_port != cur_sin.sin_port)
+        if ((*(struct sockaddr_in *) &orig).sin_port != 
+            (*(struct sockaddr_in *) &cur).sin_port)
           DBRETURN (nfalse)
-        if (orig_sin.sin_addr.s_addr != cur_sin.sin_addr.s_addr)
+        if ((*(struct sockaddr_in *) &orig).sin_addr.s_addr != 
+            (*(struct sockaddr_in *) &cur).sin_addr.s_addr)
           DBRETURN (nfalse)
         break;
     case AF_UNIX:
@@ -86,7 +83,8 @@ _nss_mysql_is_same_sockaddr (struct sockaddr orig, struct sockaddr cur)
           DBRETURN (nfalse)
         break;
     default:
-        _nss_mysql_log (LOG_ERR, "%s: Unhandled family: %d", FUNCNAME, family);
+        _nss_mysql_log (LOG_ERR, "%s: Unhandled sin_family", FUNCNAME);
+        DBRETURN (nfalse)
         break;
     }
   DBRETURN (ntrue)
@@ -285,7 +283,7 @@ _nss_mysql_run_query (char *query, MYSQL_RES **mresult, int *attempts)
   int retval;
 
   DENTER
-  if (!query || !strlen (query))
+  if (!query)
     DSRETURN (NSS_NOTFOUND)
 
   D ("%s: Executing query: %s", FUNCNAME, query);
