@@ -1,5 +1,29 @@
 # $Id$
 
+0.5 - 0.6
+
+    * NEW:    Support for Sun Workshop compiler
+
+    * NEW:    Additional documentation on producing 64-bit version
+
+    * BUGFIX: Handle program forks properly - used to cause hangs,
+              improper data, crashes, etc ... 
+
+    * BUGFIX: getgrmem() would hang in multi-threaded environment
+
+    * BUGFIX: Abort if Solaris backend couldn't be malloc'ed - was causing
+              inability to log in at single-user root password prompt
+
+    * BUGFIX: Correct handling of insufficient 'buffer' size.
+              Would have caused long hangs (or infinite loops) in Solaris.
+
+    * BUGFIX: Read my.cnf for EVERY server.  Would cause ignored settings
+              like connect-timeout, leading to infinite hangs in outtages.
+
+    * BUGFIX: Don't attempt to run null/empty queries
+
+    * BUGFIX: General compile cleanups, including upgrade to Automake 1.6
+
 0.4 - 0.5
 
     * NEW:    initgroup/getgrmem support.  Some programs need these
