@@ -28,6 +28,12 @@ static const char rcsid[] =
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
+NSS_STATUS
+_nss_mysql_init (void)
+{
+  return (_nss_mysql_load_config ());
+}
+
 /*
  * Syslog a message at PRIORITY.
  * Do *NOT* change this to maintain persistent connection - it will fail
@@ -57,4 +63,15 @@ _nss_mysql_default_destr (nss_backend_t *be, void *args)
 
 }
 #endif
+
+/*
+ * SET/END ent's call this.  While the definition of endent is to close
+ * the file, I see no reason to actually do that - just clear the
+ * current result set.
+ */
+void
+_nss_mysql_reset_ent (MYSQL_RES **mresult)
+{
+  _nss_mysql_close_result (mresult);
+}
 
