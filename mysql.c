@@ -234,11 +234,13 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
     }
    /* Make sure euid hasn't changed, thus changing our access abilities */
   if (euid == -1)
-    euid = geteuid();
-  else if (euid != geteuid())
+    euid = geteuid ();
+  else if (euid != geteuid ())
     {
       _nss_mysql_close_sql (mresult, ntrue);
-      euid = geteuid();
+      conf.valid = nfalse;
+      (void) _nss_mysql_load_config ();
+      euid = geteuid ();
       DIRETURN (nfalse)
     }
 
@@ -300,6 +302,10 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
   DENTER
   if (_nss_mysql_check_existing_connection (mresult) == ntrue)
     DIRETURN (NSS_SUCCESS)
+
+  /* Because check_existig_connection can try to reload the config */
+  if (conf.valid == nfalse)
+    DIRETURN (NSS_UNAVAIL)
 
 #ifdef HAVE_MYSQL_INIT
   if (mysql_init (&(ci.link)) == NULL)
