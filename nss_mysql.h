@@ -146,19 +146,14 @@ typedef enum
 } lookup_t;
 
 /*
- * Parse types for the 'lis' functions.  This is how I accomplish
+ * Parse types for _nss_mysql_lis.  This is how I accomplish
  * loading data into a struct without referencing the structure's members
  */
 typedef enum {
     FT_NONE,
-    FT_INT,
-    FT_LONG,
     FT_PCHAR,    /* char *  Pointer to char (unallocated) */
-    FT_PPCHAR,   /* char ** Pointer to pointer to char (unallocated) */
     FT_UINT,
-    FT_ULONG,
     FT_SYSLOG,   /* incoming string, convert to appropriate integer */
-    FT_PPLONG,   /* array of long's */
 } ftype_t;
 
 /*
@@ -173,6 +168,7 @@ typedef struct {
 
 typedef struct {
     gid_t       **groupsp;
+    long int    group;
     long int    *start;
     long int    *size;
     long int    limit;
