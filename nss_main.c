@@ -39,6 +39,7 @@ static const char rcsid[] =
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_once_t _nss_mysql_once_control = {PTHREAD_ONCE_INIT};
+static int _nss_mysql_locked_by_atfork = 0;
 
 /*
  * Debugs to either a file, stderr, or syslog, depending on the environ var
@@ -91,8 +92,17 @@ static void
 _nss_mysql_atfork_prepare (void)
 {
   DN ("_nss_mysql_atfork_prepare")
+  int (*trylock)();
+
   DENTER
+#if 1
+  trylock = (int (*)(int))dlsym (RTLD_DEFAULT, "pthread_mutex_trylock");
+  if (trylock)
+    if ((*trylock) (&lock) == 0)
+      _nss_mysql_locked_by_atfork = 1;
+#else
   LOCK;
+#endif
   DEXIT
 }
 
@@ -105,7 +115,11 @@ _nss_mysql_atfork_parent (void)
 {
   DN ("_nss_mysql_atfork_parent")
   DENTER
-  UNLOCK;
+  if (_nss_mysql_locked_by_atfork)
+    {
+      _nss_mysql_locked_by_atfork = 0;
+      UNLOCK;
+    }
   DEXIT
 }
 
@@ -120,7 +134,11 @@ _nss_mysql_atfork_child (void)
   DENTER
   /* Don't close the link; just set it to invalid so we'll open a new one */
   _nss_mysql_close_sql (NULL, nfalse);
-  UNLOCK;
+  if (_nss_mysql_locked_by_atfork)
+    {
+      _nss_mysql_locked_by_atfork = 0;
+      UNLOCK;
+    }
   DEXIT
 }
 
