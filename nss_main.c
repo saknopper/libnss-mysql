@@ -30,7 +30,8 @@ static const char rcsid[] =
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
-conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
+// conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
+extern conf_t conf;
 
 /*
  * Syslog a message at PRIORITY.
@@ -82,7 +83,6 @@ _nss_mysql_debug (const char *function, int flags, char *fmt, ...)
 NSS_STATUS
 _nss_mysql_default_destr (nss_backend_t *be, void *args)
 {
-  int i;
   function_enter;
   _nss_mysql_free (be);
   /*
@@ -90,7 +90,7 @@ _nss_mysql_default_destr (nss_backend_t *be, void *args)
    * all static variables are lost
    */
   _nss_mysql_close_sql (CLOSE_LINK);
-  _nss_mysql_reset_config (&conf);
+  _nss_mysql_reset_config ();
   function_return (NSS_SUCCESS);
 
 }

@@ -161,15 +161,15 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
 }
 
 NSS_STATUS
-_nss_mysql_init (conf_t *conf)
+_nss_mysql_init (void)
 {
   int to_return;
 
   function_enter;
-  to_return = _nss_mysql_load_config (conf);
+  to_return = _nss_mysql_load_config ();
   if (to_return != NSS_SUCCESS)
     function_return (to_return);
-  to_return = _nss_mysql_connect_sql (*conf);
+  to_return = _nss_mysql_connect_sql ();
   function_return (to_return);
 }
 

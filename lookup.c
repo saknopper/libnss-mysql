@@ -37,7 +37,7 @@ _nss_mysql_lookup_name (const char *name, int qofs, const char *caller)
   if (!name || strlen (name) == 0)
     function_return (NSS_UNAVAIL);
 
-  if (_nss_mysql_init (&conf) != NSS_SUCCESS)
+  if (_nss_mysql_init () != NSS_SUCCESS)
     function_return (NSS_UNAVAIL);
 
   (intptr_t *)q =  *(intptr_t *)((_nss_mysql_byte *)&conf.sql.query + qofs);
@@ -61,7 +61,7 @@ _nss_mysql_lookup_name (const char *name, int qofs, const char *caller)
   snprintf (query, qsize, (char *)q, clean_name);
   _nss_mysql_free (clean_name);
   _nss_mysql_reset_ent ();
-  retVal = _nss_mysql_run_query (conf, query);
+  retVal = _nss_mysql_run_query (query);
   _nss_mysql_free (query);
   function_return (retVal);
 }
@@ -74,7 +74,7 @@ _nss_mysql_lookup_number (unsigned int num, int qofs, const char *caller)
   size_t qsize;
   int retVal;
 
-  if (_nss_mysql_init (&conf) != NSS_SUCCESS)
+  if (_nss_mysql_init () != NSS_SUCCESS)
     function_return (NSS_UNAVAIL);
 
   (intptr_t *)q =  *(intptr_t *)((_nss_mysql_byte *)&conf.sql.query + qofs);
@@ -90,7 +90,7 @@ _nss_mysql_lookup_number (unsigned int num, int qofs, const char *caller)
     function_return (NSS_UNAVAIL);
   snprintf (query, qsize, (char *)q, num);
   _nss_mysql_reset_ent ();
-  retVal = _nss_mysql_run_query (conf, query);
+  retVal = _nss_mysql_run_query (query);
   _nss_mysql_free (query);
   function_return (retVal);
 }
@@ -101,7 +101,7 @@ _nss_mysql_lookup_ent (int qofs, const char *caller)
   _nss_mysql_byte *q;
   int retVal;
 
-  if (_nss_mysql_init (&conf) != NSS_SUCCESS)
+  if (_nss_mysql_init () != NSS_SUCCESS)
     function_return (NSS_UNAVAIL);
 
   (intptr_t *)q =  *(intptr_t *)((_nss_mysql_byte *)&conf.sql.query + qofs);
@@ -111,7 +111,7 @@ _nss_mysql_lookup_ent (int qofs, const char *caller)
       function_return (NSS_UNAVAIL);
     }
 
-  retVal = _nss_mysql_run_query (conf, q);
+  retVal = _nss_mysql_run_query (q);
   function_return (retVal);
 }
 

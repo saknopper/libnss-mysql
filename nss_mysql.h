@@ -232,15 +232,15 @@ NSS_STATUS _nss_mysql_default_destr (nss_backend_t *be, void *args);
 #endif
 
 /* nss_support.c */
-NSS_STATUS _nss_mysql_init(conf_t *conf);
+NSS_STATUS _nss_mysql_init (void);
 NSS_STATUS _nss_mysql_liswb (const char *val, void *structure, char *buffer,
                              size_t buflen, int *bufused, int fofs,
                              ftype_t type);
 
 /* mysql.c */
-NSS_STATUS _nss_mysql_connect_sql (conf_t conf);
+NSS_STATUS _nss_mysql_connect_sql (void);
 NSS_STATUS _nss_mysql_close_sql (int flags);
-NSS_STATUS _nss_mysql_run_query(conf_t conf, char *query);
+NSS_STATUS _nss_mysql_run_query(char *query);
 NSS_STATUS _nss_mysql_load_result(void *result, char *buffer, size_t buflen,
                                   field_info_t *fields);
 void _nss_mysql_reset_ent (void);
@@ -253,8 +253,8 @@ void *_nss_mysql_malloc(size_t size);
 void *_nss_mysql_realloc (void *ptr, size_t size);
 
 /* nss_config.c */
-NSS_STATUS _nss_mysql_load_config (conf_t *conf);
-void _nss_mysql_reset_config (conf_t *conf);
+NSS_STATUS _nss_mysql_load_config (void);
+void _nss_mysql_reset_config (void);
 
 /* nss_structures.c */
 extern field_info_t passwd_fields[];

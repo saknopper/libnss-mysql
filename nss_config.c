@@ -27,6 +27,8 @@ static const char rcsid[] =
 #endif
 #include <stdlib.h>
 
+conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
+
 /*
  * Map config keys to the struct offsets to load their values into
  */
@@ -339,7 +341,7 @@ _nss_mysql_load_section (FILE *fh, void *structure, field_info_t *fields)
  * Open FILE and load up the config data inside it
  */
 static NSS_STATUS
-_nss_mysql_load_config_file (char *file, conf_t *conf)
+_nss_mysql_load_config_file (char *file)
 {
   FILE *fh;
   int section;
@@ -356,7 +358,7 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
       switch (section)
         {
         case SECTION_GLOBAL:
-          to_return = _nss_mysql_load_section (fh, &conf->global,
+          to_return = _nss_mysql_load_section (fh, &conf.global,
                                                global_fields);
           if (to_return != NSS_SUCCESS)
             {
@@ -365,8 +367,8 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
             }
             break;
         case SECTION_SERVER:
-          conf->num_servers++;
-          if (conf->num_servers >= MAX_SERVERS)
+          conf.num_servers++;
+          if (conf.num_servers >= MAX_SERVERS)
             {
               /* Let's not bomb because we have too many specified .. */
               _nss_mysql_log (LOG_ERR,
@@ -377,7 +379,7 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
             }
           to_return =
             _nss_mysql_load_section (fh,
-                                     &(conf->sql.server[conf->num_servers - 1]),
+                                     &(conf.sql.server[conf.num_servers - 1]),
                                      server_fields);
           if (to_return != NSS_SUCCESS)
             {
@@ -386,7 +388,7 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
             }
           break;
         case SECTION_QUERIES:
-          to_return = _nss_mysql_load_section (fh, &conf->sql.query,
+          to_return = _nss_mysql_load_section (fh, &conf.sql.query,
                                                query_fields);
           if (to_return != NSS_SUCCESS)
             {
@@ -409,30 +411,30 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
  * Set CONF->VALID to NTRUE and return NSS_SUCCESS if all goes well.
  */
 NSS_STATUS
-_nss_mysql_load_config (conf_t *conf)
+_nss_mysql_load_config (void)
 {
   int to_return;
 
   function_enter;
-  if (conf->valid == ntrue)
+  if (conf.valid == ntrue)
     function_return (NSS_SUCCESS);
 
-  memset (conf, 0, sizeof (conf_t));
-  conf->global.retry = DEF_RETRY;
-  conf->global.syslog_facility = DEF_FACIL;
-  conf->global.syslog_priority = DEF_PRIO;
-  conf->global.debug_flags = DEF_DFLAGS;
-  to_return = _nss_mysql_load_config_file (MAINCFG, conf);
+  memset (&conf, 0, sizeof (conf));
+  conf.global.retry = DEF_RETRY;
+  conf.global.syslog_facility = DEF_FACIL;
+  conf.global.syslog_priority = DEF_PRIO;
+  conf.global.debug_flags = DEF_DFLAGS;
+  to_return = _nss_mysql_load_config_file (MAINCFG);
   if (to_return != NSS_SUCCESS)
     function_return (to_return);
   if (geteuid() == 0)
     {
-      conf->num_servers = 0;
-      to_return = _nss_mysql_load_config_file (ROOTCFG, conf);
+      conf.num_servers = 0;
+      to_return = _nss_mysql_load_config_file (ROOTCFG);
       if (to_return != NSS_SUCCESS)
         function_return (to_return);
     }
-  conf->valid = ntrue;
+  conf.valid = ntrue;
   function_return (NSS_SUCCESS);
 }
 
@@ -440,31 +442,31 @@ _nss_mysql_load_config (conf_t *conf)
  * Free all memory related to conf and reset it back to the defaults
  */
 void
-_nss_mysql_reset_config (conf_t *conf)
+_nss_mysql_reset_config (void)
 {
   int i;
   field_info_t *f;
 
   for (i = 0; i < MAX_SERVERS; i++)
   {
-    _nss_mysql_free (conf->sql.server[i].host);
-    _nss_mysql_free (conf->sql.server[i].socket);
-    _nss_mysql_free (conf->sql.server[i].username);
-    _nss_mysql_free (conf->sql.server[i].password);
-    _nss_mysql_free (conf->sql.server[i].database);
+    _nss_mysql_free (conf.sql.server[i].host);
+    _nss_mysql_free (conf.sql.server[i].socket);
+    _nss_mysql_free (conf.sql.server[i].username);
+    _nss_mysql_free (conf.sql.server[i].password);
+    _nss_mysql_free (conf.sql.server[i].database);
   }
 
   for (f = query_fields; f->name; f++)
     {
       char *q;
-      (intptr_t *)q = *(intptr_t *)((_nss_mysql_byte *)&conf->sql.query + f->ofs);
+      (intptr_t *)q = *(intptr_t *)((_nss_mysql_byte *)&conf.sql.query + f->ofs);
       _nss_mysql_free (q);
     }
 
-  memset (conf, 0, sizeof (conf_t));
-  conf->global.retry = DEF_RETRY;
-  conf->global.syslog_facility = DEF_FACIL;
-  conf->global.syslog_priority = DEF_PRIO;
-  conf->global.debug_flags = DEF_DFLAGS;
+  memset (&conf, 0, sizeof (conf));
+  conf.global.retry = DEF_RETRY;
+  conf.global.syslog_facility = DEF_FACIL;
+  conf.global.syslog_priority = DEF_PRIO;
+  conf.global.debug_flags = DEF_DFLAGS;
 }
 

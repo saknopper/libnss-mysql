@@ -32,6 +32,7 @@ static const char rcsid[] =
 #include <netinet/in.h>
 
 con_info_t ci = { nfalse, 0, 0, NULL };
+extern conf_t conf;
 
 /*
  * Immediately after connecting to a MySQL server, save the current
@@ -217,7 +218,7 @@ _nss_mysql_check_existing_connection (void)
  * Set CI.VALID to ntrue if we manage to connect to a server.
  */
 NSS_STATUS
-_nss_mysql_connect_sql (conf_t conf)
+_nss_mysql_connect_sql (void)
 {
   int i;
   time_t curTime;
@@ -307,7 +308,7 @@ _nss_mysql_close_sql (int flags)
  * Caller should guarantee that QUERY isn't null or empty
  */
 NSS_STATUS
-_nss_mysql_run_query (conf_t conf, char *query)
+_nss_mysql_run_query (char *query)
 {
   int attempts;
 
@@ -321,7 +322,7 @@ _nss_mysql_run_query (conf_t conf, char *query)
       _nss_mysql_debug (FNAME, D_QUERY, "Query attempt #%d", attempts);
       ci.server_num = (ci.server_num + attempts - 1)
                       % conf.num_servers;
-      if (_nss_mysql_connect_sql (conf) != NSS_SUCCESS)
+      if (_nss_mysql_connect_sql () != NSS_SUCCESS)
         continue;
       _nss_mysql_debug (FNAME, D_QUERY, "Executing query on server #%d: %s",
                         ci.server_num, query);
