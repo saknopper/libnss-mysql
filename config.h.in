@@ -30,6 +30,9 @@
 /* Some systems have a LOG_AUTHPRIV syslog facility */
 #undef HAVE_LOG_AUTHPRIV
 
+/* Some systems have a LOG_FTP syslog facility */
+#undef HAVE_LOG_FTP
+
 /* Define if you have the mysql_connect function.  */
 #undef HAVE_MYSQL_CONNECT
 
@@ -53,6 +56,9 @@
 
 /* Define if you have the <nss.h> header file.  */
 #undef HAVE_NSS_H
+
+/* Define if you have the <nss_common.h> header file.  */
+#undef HAVE_NSS_COMMON_H
 
 /* Define if you have the <strings.h> header file.  */
 #undef HAVE_STRINGS_H
