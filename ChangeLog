@@ -1,5 +1,12 @@
 # $Id$
 
+2002-09-02  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * nss_config.c, lookup.c: Use uintptr_t instead of intptr_t
+
+    * nss_support.c: uintptr_t instead of intptr_t.  Also fixed
+      bus error (bad pointer usage) seen only under sun sparc.
+
 2002-08-28  Ben Goodwin  <cinergi@users.sourceforge.net>
 
     * *: CVS tag 0.3; Public release
