@@ -1,54 +1,118 @@
 # $Id$
 
+2002-05-31  Ben Goodwin  <ben@localhost>
+
+    * sample/nss_mysql.cfg: Added new debug_flags to [global] section
+
+    * nss_support.c: Moved MySQL state information here.  This means that
+      ALL functions share the same state information (unlike before).  So
+      it's possible for poor code to step on it's own *ent routines; I
+      found the glibc library uses the same state information for all
+      functions, so I felt comfortable with this move.  I may be proven
+      wrong though ...
+      Added a few functions so above state information can be accessed/set
+      outside this source file.
+      set ERANGE outside of find_eol
+      Assume that buffer and structure are not NULL (nss_mysql.c now ensures
+      this)
+      CLOSE_ALL -> CLOSE_LINK; CLOSE_LINK now also CLOSE_RESULT's
+      Removed unnecessary \n's on debug lines
+      Check/set return types using enumerated constants instead of 0's and 1's
+      _nss_mysql_log_error changed to _nss_mysql_log with prio arg
+      removed debug - it's now in nss_mysql.c
+
+    * nss_mysql.h: Moved syslog.h here
+      Removed unused FSIZ macro
+      Removed unused D_ERROR; renumbered D_* defines
+      Removed unnecessary CLOSE_ALL.  CLOSE_LINK must CLOSE_RESULT anyway
+      Removed unnecessary \n's on debug lines
+      Added #defines for some configuration defaults
+      Lots of new comments
+      Added boolean and return types so we check/set returns via enumurated
+      constants instead of 0's and 1's ...
+      Added debug_flags to conf.global
+      Rearranged some stuff for better readability
+
+    * nss_mysql.c: The ONLY static variable is conf now.  All MySQL static
+      information moved to nss_support.c
+      Removed unnecessary \n's on debug lines
+      Added _nss_mysql_log (replaces _nss_mysql_log_error)
+      Set config defaults based on #defines in nss_mysql.h
+      Debug logs to syslog instead of a file now
+
+    * nss_config.c: Added "debug_flags" to config
+      Removed unnecessary \n's on debug lines
+      _nss_mysql_log_error changed to _nss_mysql_log with priority argument
+      Use enumerated constants for checking/setting return types
+      Set config defaults based on #defines in nss_mysql.h
+
+    * config.h.in: Added missing HAVE_LOG_AUTHPRIV
+
+    * acconfig.h, configure, configure.in: Debugging goes to syslog now.
+      No need for DEBUG_FILE
+
+    * TODO: I actually did a couple things on my list
+
+    * README: Debugging method changed.  Updated dox to reflect that.
+
+2002-05-30  Ben Goodwin  <ben@localhost>
+
+    * nss_support.c: Syslogging moved to configurable component.  Moved
+      _nss_mysql_log_error to nss_mysql.c
+
+    * nss_mysql.h: Syslogging moved to configurable component
+
+    * nss_mysql.c: Added function enter/exit debugging.  Moved
+      _nss_mysql_log_error from nss_support.c to here
+
+    * nss_config.c: Added support for syslog facility/priority from config file
+
+    * acconfig.h, configure, configure.in: Added HAVE_LOG_AUTHPRIV
+
 2002-05-29  Ben Goodwin  <ben@localhost>
 
-	* nss_support.c: Formatting
+    * sample/nss_mysql.cfg: Added new facility & priority options
 
-	* nss_mysql.h: Include nss_common.h.  HAVE_UUFUNCUU renamed
+    * nss_config.c: Formatting
 
-	* nss_mysql.c: Formatting.  Call the close function to free result
-      instead of duplicating the code
-
-	* nss_config.c: Formatting
-
-	* configure, configure.in: Added license and revision info.  Version
+    * configure, configure.in: Added license and revision info.  Version
       updated to 0.2d (in-development)
 
-	* config.h.in, acconfig.h: Better name for what is now HAVE___FUNC__
+    * config.h.in, acconfig.h: Better name for what is now HAVE___FUNC__
 
-	* Makefile.am, Makefile.in: License and revision info
+    * Makefile.am, Makefile.in: License and revision info
 
-	* TODO: Let everyone know how I plan to take over the world
+    * TODO: Let everyone know how I plan to take over the world
 
-	* AUTHORS, ChangeLog, NEWS, README: First-pass
+    * AUTHORS, ChangeLog, NEWS, README: First-pass
 
-	* sample/nss_mysql_root.cfg: Added missing [server] entry
+    * sample/nss_mysql_root.cfg: Added missing [server] entry
 
-	* Makefile.am, Makefile.in: Additional file to dist
+    * Makefile.am, Makefile.in: Additional file to dist
 
-	* FAQ: New file.
+    * FAQ: New file.
 
-	* sample/nss_mysql_root.cfg: changed default password
+    * sample/nss_mysql_root.cfg: changed default password
 
 2002-05-28  Ben Goodwin  <ben@localhost>
 
     * *: Tag/Release 0.1
 
-	* Makefile.am, Makefile.in: Specify files in the sample directory to
+    * Makefile.am, Makefile.in: Specify files in the sample directory to
       keep 'make dist' from adding CVS files to the distfile
 
-	* configure.in, configure: Added CVS revision tag
+    * configure.in, configure: Added CVS revision tag
 
-	* Makefile.in: This should have been 1.1.1.1; Makefile.am was edited
+    * Makefile.in: This should have been 1.1.1.1; Makefile.am was edited
       but automake was never run.  Oops ..
 
-	* nss_mysql.h, nss_support.c, nss_structures.c: Added license and rcsid
+    * nss_mysql.h, nss_support.c, nss_structures.c: Added license and rcsid
       string
 
-	* nss_mysql.c: Added license and rcsid string.  Fixed some formatting
+    * nss_mysql.c: Added license and rcsid string.  Fixed some formatting
       issues
 
-	* nss_config.c: Added license and rcsid string
+    * nss_config.c: Added license and rcsid string
 
-	* *: Initial import of nss-mysql
+    * *: Initial import of nss-mysql
 
