@@ -70,7 +70,8 @@ typedef enum
 #define MAX_KEY_LEN     128             /* Max length of a key in config file */
 #define MAX_SERVERS     3               /* Max # of configured SQL servers */
 #define PADSIZE         64              /* malloc this much more for queries
-                                           to allow for format expansion */
+                                           to allow for format expansion.
+                                           Max username length ~ 1/2 this val */
 #define OPENLOG_OPTIONS LOG_PID         /* flags to use when syslogging */
 #define MAX_LOG_LEN     2000            /* Max length of syslog entry */
 
@@ -231,6 +232,7 @@ NSS_STATUS _nss_mysql_load_result(void *result, char *buffer, size_t buflen,
                                   field_info_t *fields);
 void _nss_mysql_reset_ent (void);
 nboolean _nss_mysql_active_result (void);
+NSS_STATUS _nss_mysql_escape_string (char *to, const char *from);
 
 /* memory.c */
 void xfree(void *ptr);
