@@ -180,14 +180,14 @@ _nss_mysql_try_server (MYSQL_RES **mresult)
     {
       if (mysql_select_db (&(ci.link), server->database) != RETURN_SUCCESS)
         {
-          _nss_mysql_log (LOG_EMERG, "Unable to select database %s: %s",
+          _nss_mysql_log (LOG_ALERT, "Unable to select database %s: %s",
                           server->database, mysql_error ((&ci.link)));
           _nss_mysql_close_sql (mresult, ntrue);
           DSRETURN (NSS_UNAVAIL)
         }
       if (_nss_mysql_save_socket_info () != RETURN_SUCCESS )
         {
-          _nss_mysql_log (LOG_EMERG, "Unable to save socket info");
+          _nss_mysql_log (LOG_ALERT, "Unable to save socket info");
           _nss_mysql_close_sql (mresult, ntrue);
           DSRETURN (NSS_UNAVAIL)
         }
@@ -314,7 +314,7 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
 #ifdef HAVE_MYSQL_INIT
   if (mysql_init (&(ci.link)) == NULL)
     {
-      _nss_mysql_log (LOG_EMERG, "mysql_init() failed");
+      _nss_mysql_log (LOG_ALERT, "mysql_init() failed");
       DSRETURN (NSS_UNAVAIL)
     }
 #endif /* HAVE_MYSQL_INIT */
@@ -324,7 +324,7 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
       if (_nss_mysql_try_server (mresult) == NSS_SUCCESS)
         DSRETURN (NSS_SUCCESS)
     }
-  _nss_mysql_log (LOG_EMERG, "Unable to connect to any MySQL servers");
+  _nss_mysql_log (LOG_ALERT, "Unable to connect to any MySQL servers");
   DSRETURN (NSS_UNAVAIL)
 }
 
@@ -386,7 +386,7 @@ _nss_mysql_run_query (char *query, MYSQL_RES **mresult)
         }
       DSRETURN (NSS_SUCCESS)
     }
-  _nss_mysql_log (LOG_EMERG, "Unable to perform query on any MySQL server");
+  _nss_mysql_log (LOG_ALERT, "Unable to perform query on any MySQL server");
   DSRETURN (NSS_UNAVAIL)
 }
 
