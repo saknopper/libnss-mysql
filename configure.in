@@ -45,38 +45,27 @@ AC_ARG_ENABLE(debug,
 case "$target_os" in
 linux*)
     LIBVER=2
-    TOS=linux
+    OS=linux
+    RENAME=false
     test "$prefix" = "NONE" && prefix=
     ;;
 solaris*)
     LIBVER=1
-    TOS=solaris
+    OS=solaris
+    RENAME=true
     test "$prefix" = "NONE" && prefix= && libdir=/usr/lib
     ;;
-*) os=unknown ;;
+freebsd*)
+    LIBVER=1
+    OS=freebsd
+    RENAME=true
+    test "$prefix" = "NONE" && prefix= && libdir=/usr/lib
+    ;;
+*)  OS=unknown
+    ;;
 esac
 
-AC_CACHE_CHECK([whether the linker accepts -Bgroup],
-               [nss_mysql_cv_cc_bgroup], [
-    SAVELIBS=$LIBS
-    LIBS="-Wl,-Bgroup $SAVELIBS"
-    AC_TRY_LINK([], [], nss_mysql_cv_cc_bgroup=yes,
-                        nss_mysql_cv_cc_bgroup=no)
-    LIBS=$SAVELIBS])
-if test $nss_mysql_cv_cc_bgroup = "yes"; then
-    LIBS="-Wl,-Bgroup $SAVELIBS"
-fi
-
-AC_CACHE_CHECK([whether the linker accepts --allow-shlib-undefined],
-               [nss_mysql_cv_cc_shlibundef], [
-    SAVELIBS=$LIBS
-    LIBS="-Wl,--allow-shlib-undefined $SAVELIBS"
-    AC_TRY_LINK([], [], nss_mysql_cv_cc_shlibundef=yes,
-                        nss_mysql_cv_cc_shlibundef=no)
-    LIBS=$SAVELIBS])
-if test $nss_mysql_cv_cc_shlibundef = "yes"; then
-    LIBS="-Wl,--allow-shlib-undefined $SAVELIBS"
-fi
+AM_CONDITIONAL(RENAME, test "$RENAME" = "true")
 
 AC_CACHE_CHECK([whether the linker accepts -znodelete],
                [nss_mysql_cv_cc_znodelete], [
@@ -89,10 +78,8 @@ if test $nss_mysql_cv_cc_znodelete = "yes"; then
     LIBS="-Wl,-znodelete $SAVELIBS"
 fi
 
-AM_CONDITIONAL(LINUX, test "$TOS" = "linux")
-AM_CONDITIONAL(SOLARIS, test "$TOS" = "solaris")
-
 AC_SUBST(LIBVER)
+AC_SUBST(OS)
 
 FIND_MYSQL()
 
@@ -107,7 +94,7 @@ AC_CHECK_LIB(mysqlclient, main, ,
 
 AC_HEADER_STDC
 AC_CHECK_HEADER(mysql.h, , [AC_MSG_ERROR([Unable to find mysql.h])])
-AC_CHECK_HEADERS(syslog.h stdint.h nss.h nss_common.h strings.h)
+AC_CHECK_HEADERS(syslog.h stdint.h nss.h nss_common.h strings.h shadow.h)
 
 AC_C_CONST
 AC_TYPE_UID_T
