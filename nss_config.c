@@ -173,12 +173,12 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
             case FT_PCHAR:
               size = strlen (val) + 1 + PADSIZE;
               /* Set 'ptr' to addr of string */
-              (intptr_t) ptr = *(intptr_t *) (b + f->ofs);
+              (uintptr_t) ptr = *(uintptr_t *) (b + f->ofs);
               /* allocate/reallocate space for incoming string */
               if ((ptr = _nss_mysql_realloc (ptr, size)) == NULL)
                 function_return (NSS_UNAVAIL);
               /* Set the pointer in structure to new pointer */
-              *(intptr_t *) (b + f->ofs) = (intptr_t) ptr;
+              *(uintptr_t *) (b + f->ofs) = (uintptr_t) ptr;
               /* Copy value into newly-alloc'ed area */
               memcpy (ptr, val, size);
               break;
@@ -459,7 +459,7 @@ _nss_mysql_reset_config (void)
   for (f = query_fields; f->name; f++)
     {
       char *q;
-      (intptr_t *)q = *(intptr_t *)((_nss_mysql_byte *)&conf.sql.query + f->ofs);
+      (uintptr_t *)q = *(uintptr_t *)((_nss_mysql_byte *)&conf.sql.query + f->ofs);
       _nss_mysql_free (q);
     }
 

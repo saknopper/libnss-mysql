@@ -40,7 +40,7 @@ _nss_mysql_lookup_name (const char *name, int qofs, const char *caller)
   if (_nss_mysql_init () != NSS_SUCCESS)
     function_return (NSS_UNAVAIL);
 
-  (intptr_t *)q =  *(intptr_t *)((_nss_mysql_byte *)&conf.sql.query + qofs);
+  (uintptr_t *)q =  *(uintptr_t *)((_nss_mysql_byte *)&conf.sql.query + qofs);
   if (!q || strlen ((char *)q) == 0)
     {
       _nss_mysql_log (LOG_CRIT, "%s has no valid query in config", caller);
@@ -77,7 +77,7 @@ _nss_mysql_lookup_number (unsigned int num, int qofs, const char *caller)
   if (_nss_mysql_init () != NSS_SUCCESS)
     function_return (NSS_UNAVAIL);
 
-  (intptr_t *)q =  *(intptr_t *)((_nss_mysql_byte *)&conf.sql.query + qofs);
+  (uintptr_t *)q =  *(uintptr_t *)((_nss_mysql_byte *)&conf.sql.query + qofs);
   if (!q || strlen ((char *)q) == 0)
     {
       _nss_mysql_log (LOG_CRIT, "%s has no valid query in config", caller);
@@ -104,7 +104,7 @@ _nss_mysql_lookup_ent (int qofs, const char *caller)
   if (_nss_mysql_init () != NSS_SUCCESS)
     function_return (NSS_UNAVAIL);
 
-  (intptr_t *)q =  *(intptr_t *)((_nss_mysql_byte *)&conf.sql.query + qofs);
+  (uintptr_t *)q =  *(uintptr_t *)((_nss_mysql_byte *)&conf.sql.query + qofs);
   if (!q || strlen ((char *)q) == 0)
     {
       _nss_mysql_log (LOG_CRIT, "%s has no valid query in config", caller);
