@@ -24,6 +24,8 @@ static const char rcsid[] =
     "$Id$";
 
 #include "nss_mysql.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
 
 /* There's probably a better way than this hack; if so, please tell me */
@@ -36,38 +38,88 @@ static const char rcsid[] =
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_once_t _nss_mysql_once_control = {PTHREAD_ONCE_INIT};
 
+#ifdef DEBUG
+void
+_nss_mysql_debug (char *fmt, ...)
+{
+  va_list ap;
+  char msg[1000];
+  FILE *fh;
+  char *env;
+  int type = 0;
+
+  va_start (ap, fmt);
+  vsnprintf (msg, 1000, fmt, ap);
+  env = getenv ("LIBNSS_MYSQL_DEBUG");
+  if (env)
+    type = atoi (env);
+  
+  if (type <= 1)
+    {
+      if (type == 0)
+        fh = fopen (DEBUG_FILE, "a");
+      else
+        fh = stderr;
+      if (fh)
+        {
+          fprintf (fh, "[%d]: %s\n", getpid(), msg);
+          if (type == 0)
+            fclose (fh);
+        }
+    }
+  else
+    {
+      _nss_mysql_log (LOG_DEBUG, "%s", msg);
+    }
+  va_end (ap);
+}
+#endif
+
 /* Called from parent, just before fork */
 static void
 _nss_mysql_atfork_prepare (void)
 {
+  DN ("_nss_mysql_atfork_prepare")
+  DENTER
   LOCK;
+  DEXIT
 }
 
 /* Called from parent, just before fork returns */
 static void
 _nss_mysql_atfork_parent (void)
 {
+  DN ("_nss_mysql_atfork_parent")
+  DENTER
   UNLOCK;
+  DEXIT
 }
 
 /* Called from child, just before fork returns */
 static void
 _nss_mysql_atfork_child (void)
 {
-  _nss_mysql_close_sql (NULL, ntrue);
+  DN ("_nss_mysql_atfork_child")
+  DENTER
+  /* Don't close the link; just set it to invalid so we'll open a new one */
+  _nss_mysql_close_sql (NULL, nfalse);
   UNLOCK;
+  DEXIT
 }
 
 /* Setup pthread_atfork if current namespace contains pthreads. */
 static void
 _nss_mysql_pthread_once_init (void)
 {
+  DN ("_nss_mysql_atfork_once_init")
   int (*pthread_atfork)();
 
+  DENTER
   pthread_atfork = (int (*)(int))dlsym (RTLD_DEFAULT, "pthread_atfork");
   if (pthread_atfork)
     (*pthread_atfork) (_nss_mysql_atfork_prepare, _nss_mysql_atfork_parent,
                        _nss_mysql_atfork_child);
+  DEXIT
 }
 
 /*
@@ -77,12 +129,14 @@ _nss_mysql_pthread_once_init (void)
 NSS_STATUS
 _nss_mysql_init (void)
 {
+  DN ("_nss_mysql_init")
   int (*pthread_once)();
 
+  DENTER
   pthread_once = (int (*)(int))dlsym (RTLD_DEFAULT, "pthread_once");
   if (pthread_once)
     (*pthread_once) (&_nss_mysql_once_control, _nss_mysql_pthread_once_init);
-  return (_nss_mysql_load_config ());
+  DIRETURN (_nss_mysql_load_config ())
 }
 
 /*
@@ -95,6 +149,7 @@ _nss_mysql_init (void)
 void
 _nss_mysql_log (int priority, char *fmt, ...)
 {
+  DN ("_nss_mysql_log")
   va_list ap;
 
   openlog (PACKAGE, OPENLOG_OPTIONS, SYSLOG_FACILITY);
@@ -108,9 +163,11 @@ _nss_mysql_log (int priority, char *fmt, ...)
 NSS_STATUS
 _nss_mysql_default_destr (nss_backend_t *be, void *args)
 {
+  DN ("_nss_mysql_default_destr")
+  DENTER
   _nss_mysql_free (be);
   /* Closing link & freeing memory unnecessary due to link w/ '-znodelete' */
-  return (NSS_SUCCESS);
+  DIRETURN (NSS_SUCCESS)
 
 }
 #endif
@@ -123,6 +180,9 @@ _nss_mysql_default_destr (nss_backend_t *be, void *args)
 void
 _nss_mysql_reset_ent (MYSQL_RES **mresult)
 {
+  DN ("_nss_mysql_reset_ent")
+  DENTER
   _nss_mysql_close_result (mresult);
+  DEXIT
 }
 
