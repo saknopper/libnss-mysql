@@ -193,6 +193,7 @@ typedef struct {
     char        *username;  /* Username to connect as */
     char        *password;  /* Password to connect with */
     char        *database;  /* SQL Database to open */
+    unsigned int ssl;       /* Connect with CLIENT_SSL flag? */
     server_status_t status;     /* */
 } sql_server_t;
 

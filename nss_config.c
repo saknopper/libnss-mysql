@@ -40,6 +40,7 @@ static field_info_t server_fields[] =
     {"username", FOFS (sql_server_t, username), FT_PCHAR},
     {"password", FOFS (sql_server_t, password), FT_PCHAR},
     {"database", FOFS (sql_server_t, database), FT_PCHAR},
+    {"ssl",      FOFS (sql_server_t, ssl),      FT_UINT},
     {NULL}
 };
 

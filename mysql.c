@@ -136,19 +136,27 @@ static NSS_STATUS
 _nss_mysql_try_server (void)
 {
   sql_server_t *server = &conf.sql.server[ci.server_num];
+  int flags = 0;
   function_enter;
 
-  _nss_mysql_debug (FNAME, D_CONNECT, "Connecting to server %s", server->host);
+#if MYSQL_VERSION_ID >= 32309
+  if (server->ssl)
+    flags |= CLIENT_SSL;
+#endif
+
+  _nss_mysql_debug (FNAME, D_CONNECT, "Connecting to server %s (flags = %d)",
+                    server->host, flags);
   time (&server->status.last_attempt);
   server->status.up = nfalse;
 #ifdef HAVE_MYSQL_REAL_CONNECT /* comes from mysql.h, NOT config.h! */
 #if MYSQL_VERSION_ID >= 32200  /* ditto */
   if (mysql_real_connect (&(ci.link), server->host, server->username,
                           server->password, NULL, server->port,
-                          server->socket, 0))
+                          server->socket, flags))
 #else /* MYSQL_VERSION_ID < 32200 */
   if (mysql_real_connect (&(ci.link), server->host, server->username,
-                          server->password, server->port, server->socket, 0))
+                          server->password, server->port, server->socket,
+                          flags))
 #endif /* MYSQL_VERSION_ID >= 32200 */
 #else /* HAVE_MYSQL_REAL_CONNECT */
   if (mysql_connect (&(ci.link), server->host, server->username,
