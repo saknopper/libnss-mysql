@@ -36,7 +36,7 @@ endif
  
 noinst_HEADERS = nss_mysql.h lookup.h
 EXTRA_DIST = TODO FAQ THANKS UPGRADING DEBUGGING libnss-mysql.spec \
-             exports.linux \
+             *.sym \
              sample/README sample/complex/*.* sample/minimal/*.* \
              sample/linux/*.* sample/solaris/*.* sample/freebsd/*.*
 
