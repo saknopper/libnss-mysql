@@ -289,11 +289,3 @@ _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
 
   return (NSS_SUCCESS);
 }
-
-
-NSS_STATUS
-_nss_mysql_init (void)
-{
-  return (_nss_mysql_load_config ());
-}
-
