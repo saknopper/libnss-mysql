@@ -2,14 +2,18 @@
 
 2002-08-28  Ben Goodwin  <cinergi@users.sourceforge.net>
 
-    * nss_main.c, lookup.c, mysql.c, nss_confi.c, nss_mysql.h, nss_support.c:
+    * *: CVS tag 0.3; Public release
+
+    * nss_main.c, lookup.c, mysql.c, nss_config.c, nss_mysql.h, nss_support.c:
       turned 'conf' into a global variable instead of passing it around
       everywhere
+
+    * configure.in: Removed "-z nodelete" hack - didn't work
 
 2002-08-27  Ben Goodwin  <cinergi@users.sourceforge.net>
 
     * configure.in: Added "-z nodelete" LD_OPTIONS hack to get around
-    strange dlopen-related solaris memory leak bug
+      strange dlopen-related solaris memory leak bug
 
     * Automake.am: added -module arg to libtool
 
