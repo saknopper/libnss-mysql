@@ -58,6 +58,9 @@ solaris*)
     LIBVER=1
     TOS=solaris
     test "$prefix" = "NONE" && prefix= && libdir=/usr/lib
+    dnl This hack below is needed until I figure out why a memory leak
+    dnl occurs when libmysqlclient is constantly dlopen'ed and dlclose'd
+    LD_OPTIONS=-z nodelete
     ;;
 *) os=unknown ;;
 esac
