@@ -33,3 +33,18 @@ A: Sun chose to write their unix PAM module to only allow a very restrictive
    the 'passwd' command-line to manipulate the password file.  For example:
    passwd -r files username
    I know this sucks, so figuring out a better workaround is on my TODO list.
+
+Q: Why do I get the following message when compiling on Solaris?
+
+    Undefined                       first referenced
+     symbol                             in file
+    __udivdi3                           /usr/local/lib/mysql/libmysqlclient.so
+A: You're using a newer (3.x) version of gcc which seems to create libraries
+   that need libgcc.  There are a couple solutions that I know of; BOTH
+   REQUIRE A COUPLE OF ADDITIONAL 'ld' PARAMETERS THAT ARE VERY IMPORTANT!
+   1) Link against gcc libs - add something like this to the final link line:
+      -l gcc -L/path/to/gcc/lib -z nodelete -Bgroup
+   2) Use GNU ld; use the same link line but make sure to add
+      -z nodelete -Bgroup
+      to your 'ld' command
+   I plan to automate a way around this.. But for now, this is necessary.
