@@ -32,6 +32,7 @@
 #endif
 
 #include <mysql.h>
+#include <mysql/errmsg.h>
 
 #include <sys/socket.h>
 #include <errno.h>
@@ -266,7 +267,8 @@ NSS_STATUS _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
 /* mysql.c */
 NSS_STATUS _nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful);
 void _nss_mysql_close_result (MYSQL_RES **mresult);
-NSS_STATUS _nss_mysql_run_query (char *query, MYSQL_RES **mresult);
+NSS_STATUS _nss_mysql_run_query (char *query, MYSQL_RES **mresult,
+                                 int *attempts);
 NSS_STATUS _nss_mysql_fetch_row (MYSQL_ROW *row, MYSQL_RES *mresult);
 NSS_STATUS _nss_mysql_escape_string (char *to, const char *from,
                                      MYSQL_RES **mresult);

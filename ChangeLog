@@ -2,6 +2,8 @@
 
 1.0 - 1.1
 
+    * BUGFIX: (interim) Try query a couple more times if it fails
+
     * BUGFIX: Groups without members weren't showing up in getgrent's
 
     * BUGFIX: Don't leak any symbols except what's necessary - prevents

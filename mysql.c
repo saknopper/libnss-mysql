@@ -319,7 +319,7 @@ _nss_mysql_close_result (MYSQL_RES **mresult)
  * Run MySQL query
  */
 NSS_STATUS
-_nss_mysql_run_query (char *query, MYSQL_RES **mresult)
+_nss_mysql_run_query (char *query, MYSQL_RES **mresult, int *attempts)
 {
   DN ("_nss_mysql_run_query")
   int retval;
@@ -337,9 +337,20 @@ _nss_mysql_run_query (char *query, MYSQL_RES **mresult)
   retval = mysql_query (&ci.link, query);
   if (retval != RETURN_SUCCESS)
     {
-      _nss_mysql_log (LOG_ALERT, "mysql_query failed: %s",
-                      mysql_error (&ci.link));
-      DSRETURN (retval);
+      --(*attempts);
+      if (*attempts > 0)
+        {
+          _nss_mysql_log (LOG_ALERT,
+                          "mysql_query failed: %s, trying again (%d)",
+                          mysql_error (&ci.link), *attempts);
+          DSRETURN (_nss_mysql_run_query (query, mresult, attempts));
+        }
+      else
+        {
+          _nss_mysql_log (LOG_ALERT, "mysql_query failed: %s",
+                          mysql_error (&ci.link));
+          DSRETURN (retval);
+        }
     }
 
   if ((*mresult = mysql_store_result (&ci.link)) == NULL)

@@ -106,6 +106,7 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
   DN ("_nss_mysql_lookup")
   char *query;
   int retVal;
+  int attempts = 3;
 
   DENTER
   if (restricted == ntrue && geteuid () != 0)
@@ -122,7 +123,7 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
                                        caller);
       if (retVal != NSS_SUCCESS)
         DSRETURN (retVal)
-      retVal = _nss_mysql_run_query (query, mresult);
+      retVal = _nss_mysql_run_query (query, mresult, &attempts);
       _nss_mysql_free (query);
       if (retVal != NSS_SUCCESS)
         DSRETURN (retVal)
