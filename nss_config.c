@@ -334,7 +334,7 @@ _nss_mysql_load_section (FILE *fh, void *structure, field_info_t *fields)
  * Open FILE and load up the config data inside it
  */
 static NSS_STATUS
-_nss_mysql_load_config_file (char *file)
+_nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
 {
   FILE *fh;
   int section;
@@ -344,7 +344,18 @@ _nss_mysql_load_config_file (char *file)
   function_enter;
   _nss_mysql_debug (FNAME, D_FILE, "Opening %s", file);
   if ((fh = fopen (file, "r")) == NULL)
-    function_return (NSS_UNAVAIL);
+    {
+      if (errno == EACCES && eacces_is_fatal == nfalse)
+        {
+          _nss_mysql_debug (FNAME, D_FILE, "Permission denied, but it's OK");
+          function_return (NSS_SUCCESS);
+        }
+      else
+        {
+          _nss_mysql_debug (FNAME, D_FILE, "Failed: %s", strerror (errno));
+          function_return (NSS_UNAVAIL);
+        }
+    }
   while ((_nss_mysql_get_section (fh, &section)) == NSS_SUCCESS)
     {
       _nss_mysql_debug (FNAME, D_PARSE, "Loading section type: %d",
@@ -442,15 +453,13 @@ _nss_mysql_load_config (void)
   conf.global.syslog_facility = DEF_FACIL;
   conf.global.syslog_priority = DEF_PRIO;
   conf.global.debug_flags = DEF_DFLAGS;
-  to_return = _nss_mysql_load_config_file (MAINCFG);
+  to_return = _nss_mysql_load_config_file (MAINCFG, ntrue);
   if (to_return != NSS_SUCCESS)
     function_return (to_return);
-  if (geteuid() == 0)
-    {
-      to_return = _nss_mysql_load_config_file (ROOTCFG);
-      if (to_return != NSS_SUCCESS)
-        function_return (to_return);
-    }
+
+  to_return = _nss_mysql_load_config_file (ROOTCFG, nfalse);
+  if (to_return != NSS_SUCCESS)
+    function_return (to_return);
   if (_nss_mysql_validate_servers () == nfalse)
     function_return (NSS_UNAVAIL);
   conf.valid = ntrue;
