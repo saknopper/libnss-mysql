@@ -6,10 +6,9 @@ Solaris 9 support
 Check current error returns/conditions; properly use errno, herrno etc
 
 BUGFIXES
-    csh ~username bus error's on solaris - why?  External bug.
     Turn off socket keepalive?
     full fork/pid-change handling
     sigpipe handling
     Allow mysql connect options in config (to pass to mysql_options())
-    Solaris doesn't show MySQL groups for users in /etc/passwd
+    Solaris doesn't show auxiliary MySQL groups
     64-bit library support
