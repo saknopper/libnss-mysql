@@ -158,7 +158,7 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
             case FT_PCHAR:
               size = strlen (val) + 1;
               /* Set 'ptr' to addr of string */
-              (uintptr_t) ptr = *(uintptr_t *) (b + f->ofs);
+              ptr = (void *) *(uintptr_t *) (b + f->ofs);
               /* allocate/reallocate space for incoming string */
               if ((ptr = _nss_mysql_realloc (ptr, size)) == NULL)
                 return (NSS_UNAVAIL);
