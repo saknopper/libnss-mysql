@@ -143,33 +143,25 @@ _nss_mysql_set_options (sql_server_t *server, int *flags)
   DN ("_nss_mysql_set_options")
 
   DENTER
-#if MYSQL_VERSION_ID >= 32309
   if (server->options.ssl)
     {
       D ("%s: Setting CLIENT_SSL flag", FUNCNAME);
       *flags |= CLIENT_SSL;
     }
-#endif
-#if MYSQL_VERSION_ID >= 32304
   D ("%s: Setting connect timeout to %d", FUNCNAME, server->options.timeout);
   mysql_options(&ci.link, MYSQL_OPT_CONNECT_TIMEOUT,
                 (char *)&server->options.timeout);
-#endif
-#if MYSQL_VERSION_ID >= 32202
   if (server->options.compress)
     {
       D ("%s: Setting compressed protocol", FUNCNAME);
       mysql_options(&ci.link, MYSQL_OPT_COMPRESS, (char *)NULL);
     }
-#endif
-#if MYSQL_VERSION_ID >= 32210
   if (server->options.initcmd && strlen (server->options.initcmd))
     {
       D ("%s: Setting init-command to '%s'", FUNCNAME, server->options.initcmd);
       mysql_options(&ci.link, MYSQL_INIT_COMMAND,
                     (char *)&server->options.initcmd);
     }
-#endif
   DEXIT
 }
 
@@ -237,31 +229,17 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
       DSRETURN (NSS_UNAVAIL)
     }
 
-#ifdef HAVE_MYSQL_INIT
   if (mysql_init (&ci.link) == NULL)
     {
       _nss_mysql_log (LOG_ALERT, "mysql_init() failed");
       DSRETURN (NSS_UNAVAIL)
     }
-#endif /* HAVE_MYSQL_INIT */
 
   _nss_mysql_set_options (server, &flags);
   D ("%s: Connecting to %s", FUNCNAME, server->host);
-#ifdef HAVE_MYSQL_REAL_CONNECT /* comes from mysql.h, NOT config.h! */
-#if MYSQL_VERSION_ID >= 32200  /* ditto */
   if (mysql_real_connect (&ci.link, server->host, server->username,
                           server->password, NULL, server->port,
                           server->socket, flags))
-#else /* MYSQL_VERSION_ID < 32200 */
-  if (mysql_real_connect (&ci.link, server->host, server->username,
-                          server->password, server->port, server->socket,
-                          flags))
-#endif /* MYSQL_VERSION_ID >= 32200 */
-#else /* HAVE_MYSQL_REAL_CONNECT */
-  if (mysql_connect (&ci.link, server->host, server->username,
-                     server->password))
-#endif /* HAVE_MYSQL_REAL_CONNECT */
-  
     {
       if (mysql_select_db (&ci.link, server->database) != RETURN_SUCCESS)
         {
@@ -277,10 +255,8 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
           DSRETURN (NSS_UNAVAIL)
         }
       ci.valid = ntrue;
-#if MYSQL_VERSION_ID >= 32118
       ci.link.reconnect = 0; /* Safety: We can't let MySQL assume socket is
                                 still valid; see _nss_mysql_validate_socket */
-#endif
       DSRETURN (NSS_SUCCESS)
     }
   _nss_mysql_log (LOG_ALERT, "Connection to server '%s' failed: %s",
@@ -376,13 +352,9 @@ _nss_mysql_escape_string (char *to, const char *from, MYSQL_RES **mresult)
   DN ("_nss_mysql_escape_string")
 
   DENTER
-#if MYSQL_VERSION_ID >= 32300 /* comes from mysql.h, NOT config.h! */
   if (_nss_mysql_connect_sql (mresult) != NSS_SUCCESS)
     DSRETURN (NSS_UNAVAIL)
   mysql_real_escape_string (&ci.link, to, from, strlen(from));
-#else
-  mysql_escape_string (to, from, strlen(from));
-#endif
   DSRETURN (NSS_SUCCESS)
 }
 
