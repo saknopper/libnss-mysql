@@ -106,7 +106,7 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
   DN ("_nss_mysql_lookup")
   char *query;
   int retVal;
-  int attempts = 3;
+  int attempts = MAX_QUERY_ATTEMPTS;
 
   DENTER
   if (restricted == ntrue && geteuid () != 0)
