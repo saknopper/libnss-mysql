@@ -102,9 +102,8 @@ AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(dl, dlsym)
 AC_CHECK_LIB(z, compress)
 
-AC_CHECK_LIB(mysqlclient_r, main, ,
-             [AC_CHECK_LIB(mysqlclient, main, ,
-                           [AC_MSG_ERROR([Unable find a functioning MySQL library])])])
+AC_CHECK_LIB(mysqlclient, main, ,
+             [AC_MSG_ERROR([Unable find a functioning MySQL library])])
 
 AC_HEADER_STDC
 AC_CHECK_HEADER(mysql.h, , [AC_MSG_ERROR([Unable to find mysql.h])])
