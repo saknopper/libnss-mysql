@@ -82,12 +82,12 @@ AC_TYPE_UID_T
 AC_TYPE_SIZE_T
 AC_TRY_COMPILE([
 #include <unistd.h>],
-[intptr_t foo;],
-[have_intptr_t=yes],
-[have_intptr_t=no])
-case "$have_intptr_t" in
+[uintptr_t foo;],
+[have_uintptr_t=yes],
+[have_uintptr_t=no])
+case "$have_uintptr_t" in
   yes) ;;
-   no) AC_DEFINE_UNQUOTED(intptr_t, int) ;;
+   no) AC_DEFINE_UNQUOTED(uintptr_t, unsigned int) ;;
 esac
 
 AC_CHECK_FUNCS(strcspn strspn strtok, ,
