@@ -1,5 +1,50 @@
 # $Id$
 
+0.4 - 0.5
+
+    * NEW:    initgroup/getgrmem support.  Some programs need these
+              routines to find out who's a member of what groups and
+              what groups have what members.  Especially important
+              under Solaris where filesystem group access is done
+              using these methods.
+              THIS REQUIRES A CHANGE TO YOUR DATABASE.  READ THE FILE
+              "UPGRADING" FOR MORE INFORMATION.
+
+    * NEW:    Search for and use thread-safe MySQL library if available.
+
+    * CHANGE: Removed all debug code - for now.  See the file UPGRADING.
+
+    * CHANGE: Syslog configuration done at compile-time.  See the file
+              UPGRADING.
+
+    * CHANGE: Search a few more locations for MySQL library files.
+
+    * CHANGE: Major internal rewrite - to enable me to support other
+              NSS databases.
+
+    * BUGFIX: specify '-L' before '-lmysqlclient' on link line; previously
+              caused 'missing library' errors.
+
+    * BUGFIX: Special linker options properly passed no matter what linker
+              is used.
+
+    * BUGFIX: Prevent any symbols from leaking outside this library.
+              Previously caused unexplained errors or core dumps.
+
+    * BUGFIX: Search for and use static MySQL libraries, too.
+
+    * BUGFIX: Don't disconnect/deallocate upon 'destruct' call (Solaris).
+              The code was not thread-safe, and is no longer necessary.
+              This was preventing persistent connections in some cases, too.
+
+    * BUGFIX: Store different MySQL results in different variables;
+              Enables interleaved 'ent' access of different databases.
+
+    * BUGFIX: Under certain circumstances, euid could be 0 but the
+              process couldn't read a root-owned mode 600 file.  Now we
+              simply always try to open the file - meaning your
+              nss_mysql_root.cfg file better be root-owned, mode 600!
+
 0.3 - 0.4
 
     * No special configure/make arguments are necessary for Solaris.
