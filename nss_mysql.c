@@ -30,6 +30,10 @@ static const char rcsid[] =
 #include <grp.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
+#endif
 
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -40,7 +44,7 @@ state_t pwent_state = { NULL, 0, 0, 0, 0 };
 state_t spent_state = { NULL, 0, 0, 0, 0 };
 state_t grent_state = { NULL, 0, 0, 0, 0 };
 state_t other_state = { NULL, 0, 0, 0, 0 };
-conf_t  conf = { 0, 0 };
+conf_t  conf = { 0 };
 
 #define GET(funcname, sname, argtype, restrict)                               \
   NSS_STATUS                                                                  \
@@ -50,13 +54,14 @@ conf_t  conf = { 0, 0 };
     int retVal, i;                                                            \
     int size;                                                                 \
                                                                               \
+    function_enter;                                                           \
     if (restrict && geteuid () != 0)                                          \
-      return NSS_NOTFOUND;                                                    \
+      function_return (NSS_NOTFOUND);                                         \
     LOCK;                                                                     \
     if (_nss_mysql_init (&conf, &other_state) != NSS_SUCCESS)                 \
       {                                                                       \
         UNLOCK;                                                               \
-        return NSS_UNAVAIL;                                                   \
+        function_return (NSS_UNAVAIL);                                        \
       }                                                                       \
     for (i = 0; i < MAX_SERVERS; i++)                                         \
       {                                                                       \
@@ -67,7 +72,7 @@ conf_t  conf = { 0, 0 };
         if (other_state.query[i] == NULL)                                     \
           {                                                                   \
             UNLOCK;                                                           \
-            return NSS_UNAVAIL;                                               \
+            function_return (NSS_UNAVAIL);                                    \
           }                                                                   \
         snprintf (other_state.query[i], size, conf.sql[i].query.funcname,     \
                   arg);                                                       \
@@ -75,34 +80,36 @@ conf_t  conf = { 0, 0 };
     if (_nss_mysql_run_query (conf, &other_state) != NSS_SUCCESS)             \
       {                                                                       \
         UNLOCK;                                                               \
-        return NSS_UNAVAIL;                                                   \
+        function_return (NSS_UNAVAIL);                                        \
       }                                                                       \
     retVal = _nss_mysql_load_result (result, buffer, buflen, &other_state,    \
                                      sname##_fields, 0);                      \
     _nss_mysql_close_sql (&other_state, CLOSE_RESULT);                        \
     UNLOCK;                                                                   \
-    return retVal;                                                            \
+    function_return (retVal);                                                 \
   }
 
 #define ENDENT(type)                                                          \
   NSS_STATUS                                                                  \
   _nss_mysql_end##type (void)                                                 \
   {                                                                           \
+    function_enter;                                                           \
     LOCK;                                                                     \
     type##_state.idx = 0;                                                     \
     _nss_mysql_close_sql (&type##_state, CLOSE_RESULT);                       \
     UNLOCK;                                                                   \
-    return NSS_SUCCESS;                                                       \
+    function_return (NSS_SUCCESS);                                            \
   }
 
 #define SETENT(type)                                                          \
   NSS_STATUS                                                                  \
   _nss_mysql_set##type (void)                                                 \
   {                                                                           \
+    function_enter;                                                           \
     LOCK;                                                                     \
     type##_state.idx = 0;                                                     \
     UNLOCK;                                                                   \
-    return NSS_SUCCESS;                                                       \
+    function_return (NSS_SUCCESS);                                            \
   }
 
 #define GETENT(type, sname)                                                   \
@@ -113,11 +120,12 @@ conf_t  conf = { 0, 0 };
     int retVal;                                                               \
     int i, size;                                                              \
                                                                               \
+    function_enter;                                                           \
     LOCK;                                                                     \
     if (_nss_mysql_init (&conf, &type##_state) != NSS_SUCCESS)                \
       {                                                                       \
         UNLOCK;                                                               \
-        return NSS_UNAVAIL;                                                   \
+        function_return (NSS_UNAVAIL);                                        \
       }                                                                       \
     if (type##_state.mysql_result == NULL)                                    \
       {                                                                       \
@@ -130,21 +138,36 @@ conf_t  conf = { 0, 0 };
             if (type##_state.query[i] == NULL)                                \
               {                                                               \
                 UNLOCK;                                                       \
-                return NSS_UNAVAIL;                                           \
+                function_return (NSS_UNAVAIL);                                \
               }                                                               \
             strcpy (type##_state.query[i], conf.sql[i].query.get##type);      \
           }                                                                   \
         if (_nss_mysql_run_query (conf, &type##_state) != NSS_SUCCESS)        \
           {                                                                   \
             UNLOCK;                                                           \
-            return NSS_UNAVAIL;                                               \
+            function_return (NSS_UNAVAIL);                                    \
           }                                                                   \
       }                                                                       \
     retVal = _nss_mysql_load_result (result, buffer, buflen, &type##_state,   \
                                      sname##_fields, type##_state.idx++);     \
     UNLOCK;                                                                   \
-    return retVal;                                                            \
+    function_return (retVal);                                                 \
   }
+
+void
+_nss_mysql_log_error (char *function, char *fmt, ...)
+{
+  va_list ap;
+  char string[2000];
+
+  va_start (ap, fmt);
+  vsnprintf (string, 2000, fmt, ap);
+  va_end (ap);
+  _nss_mysql_debug (function, D_ERROR, "%s\n", string);
+  openlog ("nss_mysql", 0, conf.global.syslog_facility);
+  syslog (conf.global.syslog_priority, string);
+  closelog ();
+}
 
 /* "Create" functions using the defines above ... */
 GET (getpwnam, passwd, const char *, 0);
