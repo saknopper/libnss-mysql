@@ -2,6 +2,8 @@
 
 0.8 - 0.9
 
+    * NEW:    Several new sample database and configuration files
+
     * BUGFIX: Don't compile against threaded MySQL libraries.  It was
               causing deadlocks
 
@@ -18,6 +20,10 @@
     * CHANGE: Renamed module from libnss_mysql to libnss-mysql for consistency.
               This includes renaming configuration files.  See UPGRADING for
               more information
+
+    * CHANGE: Removed all dependencies from RPM spec file
+
+    * CHANGE: Various documentation updates
 
 0.7a - 0.8
 
