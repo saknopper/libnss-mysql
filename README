@@ -8,7 +8,7 @@ Supported Operating Systems:
     o FreeBSD (5.1+)
 
 Supported MySQL Versions:
-    o MySQL 3.23.x - 4.0.x
+    o MySQL 3.23.9 - 4.1.x
 
 Supported Compilers:
     o GCC (2.95.2, 3.x)
