@@ -1,0 +1,10 @@
+This directory contains two sample configuration files that are installed
+by default (if you don't already have existing configuration files), as
+well as a sample database that matches these configuration files.  If you're
+new to this module, I recommend starting with these and getting your system
+to the point where you can log in as 'cinergi' with a password of 'cinergi'
+
+There are also some subdirectories to help you explore other configuration
+options.  Remember, since you can specify the MySQL queries directly in
+the configuration, you can set up your database just about any way
+you like!
