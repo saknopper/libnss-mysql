@@ -32,7 +32,6 @@
 #endif
 
 #include <mysql.h>
-#include <errmsg.h>
 
 #include <sys/socket.h>
 #include <errno.h>
@@ -61,8 +60,9 @@ typedef nss_status_t NSS_STATUS;
 #define NSS_ARGS(args)  ((nss_XbyY_args_t *)args)
 #endif
 
-#define MAX_LINE_LEN    1024            /* Max line length in config file */
-#define MAX_KEY_LEN     128             /* Max length of a key in config file */
+#define MAX_LINE_LEN        1024        /* Max line length in config file */
+#define MAX_KEY_LEN         128         /* Max length of a key in cfg file */
+#define MAX_QUERY_ATTEMPTS  3           /* # of query retries */
 
 /* Use these as defaults until they're overridden via the config file */
 #define DEF_TIMEOUT     3
