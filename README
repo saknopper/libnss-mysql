@@ -2,8 +2,10 @@ Official website: http://libnss-mysql.sourceforge.net/
 
 MySQL for NSS systems
 =====================
-libnss-mysql currently runs on Linux and Solaris.  FreeBSD (5.1+) support
-will be coming soon.
+Supported systems:
+    o Linux
+    o Solaris (2.6 - 2.8)
+    o FreeBSD (5.1+)
 
 NOTE: Solaris 9 is not fully unsupported.  Sun's PAM modules have become
       so restrictive that you can't even properly authenticate via PAM
@@ -20,8 +22,15 @@ Prerequisites
       o A functional compile environment (system headers, C compiler, ...)
       o MySQL client library & header files (local)
       o MySQL server (local or remote)
+
     o Installing from RPM:
-      o MySQL client library (local)
+      o MySQL server (local or remote)
+
+    o Installing from Solaris Package
+      o MySQL server (local or remote)
+
+    o Installing from FreeBSD Port (coming soon)
+      o ? MySQL client library (local)
       o MySQL server (local or remote)
 
 The details
@@ -44,7 +53,7 @@ The details
         group:  files mysql
 
       If you don't have a 'shadow' line, do not create one - your system
-      doesn't need it (IE: Solaris).
+      doesn't need it (Solaris, FreeBSD).
       If you don't want groups from MySQL, simply don't include it in the
       'group' line.
 
@@ -74,10 +83,6 @@ versions of libc, libm, etc, can be found in /usr/lib/sparcv9.
 
 At some point in the future, 64-bit support will be integrated.
 
-Please also note that the MySQL folks don't yet support 64-bit; my limited
-testing, however, has shown that at least the client libraries seem to
-work OK.
-
 Debugging
 =========
     See the file DEBUGGING
@@ -86,10 +91,10 @@ Tested with
 ===========
     Operating Systems
       RedHat 6.1 - 9.0
-      Solaris 6-9 (sparc)
+      Solaris 6-8 (sparc)
       Solaris 8 (x86)
     MySQL
-      MySQL 3.20.?? - 4.0.??
+      MySQL 3.20.?? - 4.0.13
     Compilers
       gcc 2.95.2 - 3.2
       Forte Developer 7 C 5.4 (Sun Workshop)
