@@ -8,10 +8,19 @@ Please read the file INSTALL for generic installation details.
 For the impatient:
     On modern systems, you should just be able to
         ./configure
-        make
+        (Linux)    make
+        (Solaris)  sh -c "LD_OPTIONS='-z nodelete' make" 
         make install
+
+    On Solaris, MAKE SURE you're using the above line in order to
+    avoid memory leaks!
+
+    You need to use GNU make.  Solaris' make will choke.  You may need
+    to add the full path to your GNU make in the example above.
             
-    Edit /etc/nss_mysql.cfg and /etc/nss_mysql_root.cfg
+    Edit /etc/nss_mysql.cfg and /etc/nss_mysql_root.cfg.  Pay special
+    attention to the socket location.  The default may not work in your
+    environment!
     Edit /etc/nsswitch.conf and add 'mysql' to passwd/shadow/group
     The default configs will work well with the sample sql database in
     sample/sample_database.sql.  Read that file for more details on the
@@ -43,19 +52,22 @@ Debugging:
     overridden.  If you're not getting ANY messages, it is possible
     that the error is before the config is loaded.  You *should*
     have an error message wherever your auth.alert messages go.
-    If you do not, I recommend doing a quick trace ('strace' on Linux)
-    of a quick command such as 'id' and looking for whether the
-    library even gets loaded, if the library tries to open your
-    config file, etc ...  Just 'strace id username-in-sql' should
-    do the trick.
-    You could also edit nss_mysql.h and change DEF_PRIO to
-    LOG_DEBUG, recompile & reinstall, and see if that helps.  If
-    it doesn't, the library is probably not being loaded; make sure
-    you've added 'mysql' to /etc/nsswitch.conf.
+    If you do not, I recommend doing a quick trace ('strace' on Linux,
+    'truss' on Solaris) of a quick command such as 'id' and looking for
+    whether the library even gets loaded, if the library tries to open your
+    config file, etc ...  Just 'strace id username-in-sql' (or
+    'truss id username-in-sql') should do the trick.
+    You could also edit nss_mysql.h, change DEF_PRIO to LOG_DEBUG,
+    change DEF_DFLAGS to D_ALL, recompile & reinstall.  If that doesn't
+    help, the library is probably not being loaded; make sure you've added
+    'mysql' to /etc/nsswitch.conf.  Please also note that daemons, including
+    nscd, will not see changes to nsswitch.conf unless they're restarted.
+    I recommend shutting off nscd until you've debugged your libnss-mysql
+    installation.
 
 Solaris support:
     This is working on my Solaris8/x86 box.  It compiles on a Solaris8/sparc
-    box but I don't have the root privs needed to test it.  If someone's got
+    box but I do not have the root privs needed to test it.  If someone's got
     a place I can test this on, I'd be very appreciative.
 
 Tested with:
