@@ -84,13 +84,11 @@ libnss_mysql_la_SOURCES = nss_config.c nss_main.c nss_structures.c \
                           nss_support.c memory.c mysql.c lookup.c \
                           mysql-pwd.c mysql-spwd.c mysql-grp.c
 
-libnss_mysql_la_LDFLAGS = -module -version-info @LIBVER@:0:0
+libnss_mysql_la_LDFLAGS = -module -version-info @LIBVER@:0:0 -Wl,-znodelete -Wl,-Bgroup
 
 noinst_HEADERS = nss_mysql.h lookup.h
 CPPFLAGS = @CPPFLAGS@ -Wall -D_REENTRANT
 EXTRA_DIST = INTERNALS TODO FAQ THANKS UPGRADING sample/*.cfg sample/*.sql
-
-LDFLAGS = @LDFLAGS@ -Wl,-znodelete -Wl,-Bgroup
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
@@ -99,6 +97,7 @@ LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
 DEFS = @DEFS@ -I. -I$(srcdir) -I.
+LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libnss_mysql_la_LIBADD = 
 libnss_mysql_la_OBJECTS =  nss_config.lo nss_main.lo nss_structures.lo \
