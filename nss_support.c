@@ -142,7 +142,7 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
                                   "Requesting more memory for BUFFER");
                 function_return (NSS_TRYAGAIN);
               }
-            *p = (uintptr_t) memcpy (s, token, token_size);
+            *(char *)p = (uintptr_t) memcpy (s, token, token_size);
             p += PTRSIZE;
             s += token_size;
 
