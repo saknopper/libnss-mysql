@@ -296,6 +296,7 @@ _nss_mysql_close_sql (int flags)
  * Run QUERY against an existing MySQL connection.  If the query fails,
  * try to run the query against all other defined MySQL servers (in case
  * the query failure is due to a server failure/loss).
+ * Caller should guarantee that QUERY isn't null or empty
  */
 NSS_STATUS
 _nss_mysql_run_query (conf_t conf, char *query)
@@ -303,12 +304,6 @@ _nss_mysql_run_query (conf_t conf, char *query)
   int attempts;
 
   function_enter;
-
-  if (!query || !strlen (query))
-    {
-      _nss_mysql_log (LOG_ALERT, "Empty/NULL query");
-      function_return (NSS_UNAVAIL);
-    }
 
   attempts = 0;
 
