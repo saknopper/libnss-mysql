@@ -31,11 +31,16 @@
               section (primary, secondary, etc).  See sample configuration
               file for details
 
+    * CHANGE: Added default connect timeout (override with 'timeout'
+              option in config - see above) to prevent deadlock
+              situations (could lock yourself out of a server if a
+              server became unreachable).
+
     * CHANGE: Updated sample database: uid=primary autoincremeting key,
               gid=primary autoincrementing key, default values for password
               and shell, and cosmetic changes.  Nothing major
 
-    * CHANGE: port/socket are now optional parameters in the config file
+    * CHANGE: port & socket are now optional parameters in the config file
 
     * CHANGE: Many updates to various documentation
 
