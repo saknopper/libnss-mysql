@@ -1,0 +1,15 @@
+_nss_mysql_endgrent
+_nss_mysql_endpwent
+_nss_mysql_endspent
+_nss_mysql_getgrent_r
+_nss_mysql_getgrgid_r
+_nss_mysql_getgrnam_r
+_nss_mysql_getpwent_r
+_nss_mysql_getpwnam_r
+_nss_mysql_getpwuid_r
+_nss_mysql_getspent_r
+_nss_mysql_getspnam_r
+_nss_mysql_initgroups_dyn
+_nss_mysql_setgrent
+_nss_mysql_setpwent
+_nss_mysql_setspent

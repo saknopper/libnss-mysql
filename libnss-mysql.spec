@@ -19,12 +19,11 @@ Store your UNIX user accounts in MySQL
 make
 
 # Manually relink libnss-mysql with a few libraries static
-# This is really quite ugly .. one of these days I'll stop
-# using libtool ...
+# I can't find a way to do this with libtool (as it's technically not portable)
 # This also assumes libmysqlclient.so* is in default linker path or
 # /usr/lib/mysql ...
-rm .libs/libnss_mysql.so.2.0.0
-gcc -shared  *.lo  -L/usr/lib/mysql -Wl,-Bstatic -lmysqlclient -lz -Wl,-Bdynamic -ldl -lm -lcrypt -lnsl -Wl,-znodelete -Wl,-soname -Wl,libnss_mysql.so.2 -Wl,--version-script,exports.linux -o .libs/libnss_mysql.so.2.0.0
+rm -f .libs/libnss_mysql.so.2.0.0
+gcc -shared *.lo -L/usr/lib/mysql -Wl,-Bstatic -lmysqlclient -lz -Wl,-Bdynamic -ldl -lm -lcrypt -lnsl -Wl,-znodelete -Wl,-soname -Wl,libnss_mysql.so.2 -Wl,--version-script,.libs/libnss_mysql.ver -o .libs/libnss_mysql.so.2.0.0
 
 %install
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
@@ -43,6 +42,9 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %doc sample
 
 %changelog
+* Tue Mar 02 2004 Ben Goodwin <cinergi@users.sourceforge.net> 1.0-3
+- s#exports.linux#.libs/libnss_mysql.ver#
+
 * Sat Jul 12 2003 Ben Goodwin <cinergi@users.sourceforge.net> 1.0-2
 - Link with version script
 
