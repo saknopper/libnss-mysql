@@ -17,7 +17,7 @@
  */
 
 /*
- * Safe debugging memory functions
+ * Safe memory functions
  */
 
 static const char rcsid[] =
@@ -29,12 +29,9 @@ static const char rcsid[] =
 void
 _nss_mysql_free (void *ptr)
 {
-  function_enter;
-  _nss_mysql_debug (FNAME, D_MEMORY, "free %p", ptr);
   if (ptr)
     free (ptr);
   ptr = NULL;
-  function_leave;
 }
 
 void *
@@ -42,27 +39,18 @@ _nss_mysql_malloc (size_t size)
 {
   static void *ptr;
 
-  function_enter;
   ptr = malloc (size);
-  _nss_mysql_debug (FNAME, D_MEMORY, "malloc (%d) = %p", size, ptr);
   if (ptr == NULL)
     _nss_mysql_log (LOG_ALERT, "malloc of %d bytes failed", size);
-  function_leave;
   return (ptr);
 }
 
 void *
 _nss_mysql_realloc (void *ptr, size_t size)
 {
-  void *before = ptr;
-
-  function_enter;
   ptr = realloc (ptr, size);
-  _nss_mysql_debug (FNAME, D_MEMORY, "realloc (%p, %d) = %p", before, size,
-                    ptr);
   if (ptr == NULL)
     _nss_mysql_log (LOG_ALERT, "realloc of %d bytes failed", size);
-  function_leave;
   return (ptr);
 }
 
