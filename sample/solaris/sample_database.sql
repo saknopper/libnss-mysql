@@ -81,7 +81,8 @@ GRANT Select (`name`, `password`, `gid`)
              ON `auth`.`groups`
              TO 'nss-root'@'localhost';
 
-GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`, `comment`)
+GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`, `age`,
+              `comment`)
              ON `auth`.`users`
              TO 'nss-user'@'localhost';
 GRANT Select (`name`, `password`, `gid`)
