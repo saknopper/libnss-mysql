@@ -49,10 +49,6 @@
 
 #include <pthread.h>
 
-#ifndef HAVE_MY_ULONGLONG
-typedef unsigned long long my_ulonglong;
-#endif
-
 #ifdef HAVE_NSS_H
 #define NSS_SUCCESS     NSS_STATUS_SUCCESS
 #define NSS_NOTFOUND    NSS_STATUS_NOTFOUND
@@ -71,15 +67,15 @@ typedef nss_status_t NSS_STATUS;
 #define PADSIZE         64              /* malloc this much more for queries
                                            to allow for format expansion.
                                            Max username length ~ 1/2 this val */
-#define OPENLOG_OPTIONS LOG_PID         /* flags to use when syslogging */
+#define OPENLOG_OPTIONS LOG_PID         /* Flags to use when syslogging */
 #define MAX_LOG_LEN     2000            /* Max length of syslog entry */
 
-/* Use these as defaults until they're overriden via the config file */
+/* Use these as defaults until they're overridden via the config file */
 #define DEF_RETRY       30
 
 extern pthread_mutex_t lock;
-#define LOCK pthread_mutex_lock (&lock);
-#define UNLOCK pthread_mutex_unlock (&lock);
+#define LOCK pthread_mutex_lock (&lock)
+#define UNLOCK pthread_mutex_unlock (&lock)
 
 /*
  * To the untrained eye, this looks like my version of a boolean.  It's
@@ -106,26 +102,6 @@ typedef enum {
     BYNUM
 } lookup_t;
 
-/*
- * Parse types for _nss_mysql_lis.  This is how I accomplish
- * loading data into a struct without referencing the structure's members
- */
-typedef enum {
-    FT_NONE,
-    FT_PCHAR,    /* char *  Pointer to char (unallocated) */
-    FT_UINT,
-} ftype_t;
-
-/*
- * Mostly used to use a string to describe where in a structure something
- * goes.  I overload it's purpose in a couple places though
- */
-typedef struct {
-    char    *name;
-    int     ofs;
-    int     type;
-} field_info_t;
-
 typedef struct {
     gid_t       **groupsp;
     long int    group;
@@ -135,7 +111,7 @@ typedef struct {
 } group_info_t;
 
 /* Sql queries to execute for ... */
- typedef struct {
+typedef struct {
     char        *getpwuid;
     char        *getpwnam;
     char        *getspnam;
@@ -149,19 +125,19 @@ typedef struct {
 } sql_query_t;
 
 typedef struct {
-    nboolean    valid;      /* valid config for this server? */
-    time_t      last_attempt; /* Last time we tried this server */
-    nboolean    up;         /* self explanatory I hope */
+    nboolean    valid;          /* valid config for this server? */
+    time_t      last_attempt;   /* Last time we tried this server */
+    nboolean    up;             /* self explanatory I hope */
 } server_status_t;
 
 typedef struct {
-    char        *host;      /* SQL Server to connect to */
-    unsigned int port;      /* SQL port to connect to */
-    char        *socket;    /* SQL socket path to use */
-    char        *username;  /* Username to connect as */
-    char        *password;  /* Password to connect with */
-    char        *database;  /* SQL Database to open */
-    unsigned int ssl;       /* Connect with CLIENT_SSL flag? */
+    char            *host;      /* SQL Server to connect to */
+    unsigned int    port;       /* SQL port to connect to */
+    char            *socket;    /* SQL socket path to use */
+    char            *username;  /* Username to connect as */
+    char            *password;  /* Password to connect with */
+    char            *database;  /* SQL Database to open */
+    unsigned int    ssl;        /* Connect with CLIENT_SSL flag? */
     server_status_t status;
 } sql_server_t;
 
@@ -201,13 +177,14 @@ typedef struct {
 } con_info_t;
 
 /* nss_main.c */
+NSS_STATUS _nss_mysql_init (void);
 void _nss_mysql_log (int priority, char *fmt, ...);
 #ifdef HAVE_NSS_COMMON_H
 NSS_STATUS _nss_mysql_default_destr (nss_backend_t *be, void *args);
 #endif
+void _nss_mysql_reset_ent (MYSQL_RES **mresult);
 
 /* nss_support.c */
-NSS_STATUS _nss_mysql_init (void);
 NSS_STATUS _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
                                    MYSQL_RES *mresult);
 NSS_STATUS _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
@@ -218,15 +195,14 @@ NSS_STATUS _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
                                       MYSQL_RES *mresult);
 
 /* mysql.c */
-NSS_STATUS _nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful);
+void _nss_mysql_close_result (MYSQL_RES **mresult);
 NSS_STATUS _nss_mysql_run_query(char *query, MYSQL_RES **mresult);
 NSS_STATUS _nss_mysql_fetch_row (MYSQL_ROW *row, MYSQL_RES *mresult);
-my_ulonglong _nss_mysql_num_rows (MYSQL_RES *mresult);
-unsigned long * _nss_mysql_fetch_lengths (MYSQL_RES *mresult);
-unsigned int _nss_mysql_num_fields (MYSQL_RES *mresult);
-void _nss_mysql_reset_ent (MYSQL_RES **mresult);
 NSS_STATUS _nss_mysql_escape_string (char *to, const char *from,
                                      MYSQL_RES **mresult);
+#define _nss_mysql_num_rows(m) mysql_num_rows (m)
+#define _nss_mysql_fetch_lengths(m) mysql_fetch_lengths (m)
+#define _nss_mysql_num_fields(m) mysql_num_fields (m)
 
 /* memory.c */
 void _nss_mysql_free(void *ptr);
@@ -235,7 +211,6 @@ void *_nss_mysql_realloc (void *ptr, size_t size);
 
 /* nss_config.c */
 NSS_STATUS _nss_mysql_load_config (void);
-void _nss_mysql_reset_config (void);
 
 /* lookup.c */
 NSS_STATUS _nss_mysql_lookup (lookup_t ltype, const char *name,
@@ -244,8 +219,4 @@ NSS_STATUS _nss_mysql_lookup (lookup_t ltype, const char *name,
                               NSS_STATUS (*load_func)(void *, char *, size_t,
                                                       MYSQL_RES *mresult),
                               MYSQL_RES **mresult, const char *caller);
-
-NSS_STATUS _nss_mysql_build_query (lookup_t ltype, const char *name,
-                                   unsigned int num, char **qin, char **qout,
-                                   MYSQL_RES **mresult, const char *caller);
 
