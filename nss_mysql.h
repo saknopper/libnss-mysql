@@ -26,6 +26,7 @@
 #include <nss.h>
 #elif defined HAVE_NSS_COMMON_H
 #include <nss_common.h>
+#include <nss_dbdefs.h>
 #else
 #error I need either nss.h or nss_common.h!
 #endif
@@ -38,6 +39,8 @@
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
 #endif
+
+#include <pthread.h>
 
 #ifdef HAVE___FUNC__
 #define FNAME __func__
@@ -53,6 +56,7 @@
 typedef enum nss_status NSS_STATUS;
 #elif defined HAVE_NSS_COMMON_H
 typedef nss_status_t NSS_STATUS;
+#define NSS_ARGS(args)  ((nss_XbyY_args_t *)args)
 #else
 typedef enum
 {
@@ -106,6 +110,10 @@ typedef unsigned char _nss_mysql_byte;      /* for pointer arithmetic */
     _nss_mysql_debug (FNAME, D_FUNCTION, "LEAVE: %d",  to_return);            \
     return to_return;                                                         \
   }
+
+extern pthread_mutex_t lock;
+#define LOCK pthread_mutex_lock (&lock);
+#define UNLOCK pthread_mutex_unlock (&lock);
 
 /*
  * To the untrained eye, this looks like my version of a boolean.  It's
@@ -243,4 +251,11 @@ NSS_STATUS _nss_mysql_load_config (conf_t *conf);
 extern field_info_t passwd_fields[];
 extern field_info_t spwd_fields[];
 extern field_info_t group_fields[];
+
+/* lookup.c */
+NSS_STATUS _nss_mysql_lookup_name (const char *name, int qofs,
+                                   const char *caller);
+NSS_STATUS _nss_mysql_lookup_number (unsigned int num, int qofs,
+                                     const char *caller);
+NSS_STATUS _nss_mysql_lookup_ent (int qofs, const char *caller);
 
