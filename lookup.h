@@ -107,7 +107,8 @@
                                        NSS_ARGS(args)->buf.buffer,           \
                                        NSS_ARGS(args)->buf.buflen,           \
                                        fields);                              \
-      NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;                \
+      if (retVal == NSS_SUCCESS)                                             \
+        NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;              \
       UNLOCK;                                                                \
       function_return (retVal);                                              \
     }
@@ -132,7 +133,8 @@
                                        NSS_ARGS(args)->buf.buffer,           \
                                        NSS_ARGS(args)->buf.buflen,           \
                                        fields);                              \
-      NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;                \
+      if (retVal == NSS_SUCCESS)                                             \
+        NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;              \
       UNLOCK;                                                                \
       function_return (retVal);                                              \
     }
