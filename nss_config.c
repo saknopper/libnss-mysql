@@ -66,7 +66,6 @@ static field_info_t server_fields[] =
     {"timeout",  FOFS (sql_server_t, options.timeout),  FT_UINT},
     {"compress", FOFS (sql_server_t, options.compress), FT_UINT},
     {"initcmd",  FOFS (sql_server_t, options.initcmd),  FT_PCHAR},
-    {"ssl",      FOFS (sql_server_t, options.ssl),      FT_UINT},
     {NULL}
 };
 

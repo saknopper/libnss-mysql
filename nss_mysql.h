@@ -204,7 +204,6 @@ typedef struct {
     unsigned int timeout;        /* Connect timeout in seconds */
     unsigned int compress;       /* Use compressed MySQL protocol? */
     char         *initcmd;       /* Send to server at time of connect */
-    unsigned int ssl;            /* Connect with CLIENT_SSL flag? */
 } server_options_t;
 
 typedef struct {
