@@ -30,11 +30,7 @@
 #error I need either nss.h or nss_common.h!
 #endif
 
-#ifdef HAVE_MYSQL_MYSQL_H
-#include <mysql/mysql.h>
-#elif defined HAVE_MYSQL_H
 #include <mysql.h>
-#endif
 
 #include <sys/socket.h>
 #include <errno.h>

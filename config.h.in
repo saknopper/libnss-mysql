@@ -51,9 +51,6 @@
 /* Define if you have the <mysql.h> header file.  */
 #undef HAVE_MYSQL_H
 
-/* Define if you have the <mysql/mysql.h> header file.  */
-#undef HAVE_MYSQL_MYSQL_H
-
 /* Define if you have the <nss.h> header file.  */
 #undef HAVE_NSS_H
 
