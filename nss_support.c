@@ -65,8 +65,8 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
   offsets[4] = offsets[1] + lengths[1] + 1;
   offsets[5] = offsets[4] + lengths[4] + 1;
   offsets[6] = offsets[5] + lengths[5] + 1;
-  offsets[7] = offsets[6] + 1 + 1;	// An empty string
-  if (offsets[7] + 1 + 1 > buflen)
+  offsets[7] = offsets[6] + lengths[6] + 1;	// An empty string
+  if (offsets[7] + 2 > buflen)	// each string + 2 bytes for empty string
     EXHAUSTED_BUFFER;
 
   memset (buffer, 0, buflen);
