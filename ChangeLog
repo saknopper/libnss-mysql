@@ -5,6 +5,10 @@
     * NEW:    Re-added debugging.  You can send debug output to syslog,
               stderr, or a file.  See DEBUGGING for more information.
 
+    * CHANGE: CVS no longer includes files that can be generated using
+              autoconf/automake/libtool/etc ... Install these utilities
+              and use 'setup.sh' if you're building from CVS
+
     * BUGFIX: Re-implemented uid check to make sure getsp* routines
               couldn't be called by non-root users (which would create
               syslog message regarding failed query attempts).
