@@ -114,11 +114,9 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
       if (retVal != NSS_SUCCESS)
         DSRETURN (retVal)
       retVal = _nss_mysql_run_query (query, mresult);
+      _nss_mysql_free (query);
       if (retVal != NSS_SUCCESS)
-        {
-          _nss_mysql_free (query);
-          DSRETURN (retVal)
-        }
+        DSRETURN (retVal)
     }
 
   /* Take result of query and load RESULT & BUFFER */
