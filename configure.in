@@ -38,7 +38,10 @@ AC_ARG_WITH(mysql-inc,
 AC_ARG_WITH(mysql-lib,
             [  --with-mysql-lib=DIR    Location of your MySQL libraries])
 AC_ARG_WITH(log-facility,
-            [  --with-log-facility=ARG Log to specified facility ])
+            [  --with-log-facility=ARG Log to specified facility])
+AC_ARG_ENABLE(debug,
+            [  --enable-debug          Enable debug (see DEBUGGING)],
+            [AC_DEFINE([DEBUG], 1, [Enable debug])])
 
 test -z "$with_log_facility" && with_log_facility=LOG_AUTH
 AC_DEFINE_UNQUOTED([SYSLOG_FACILITY], $with_log_facility,
