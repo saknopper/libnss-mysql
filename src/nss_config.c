@@ -42,7 +42,10 @@ typedef struct {
  * Whitespace can be spaces or tabs
  * Keys must be one word (no whitespace)
  * Values can be anything except CR/LF
- * Line continuation is NOT supported
+ * Line continuation is supported if EOL is strictly a '\'
+ *      (no trailing whitespace)
+ *
+ * The in-memory copy of LINE is modified by this routine
  *
  * fh = open file handle
  * key = config key loaded here
@@ -55,45 +58,68 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
                      int val_size)
 {
   DN ("_nss_mysql_next_key")
-  char line[MAX_LINE_LEN];
-  char *ccil;        /* Current Character In Line */
-  char *cur_key;
-  char *cur_val;
+  char line[MAX_LINE_SIZE];
+  char *ccil;                     /* Current Character In Line */
+  char *cur;
+  size_t size;
+  nboolean fetch_key = ntrue;
 
   DENTER
-  memset (key, 0, key_size);
-  memset (val, 0, val_size);
 
+  *val = *key = '\0';
   /* Loop through file until a key/val pair is found or EOF */
-  while (1)
+  while (fgets (line, MAX_LINE_SIZE, fh) != NULL)
     {
-      if ((fgets (line, sizeof (line), fh)) == NULL)
-        break;      /* EOF - we're done here */
-
-      if (line[0] == '#')
-        continue;   /* skip comments */
+      if (*line == '#')
+        continue;
 
       ccil = line;
-      cur_key = ccil;
-      /* anything resembling a key here? */
-      ccil += strcspn (ccil, "\n\r \t");
-      if (ccil == cur_key)
-        continue;   /* Nope, nothing resembling a key here */
-      *ccil = '\0'; /* Remove trailing whitespace from key */
-      /* found a key; attempt to nab value */
-      ++ccil;
-      /* Skip past key now that we've loaded it */
-      ccil += strspn (ccil, "\n\r \t");
-      cur_val = ccil;
-      /* anything resembling a value here? */
-      ccil += strcspn (ccil, "\n\r");
-      if (ccil == cur_val)
-        continue;    /* Nope, nothing resembling a value here */
-      *ccil = '\0';  /* Remove trailing whitespace from val */
+      if (fetch_key)
+        {
+          cur = ccil;
+          /* Get key - anything but CR/LF or whitespace */
+          ccil += strcspn (ccil, "\n\r \t");
+          if (ccil == cur)
+            continue;             /* No key */
+          *ccil = '\0';           /* Null-terminate the key */
+          /* Key found, move on */
+          ++ccil;
+          /* Save the key */
+          strncpy (key, cur, key_size);
+          key[key_size - 1] = '\0'; /* strncpy doesn't guarantee null-term */
+        }
 
-      /* Now that we have key/val, copy it into provided function args */
-      strncpy (key, cur_key, key_size);
-      strncpy (val, cur_val, val_size);
+      /* Skip leading whitespace */
+      ccil += strspn (ccil, " \t");
+      cur = ccil;
+      /* Get value - anything but CR/LF */
+      size = strcspn (ccil, "\n\r");
+      if (!size && fetch_key)
+        continue;                 /* No value */
+      ccil += size;
+      if (*(ccil - 1) == '\\')
+        {
+          fetch_key = nfalse;     /* Next line continues a value */
+          *(ccil - 1) = '\0';     /* Remove the '\' */
+          size--;
+        }
+      else
+        {
+          fetch_key = ntrue;      /* Next line starts with a key */
+          *ccil = '\0';           /* Null-terminate the value */
+        }
+      /* Append what we just snarfed to VAL */
+      strncat (val, cur, val_size - 1);
+      val_size -= size;
+      if (val_size <= 0)
+        {
+          _nss_mysql_log (LOG_ERR, "%s: Config value too long", FUNCNAME);
+          DSRETURN (NSS_NOTFOUND)
+        }
+
+      if (!fetch_key)             /* Next line continues a value */
+        continue;
+
       D ("%s: Found: %s -> %s", FUNCNAME, key, val);
       DSRETURN (NSS_SUCCESS)
     }
@@ -107,29 +133,18 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
  * eaccess_is_fatal = should "access denied" be a FATAL error?
  */
 static NSS_STATUS
-_nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
+_nss_mysql_load_config_file (char *file)
 {
   DN ("_nss_mysql_load_config_file")
   FILE *fh;
-  char key[MAX_KEY_LEN];
-  char val[MAX_LINE_LEN];
+  char key[MAX_KEY_SIZE];
+  char val[MAX_VAL_SIZE];
   size_t size;
   config_info_t *c;
 
   /* map config key to 'conf' location; must be NULL-terminated */
   config_info_t config_fields[] =
   {
-      /* MySQL server configuration */
-      {"host",      &conf.sql.server.host},
-      {"port",      &conf.sql.server.port},
-      {"socket",    &conf.sql.server.socket},
-      {"username",  &conf.sql.server.username},
-      {"password",  &conf.sql.server.password},
-      {"database",  &conf.sql.server.database},
-      {"timeout",   &conf.sql.server.options.timeout},
-      {"compress",  &conf.sql.server.options.compress},
-      {"initcmd",   &conf.sql.server.options.initcmd},
-
       /* MySQL queries to execute */
       {"getpwnam",  &conf.sql.query.getpwnam},
       {"getpwuid",  &conf.sql.query.getpwuid},
@@ -142,22 +157,28 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
       {"memsbygid", &conf.sql.query.memsbygid},
       {"gidsbymem", &conf.sql.query.gidsbymem},
 
+      /* MySQL server configuration */
+      {"host",      &conf.sql.server.host},
+      {"port",      &conf.sql.server.port},
+      {"socket",    &conf.sql.server.socket},
+      {"username",  &conf.sql.server.username},
+      {"password",  &conf.sql.server.password},
+      {"database",  &conf.sql.server.database},
+      {"timeout",   &conf.sql.server.options.timeout},
+      {"compress",  &conf.sql.server.options.compress},
+      {"initcmd",   &conf.sql.server.options.initcmd},
+
       {NULL}
   };
 
   DENTER
   if ((fh = fopen (file, "r")) == NULL)
-    {
-      /* don't return fatal error on EACCES unless we're supposed to */
-      if (errno == EACCES && eacces_is_fatal == nfalse)
-        DSRETURN (NSS_SUCCESS)
-      else
-        DSRETURN (NSS_UNAVAIL)
-    }
+    DRETURN;
+
   D ("%s: Loading: %s", FUNCNAME, file);
 
   /* Step through all key/val pairs available */
-  while (_nss_mysql_next_key (fh, key, MAX_KEY_LEN, val, MAX_LINE_LEN)
+  while (_nss_mysql_next_key (fh, key, MAX_KEY_SIZE, val, MAX_VAL_SIZE)
           == NSS_SUCCESS)
     {
       /* Search for matching key */
@@ -167,7 +188,10 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
             {
               size = strlen (val) + 1;
               if ((*c->ptr = _nss_mysql_realloc (*c->ptr, size)) == NULL)
-                DSRETURN (NSS_UNAVAIL)
+                {
+                  fclose (fh);
+                  DRETURN
+                }
               /* load value into proper place in 'conf' */
               memcpy (*c->ptr, val, size);
             }
@@ -175,7 +199,7 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
     }
 
   fclose (fh);
-  DSRETURN (NSS_SUCCESS)
+  DRETURN
 }
 
 /*
@@ -188,9 +212,9 @@ _nss_mysql_validate_config (void)
   DN ("_nss_mysql_validate_config")
 
   DENTER
-  if (!conf.sql.server.host || !strlen (conf.sql.server.host))
+  if (!conf.sql.server.host || !(*conf.sql.server.host))
     DBRETURN (nfalse);
-  if (!conf.sql.server.database || !strlen (conf.sql.server.database))
+  if (!conf.sql.server.database || !(*conf.sql.server.database))
     DBRETURN (nfalse);
 
   DBRETURN (ntrue)
@@ -204,7 +228,6 @@ NSS_STATUS
 _nss_mysql_load_config (void)
 {
   DN ("_nss_mysql_load_config")
-  int to_return;
 
   DENTER
   /* Config is already loaded, don't do it again */
@@ -212,15 +235,11 @@ _nss_mysql_load_config (void)
     DSRETURN (NSS_SUCCESS)
 
   memset (&conf, 0, sizeof (conf));
-  /* Load main (world-readable) config; error out if errno = EACCES */
-  to_return = _nss_mysql_load_config_file (MAINCFG, ntrue);
-  if (to_return != NSS_SUCCESS)
-    DSRETURN (to_return)
+  /* Load main (world-readable) config */
+  _nss_mysql_load_config_file (MAINCFG);
 
-  /* Load root (root-readable) config; don't error out if errno = EACCES */
-  to_return = _nss_mysql_load_config_file (ROOTCFG, nfalse);
-  if (to_return != NSS_SUCCESS)
-    DSRETURN (to_return)
+  /* Load root (root-readable) config */
+  _nss_mysql_load_config_file (ROOTCFG);
 
   /* double-check our config */
   if (_nss_mysql_validate_config () == nfalse)
