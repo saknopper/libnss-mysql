@@ -71,21 +71,23 @@ typedef enum
 #define MAX_SERVERS     3               /* Max # of configured SQL servers */
 #define PADSIZE         64              /* malloc this much more for queries
                                            to allow for format expansion */
+#define OPENLOG_OPTIONS LOG_PID         /* flags to use when syslogging */
+#define MAX_LOG_LEN     2000            /* Max length of syslog entry */
 
 /* Use these as defaults until they're overriden via the config file */
 #define DEF_FACIL       LOG_AUTH
 #define DEF_PRIO        LOG_ALERT
 #define DEF_RETRY       30
-#define DEF_DFLAGS      D_ALL
+#define DEF_DFLAGS      0
 
 /* Debug flags; used in conf.global.debug_flags and the debug function */
-#define D_MEMORY        0x0001
-#define D_FUNCTION      0x0002
-#define D_CONNECT       0x0004
-#define D_QUERY         0x0008
-#define D_PARSE         0x0010
-#define D_FILE          0x0020
-#define D_ALL           0x0040 - 1
+#define D_MEMORY        0x0001          /* malloc, realloc, free, etc */
+#define D_FUNCTION      0x0002          /* function enter/leave */
+#define D_CONNECT       0x0004          /* MySQL connect/disconnect */
+#define D_QUERY         0x0008          /* MySQL queries */
+#define D_PARSE         0x0010          /* File & Query parsing */
+#define D_FILE          0x0020          /* File opening & closing */
+#define D_ALL           0x0040 - 1      /* All of the above */
 
 /* Flags to pass to the close_sql function */
 #define CLOSE_RESULT    0x0001      /* Nuke the result but leave link open */
@@ -93,7 +95,9 @@ typedef enum
 
 #define PTRSIZE sizeof (void *)     /* My attempt at being portable */
 
-#define FOFS(x,y) ((int)&(((x *)0)->y)) /* Get Field OfFSet */
+#define FOFS(x,y) ((int)&(((x *)0)->y))     /* Get Field OfFSet */
+typedef unsigned char _nss_mysql_byte;      /* for pointer arithmetic */
+
 /* These should be used in almost every function for debugging purposes */
 #define function_enter _nss_mysql_debug (FNAME, D_FUNCTION, "BEGIN");
 #define function_leave _nss_mysql_debug (FNAME, D_FUNCTION, "LEAVE: -");
@@ -105,25 +109,29 @@ typedef enum
     return to_return;                                                         \
   }
 
-typedef unsigned char _nss_mysql_byte;        /* for pointer arithmetic */
-
-/* To the untrained eye, this looks like my version of a boolean.  It's
-   really my secret code for taking over the universe ... */
+/*
+ * To the untrained eye, this looks like my version of a boolean.  It's
+ * really my secret code for taking over the universe ...
+ */
 typedef enum {
     nfalse,
     ntrue
 } nboolean;
 
-/* It's SO damn confusing when functions use a return of 0 for success and
-   1 for failure, especially amidst functions that have a boolean return
-   type.. so use this instead.  PLEASE.  I BEG YOU. */
+/*
+ * It's SO damn confusing when functions use a return of 0 for success and
+ * 1 for failure, especially amidst functions that have a boolean return
+ * type.. so use this instead.  PLEASE.  I BEG YOU.
+ */
 typedef enum {
     RETURN_SUCCESS,
     RETURN_FAILURE
 } freturn_t;
 
-/* Parse types for the 'lis' functions.  This is how I accomplish
-   loading data into a struct without referencing the structure's members */
+/*
+ * Parse types for the 'lis' functions.  This is how I accomplish
+ * loading data into a struct without referencing the structure's members
+ */
 typedef enum {
     FT_NONE,
     FT_INT,
@@ -135,8 +143,10 @@ typedef enum {
     FT_SYSLOG,   /* incoming string, convert to appropriate integer */
 } ftype_t;
 
-/* Mostly used to use a string to describe where in a structure something
-   goes.  I overload it's purpose in a couple places though */
+/*
+ * Mostly used to use a string to describe where in a structure something
+ * goes.  I overload it's purpose in a couple places though
+ */
 typedef struct {
     char    *name;
     int     ofs;
@@ -166,7 +176,7 @@ typedef struct {
 
 typedef struct {
     sql_query_t     query;
-    sql_server_t    server;
+    sql_server_t    server[MAX_SERVERS];
 } sql_conf_t;
 
 typedef struct {
@@ -180,13 +190,14 @@ typedef struct {
     nboolean        valid;              /* Have we loaded config yet? */
     int             num_servers;        /* 1 .. MAX_SERVERS */
     global_conf_t   global;             /* settings that apply everywhere */
-    sql_conf_t      defaults;           /* [defaults] config section */
-    sql_conf_t      sql[MAX_SERVERS];   /* [server] sections */
+    sql_conf_t      sql;                /* [server] sections */
 } conf_t;
 
-/* As soon as a MySQL link is established, save the results of
-   getsockname and getpeername here so we can make sure our
-   socket hasn't been mutilated by an outside program. */
+/*
+ * As soon as a MySQL link is established, save the results of
+ * getsockname and getpeername here so we can make sure our
+ * socket hasn't been mutilated by an outside program.
+ */
 typedef struct {
     struct sockaddr local;              /* getsockname */
     struct sockaddr remote;             /* getpeername */
@@ -203,19 +214,24 @@ typedef struct {
     socket_info_t   sock_info;      /* See above */
 } con_info_t;
 
-/* nss_mysql.c */
+/* nss_main.c */
 void _nss_mysql_debug(char *function, int flags, char *fmt, ...);
 void _nss_mysql_log (int priority, char *fmt, ...);
 
 /* nss_support.c */
-NSS_STATUS _nss_mysql_close_sql (int flags);
 NSS_STATUS _nss_mysql_init(conf_t *conf);
-NSS_STATUS _nss_mysql_run_query(conf_t conf, char **query_list);
+NSS_STATUS _nss_mysql_liswb (const char *val, void *structure, char *buffer,
+                             size_t buflen, int *bufused, int fofs,
+                             ftype_t type);
+
+/* mysql.c */
+NSS_STATUS _nss_mysql_connect_sql (conf_t conf);
+NSS_STATUS _nss_mysql_close_sql (int flags);
+NSS_STATUS _nss_mysql_run_query(conf_t conf, char *query);
 NSS_STATUS _nss_mysql_load_result(void *result, char *buffer, size_t buflen,
                                   field_info_t *fields);
 void _nss_mysql_reset_ent (void);
 nboolean _nss_mysql_active_result (void);
-void _nss_mysql_inc_ent (void);
 
 /* memory.c */
 void xfree(void *ptr);
