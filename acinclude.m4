@@ -50,14 +50,30 @@ else
 fi
 
 AC_MSG_CHECKING([for MySQL libraries])
+dnl Check for share first, then static, such that static
+dnl will take precedence
 for f in $baselist; do
-    if test -f "$f/lib/libmysqlclient.so" -o -f "$f/lib/libmysqlclient.a"
+    if test -f "$f/lib/libmysqlclient.so"
     then
         MYSQL_LIB_DIR="$f/lib"
         break
     fi
 
-    if test -f "$f/lib/mysql/libmysqlclient.so" -o -f "$f/lib/mysql/libmysqlclient.a"
+    if test -f "$f/lib/mysql/libmysqlclient.so"
+    then
+        MYSQL_LIB_DIR="$f/lib/mysql"
+        break
+    fi
+done
+
+for f in $baselist; do
+    if test -f "$f/lib/libmysqlclient.a"
+    then
+        MYSQL_LIB_DIR="$f/lib"
+        break
+    fi
+
+    if test -f "$f/lib/mysql/libmysqlclient.a"
     then
         MYSQL_LIB_DIR="$f/lib/mysql"
         break
