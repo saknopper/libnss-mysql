@@ -40,6 +40,10 @@
 #include <syslog.h>
 #endif
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include <pthread.h>
 
 #ifdef HAVE___FUNC__
@@ -94,6 +98,7 @@ typedef enum
 /* Flags to pass to the close_sql function */
 #define CLOSE_RESULT    0x0001      /* Nuke the result but leave link open */
 #define CLOSE_LINK      0x0002      /* Nuke result AND link */
+#define CLOSE_NOGRACE   0x0004      /* Ungracefully close everything */
 
 #define PTRSIZE sizeof (void *)     /* My attempt at being portable */
 
