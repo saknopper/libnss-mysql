@@ -57,6 +57,7 @@ _nss_mysql_debug (char *fmt, ...)
   FILE *fh;
   char *env;
   int type = 0;
+  mode_t old_mask;
 
   va_start (ap, fmt);
   vsnprintf (msg, 1000, fmt, ap);
@@ -67,7 +68,11 @@ _nss_mysql_debug (char *fmt, ...)
   if (type <= 1)
     {
       if (type == 0)
-        fh = fopen (DEBUG_FILE, "a");
+        {
+          old_mask = umask (000);
+          fh = fopen (DEBUG_FILE, "a");
+          umask (old_mask);
+        }
       else
         fh = stderr;
       if (fh)
