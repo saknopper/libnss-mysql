@@ -475,14 +475,13 @@ _nss_mysql_close_sql (state_t *state, int flags)
   function_enter;
   if (flags & CLOSE_RESULT && state->mysql_result)
     {
-      _nss_mysql_debug (FNAME, D_CONNECT, "Freeing result\n");
+      _nss_mysql_debug (FNAME, D_CONNECT | D_MEMORY, "Freeing result\n");
       mysql_free_result (state->mysql_result);
       state->mysql_result = NULL;
     }
   if (flags & CLOSE_LINK && state->valid_link)
     {
-      _nss_mysql_debug (FNAME, D_CONNECT,
-                        "Closing link\n");
+      _nss_mysql_debug (FNAME, D_CONNECT, "Closing link\n");
       mysql_close (&(state->link));
       state->valid_link = 0;
     }
@@ -514,6 +513,7 @@ _nss_mysql_run_query (conf_t conf, state_t *state)
   while (attempts < conf.num_servers)
     {
       attempts++;
+      _nss_mysql_debug (FNAME, D_QUERY, "Query attempt #%d\n", attempts);
       state->server_num = (state->server_num + attempts - 1)
                           % conf.num_servers;
       if (_nss_mysql_connect_sql (conf, state) != NSS_SUCCESS)

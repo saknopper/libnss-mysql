@@ -50,7 +50,7 @@ static field_info_t defaults_fields[] =
 
 static field_info_t global_fields[]=
 {
-    {"retry",           FOFS (global_conf_t, retry),           FT_UINT},
+    {"retry",    FOFS (global_conf_t, retry),        FT_UINT},
     {NULL}
 };
 
@@ -74,7 +74,7 @@ static field_info_t section_info[] =
 /* 'lis' = Load Into Structure */
 static NSS_STATUS
 _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
-               void *structure)
+                void *structure)
 {
   field_info_t *f;
   _nss_mysql_byte *b;
@@ -111,8 +111,8 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
               *(unsigned int *) (b + f->ofs) = (unsigned int) atoi (val);
               break;
             default:
-	      _nss_mysql_log_error (FNAME, "BUG!  Unhandled type: %d\n",
-                                f->type);
+              _nss_mysql_log_error (FNAME, "BUG!  Unhandled type: %d\n",
+                                    f->type);
               break;
             }
         }
@@ -120,8 +120,7 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
   function_return (NSS_SUCCESS);
 }
 
-/* No debug here cuz that would be way too noisy */
-static int _nss_mysql_is_bracketed(char *line)
+static int _nss_mysql_is_bracketed (char *line)
 {
   if (line && *line == '[' && index (line, ']'))
     return 1;
@@ -133,7 +132,8 @@ static int _nss_mysql_is_bracketed(char *line)
  * to by fh.  If a key/val pair is found, return 0, otherwise 1.
  */
 static NSS_STATUS
-_nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val, int val_size)
+_nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
+                     int val_size)
 {
   char line[MAX_LINE_LEN];
   char *ccil;    /* Current Character In Line */
@@ -147,16 +147,16 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val, int val_size)
 
   while (1)
     {
-      previous_fpos = ftell(fh);
+      previous_fpos = ftell (fh);
       if ((fgets (line, sizeof (line), fh)) == NULL)
         {
           _nss_mysql_debug (FNAME, D_PARSE, "EOF\n");
           break;
         }
-      if (_nss_mysql_is_bracketed(line))
+      if (_nss_mysql_is_bracketed (line))
         {
           _nss_mysql_debug (FNAME, D_PARSE, "End of section\n");
-          fseek(fh, previous_fpos, SEEK_SET);
+          fseek (fh, previous_fpos, SEEK_SET);
           break;
         }
 
@@ -189,10 +189,10 @@ _nss_mysql_section_to_id (char *name)
 {
   field_info_t *f;
 
-  function_enter ;
+  function_enter;
   for (f = section_info; f->name; f++)
     {
-      if (strcmp(name, f->name) == 0)
+      if (strcmp (name, f->name) == 0)
         function_return (f->type);
     }
   function_return (SECTION_INVALID);
@@ -204,16 +204,16 @@ _nss_mysql_get_section (FILE *fh, int *section)
   char line[MAX_LINE_LEN];
   char *p;
 
-  function_enter ;
+  function_enter;
   while (fgets (line, sizeof (line), fh) != NULL)
     {
-      if (_nss_mysql_is_bracketed(line))
+      if (_nss_mysql_is_bracketed (line))
         {
-          p = index(line, ']');
+          p = index (line, ']');
           *p = '\0';
           p = line;
           p++;
-          *section = _nss_mysql_section_to_id(p);
+          *section = _nss_mysql_section_to_id (p);
           if (*section != SECTION_INVALID)
               function_return (NSS_SUCCESS);
         }
@@ -239,14 +239,14 @@ _nss_mysql_load_section (FILE *fh, void *structure, field_info_t *fields)
 }
 
 static void
-_nss_mysql_init_defaults(conf_t *conf, int num)
+_nss_mysql_init_defaults (conf_t *conf, int num)
 {
   field_info_t *f;
   _nss_mysql_byte *s, *d;
   char *in, *out;
   int size;
 
-  function_enter ;
+  function_enter;
   s = (_nss_mysql_byte *) &(conf->defaults);
   d = (_nss_mysql_byte *) &(conf->sql[num]);
   for (f = defaults_fields; f->name; f++)
@@ -254,8 +254,8 @@ _nss_mysql_init_defaults(conf_t *conf, int num)
       switch (f->type)
         {
         case FT_UINT:
-          _nss_mysql_debug(FNAME, D_PARSE,
-                           "%s: copying\n", f->name);
+          _nss_mysql_debug (FNAME, D_PARSE,
+                            "%s: copying\n", f->name);
           *(unsigned int *) (s + f->ofs) = *(unsigned int *) (d + f->ofs);
           break;
         case FT_PCHAR:
@@ -263,11 +263,11 @@ _nss_mysql_init_defaults(conf_t *conf, int num)
           if (!in)
             continue;
           (intptr_t) out = *(intptr_t *) (d + f->ofs);
-          _nss_mysql_debug(FNAME, D_PARSE,
-                           "%s: copying from %p to %p\n", f->name, in, out);
+          _nss_mysql_debug (FNAME, D_PARSE,
+                            "%s: copying from %p to %p\n", f->name, in, out);
           size = strlen (in) + 1 + PADSIZE;
-          _nss_mysql_debug(FNAME, D_MEMORY,
-                           "%s: out = realloc (%p %d)\n", f->name, out, size);
+          _nss_mysql_debug (FNAME, D_MEMORY,
+                            "%s: out = realloc (%p %d)\n", f->name, out, size);
           if ((out = realloc (out, size)) == NULL)
             {
               _nss_mysql_log_error (FNAME,
@@ -294,14 +294,14 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
   int section;
   int to_return;
 
-  function_enter ;
-  _nss_mysql_debug(FNAME, D_FILE, "Opening %s\n", file);
+  function_enter;
+  _nss_mysql_debug (FNAME, D_FILE, "Opening %s\n", file);
   if ((fh = fopen (file, "r")) == NULL)
     function_return (NSS_UNAVAIL);
   while ((_nss_mysql_get_section (fh, &section)) == NSS_SUCCESS)
     {
-      _nss_mysql_debug(FNAME, D_PARSE, "Loading section type: %d\n",
-                       section);
+      _nss_mysql_debug (FNAME, D_PARSE, "Loading section type: %d\n",
+                        section);
       switch (section)
         {
         case SECTION_GLOBAL:
@@ -327,14 +327,14 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
           if (conf->num_servers >= MAX_SERVERS)
             {
               /* Let's not bomb because we have too many specified .. */
-              _nss_mysql_log_error(FNAME,
-                                   "Too many servers defined.  Max = %d\n",
-                                   MAX_SERVERS);
+              _nss_mysql_log_error (FNAME,
+                                    "Too many servers defined.  Max = %d\n",
+                                    MAX_SERVERS);
               fclose (fh);
               function_return (NSS_SUCCESS);
             }
           /* First copy defaults over */
-          _nss_mysql_init_defaults(conf, conf->num_servers - 1);
+          _nss_mysql_init_defaults (conf, conf->num_servers - 1);
           to_return =
             _nss_mysql_load_section (fh,
                                      &(conf->sql[conf->num_servers - 1]),
@@ -347,7 +347,7 @@ _nss_mysql_load_config_file (char *file, conf_t *conf)
           break;
         default:
           _nss_mysql_log_error (FNAME, "Unhandled section type: %d\n",
-                               section);
+                                section);
           break;
         }
     }
@@ -359,9 +359,9 @@ _nss_mysql_load_config (conf_t *conf)
 {
   int to_return;
 
-  function_enter ;
+  function_enter;
   if (conf->valid)
-   function_return (NSS_SUCCESS);
+    function_return (NSS_SUCCESS);
 
   memset (conf, 0, sizeof (conf_t));
   conf->global.retry = 30;
