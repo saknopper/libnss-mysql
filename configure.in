@@ -44,18 +44,21 @@ AC_ARG_ENABLE(debug,
 
 case "$target_os" in
 linux*)
+    CPPFLAGS="$CPPFLAGS -D_REENTRANT"
     LIBVER=2
     OS=linux
     RENAME=false
     test "$prefix" = "NONE" && prefix=
     ;;
 solaris*)
+    CPPFLAGS="$CPPFLAGS -D_REENTRANT"
     LIBVER=1
     OS=solaris
     RENAME=true
     test "$prefix" = "NONE" && prefix= && libdir=/usr/lib
     ;;
 freebsd*)
+    CPPFLAGS="$CPPFLAGS -DPIC -D_REENTRANT"
     LIBVER=1
     OS=freebsd
     RENAME=true

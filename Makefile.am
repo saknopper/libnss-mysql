@@ -35,7 +35,6 @@ libnss_mysql_la_SOURCES = version.c nss_config.c nss_main.c \
 endif
  
 noinst_HEADERS = nss_mysql.h lookup.h
-CPPFLAGS += -D_REENTRANT
 EXTRA_DIST = TODO FAQ THANKS UPGRADING DEBUGGING libnss-mysql.spec \
              exports.linux \
              sample/README sample/complex/*.* sample/minimal/*.* \
