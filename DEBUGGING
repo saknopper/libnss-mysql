@@ -4,9 +4,27 @@ Debugging libnss-mysql
 ======================
     Serious problems will sent to syslog, so check there first.
 
-    Debugging in has been removed in version 0.5; I may adopt the
-    library that MySQL uses.  For now, you'll need to trace your
-    programs with 'strace' (Linux) or 'truss' (Solaris).
+    Debugging code was removed in version 0.5, but re-added in 0.7.
+    To use it, you must compile with it enabled.  To do so, add
+    '--enable-debug' to the 'configure' line, compile, and install.
+    Then, you have a choice as to where debug information goes.
+    By default, it will go to the file '/tmp/libnss_mysql-debug.log'
+    You should set the file to mode 666 so any process can write to it
+    (you may need to create the file first).
+    Setting the environment variable 'LIBNSS_MYSQL_DEBUG' will change
+    where debug information goes.
+        0 = /tmp/libnss_mysql-debug.log
+        1 = stderr
+        2 = syslog (prio = debug, same facility compiled with (default=auth))
+    Note that setting the environment variable will ONLY affect commands
+    spawned from the same process the variable was set in.
+    DO NOT LEAVE DEBUG SUPPORT COMPILED IN WHEN YOU'RE DONE - it's 3 
+    times slower and is a security hazard.  Make sure to remove the debug
+    logfile when you're done, too.
+
+    You can also trace your programs with 'strace' (Linux) or 'truss'
+    (Solaris).  This is especially useful if you get *no* debugging
+    information (IE because the library isn't loading).
 
     Before we go down that road:
       - Make sure you've added 'mysql' to /etc/nsswitch.conf.
