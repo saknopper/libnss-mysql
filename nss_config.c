@@ -106,7 +106,9 @@ static field_info_t syslog_names[] =
 #endif
     {"cron",     0, LOG_CRON},
     {"daemon",   0, LOG_DAEMON},
+#ifdef HAVE_LOG_FTP
     {"ftp",      0, LOG_FTP},
+#endif
     {"kern",     0, LOG_KERN},
     {"lpr",      0, LOG_LPR},
     {"mail",     0, LOG_MAIL},
