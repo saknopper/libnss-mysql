@@ -1,12 +1,10 @@
 develop tests - including multi-threaded
 Support other NSS databases
 Solaris 9 support
-Check current error returns/conditions; properly use errno, herrno etc
 PAM/passwd solution for Solaris
 64-bit library support
 
 BUGFIXES
     Turn off socket keepalive?
-    full fork/pid-change handling
-    sigpipe handling
+    sigpipe handling?
     Don't leave MySQL root password in memory
