@@ -22,10 +22,6 @@ static const char rcsid[] =
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 extern conf_t conf;
 

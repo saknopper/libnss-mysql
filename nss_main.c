@@ -26,9 +26,6 @@ static const char rcsid[] =
 #include "nss_mysql.h"
 #include <stdio.h>
 #include <string.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 #include <stdarg.h>
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
