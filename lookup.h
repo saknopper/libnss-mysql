@@ -68,6 +68,8 @@
     {                                                                        \
       nss_backend_t *be;                                                     \
       be = (nss_backend_t *) _nss_mysql_malloc (sizeof (*be));               \
+      if (!be)                                                               \
+        return (NULL);                                                       \
       be->ops = type##_ops;                                                  \
       be->n_ops = sizeof (type##_ops) / sizeof (nss_backend_op_t);           \
       return (be);                                                           \
