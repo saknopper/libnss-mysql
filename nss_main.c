@@ -84,6 +84,11 @@ _nss_mysql_default_destr (nss_backend_t *be, void *args)
 {
   function_enter;
   xfree(be);
+  /*
+   * We MUST close the link as the NSS subsystem unloads the module and thus
+   * all static variables are lost
+   */
+  _nss_mysql_close_sql (CLOSE_LINK);
   function_return (NSS_SUCCESS);
 
 }
