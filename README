@@ -1,9 +1,7 @@
-# $Id$
+Official website: http://libnss-mysql.sourceforge.net/
 
 MySQL for NSS systems
 =====================
-Please read the file INSTALL for generic installation details.
-
 NOTE: Solaris 9 is not fully unsupported.  Sun's PAM modules have become
       so restrictive that you can't even properly authenticate via PAM
       anymore if there's a "mysql" in /etc/nsswitch.conf.  System routines
@@ -114,3 +112,4 @@ Tested with
     Solaris 6/sparc, MySQL 3.23.39, gcc 2.95.2
 
 
+$Id$
