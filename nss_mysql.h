@@ -49,6 +49,10 @@
 
 #include <pthread.h>
 
+#ifndef HAVE_MY_ULONGLONG
+typedef unsigned long long my_ulonglong;
+#endif
+
 #ifdef HAVE_NSS_H
 #define NSS_SUCCESS     NSS_STATUS_SUCCESS
 #define NSS_NOTFOUND    NSS_STATUS_NOTFOUND
