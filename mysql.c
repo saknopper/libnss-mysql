@@ -328,6 +328,8 @@ _nss_mysql_fail_server (MYSQL_RES **mresult, int server_num)
 NSS_STATUS
 _nss_mysql_run_query (char *query, MYSQL_RES **mresult)
 {
+  if (!query || !strlen (query))
+    return (NSS_NOTFOUND);
 
   while (_nss_mysql_connect_sql (mresult) == NSS_SUCCESS)
     {
