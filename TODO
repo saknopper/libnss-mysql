@@ -1,10 +1,6 @@
-develop tests - including multi-threaded
+Documentation
+Develop tests
 Support other NSS databases
-Solaris 9 support
-PAM/passwd solution for Solaris
+PAM library
+Solaris 9 PAM solution
 64-bit library support
-
-BUGFIXES
-    Turn off socket keepalive?
-    sigpipe handling?
-    Don't leave MySQL root password in memory
