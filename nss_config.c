@@ -27,7 +27,7 @@ static const char rcsid[] =
 #endif
 #include <stdlib.h>
 
-conf_t  conf = {0, 0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
+conf_t  conf = {0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
 
 /*
  * Map config keys to the struct offsets to load their values into
@@ -72,8 +72,11 @@ typedef enum
 {
   SECTION_INVALID,
   SECTION_GLOBAL,
+
+  /* 1 for each server; edit to match MAX_SERVERS; ALSO EDIT section_info[] */
   SECTION_PRIMARY,
   SECTION_SECONDARY,
+
   SECTION_QUERIES
 } sections_t;
 
@@ -81,8 +84,11 @@ typedef enum
 static field_info_t section_info[] =
 {
     {"global",    0, SECTION_GLOBAL},
+
+    /* 1 for each server; edit to match MAX_SERVERS; ALSO EDIT sections_t */
     {"primary",   0, SECTION_PRIMARY},
     {"secondary", 0, SECTION_SECONDARY},
+
     {"queries",   0, SECTION_QUERIES},
     {NULL}
 };
@@ -368,8 +374,16 @@ _nss_mysql_load_config_file (char *file)
               function_return (to_return);
             }
             break;
+        /* Add to list if you edit MAX_SERVERS/sections_t/etc */
         case SECTION_PRIMARY:
         case SECTION_SECONDARY:
+          if (section - SECTION_PRIMARY >= MAX_SERVERS)
+            {
+              _nss_mysql_debug (FNAME, D_PARSE, "Invalid server #: %d",
+                                section);
+              fclose (fh);
+              function_return (NSS_UNAVAIL);
+            }
           to_return =
             _nss_mysql_load_section (fh,
                                      &(conf.sql.server[section - SECTION_PRIMARY]),
@@ -402,24 +416,26 @@ _nss_mysql_load_config_file (char *file)
 static nboolean
 _nss_mysql_validate_servers (void)
 {
+  int i;
+  nboolean is_valid = nfalse;
+
   function_enter;
-  if (!conf.sql.server[0].host || !strlen (conf.sql.server[0].host))
-    function_return (nfalse);
-  if (!conf.sql.server[0].database || !strlen (conf.sql.server[0].database))
-    function_return (nfalse);
-  if (conf.sql.server[0].port == 0)
-    if (!conf.sql.server[0].socket || !strlen (conf.sql.server[0].socket))
-      function_return (nfalse);
 
-  conf.sql.server[0].valid = ntrue;
+  for (i = 0; i < MAX_SERVERS; i++)
+    {
+      if (!conf.sql.server[i].host || !strlen (conf.sql.server[i].host))
+        continue;
+      if (!conf.sql.server[i].database || !strlen (conf.sql.server[i].database))
+        continue;
+      if ((conf.sql.server[i].port == 0) &&
+          (!conf.sql.server[i].socket || !strlen (conf.sql.server[i].socket)))
+          continue;
 
-  if (conf.sql.server[1].host && strlen (conf.sql.server[1].host))
-    if (conf.sql.server[1].database && strlen (conf.sql.server[1].database))
-      if (conf.sql.server[1].port == 0)
-        if (conf.sql.server[1].socket && strlen (conf.sql.server[1].socket))
-          conf.sql.server[1].valid = ntrue;
+      conf.sql.server[i].status.valid = ntrue;
+      is_valid = ntrue;
+    }
 
-  function_return (ntrue);
+  function_return (is_valid);
 }
 
 /*

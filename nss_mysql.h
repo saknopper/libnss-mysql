@@ -73,7 +73,8 @@ typedef enum
 
 #define MAX_LINE_LEN    1024            /* Max line length in config file */
 #define MAX_KEY_LEN     128             /* Max length of a key in config file */
-#define MAX_SERVERS     2               /* Max # of configured SQL servers */
+#define MAX_SERVERS     2               /* Max # of configured SQL servers
+                                           See nss_config.c before changing */
 #define PADSIZE         64              /* malloc this much more for queries
                                            to allow for format expansion.
                                            Max username length ~ 1/2 this val */
@@ -177,15 +178,19 @@ typedef struct {
 } sql_query_t;
 
 typedef struct {
+    nboolean    valid;
+    time_t      last_attempt;
+    nboolean    up;
+} server_status_t;
+
+typedef struct {
     char        *host;      /* SQL Server to connect to */
     unsigned int port;      /* SQL port to connect to */
     char        *socket;    /* SQL socket path to use */
     char        *username;  /* Username to connect as */
     char        *password;  /* Password to connect with */
     char        *database;  /* SQL Database to open */
-    nboolean    valid;
-    time_t      last_attempt;   /* Last time we tried this server */
-    int         status;     /* 0 = 'up', otherwise error */
+    server_status_t status;     /* */
 } sql_server_t;
 
 typedef struct {

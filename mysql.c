@@ -133,14 +133,14 @@ _nss_mysql_validate_socket (void)
  * Attempt to connect to specified server number
  */
 static NSS_STATUS
-_nss_mysql_try_server (int server_num)
+_nss_mysql_try_server (void)
 {
+  sql_server_t *server = &conf.sql.server[ci.server_num];
   function_enter;
-  sql_server_t *server = &conf.sql.server[server_num];
 
   _nss_mysql_debug (FNAME, D_CONNECT, "Connecting to server %s", server->host);
-  time (&server->last_attempt);
-  server->status = 1;
+  time (&server->status.last_attempt);
+  server->status.up = nfalse;
 #ifdef HAVE_MYSQL_REAL_CONNECT /* comes from mysql.h, NOT config.h! */
 #if MYSQL_VERSION_ID >= 32200  /* ditto */
   if (mysql_real_connect (&(ci.link), server->host, server->username,
@@ -170,8 +170,8 @@ _nss_mysql_try_server (int server_num)
           function_return (NSS_UNAVAIL);
         }
       ci.valid = ntrue;
-      ci.server_num = server_num;
-      server->status = 0;
+      server->status.up = ntrue;
+      _nss_mysql_debug (FNAME, D_CONNECT, "Connected!");
       function_return (NSS_SUCCESS);
     }
   _nss_mysql_log (LOG_ALERT, "Connection to server '%s' failed: %s",
@@ -188,6 +188,7 @@ static nboolean
 _nss_mysql_check_existing_connection (void)
 {
   static int euid = -1;
+  time_t curTime;
 
   function_enter;
   if (ci.valid == nfalse)
@@ -213,8 +214,57 @@ _nss_mysql_check_existing_connection (void)
       euid = geteuid();
       function_return (nfalse);
     }
+
+  /* Force reversion to primary if appropriate */
+  if (ci.result == NULL && ci.server_num != 0 &&
+      conf.sql.server[0].status.last_attempt + conf.global.retry <=
+        time (&curTime))
+    {
+      _nss_mysql_debug (FNAME, D_CONNECT,
+                        "Attempting to revert to primary server");
+      _nss_mysql_close_sql (CLOSE_LINK);
+      function_return (nfalse);
+    }
   _nss_mysql_debug (FNAME, D_CONNECT, "Using existing link");
   function_return (ntrue);
+}
+
+NSS_STATUS
+_nss_mysql_pick_server (void)
+{
+  time_t curTime;
+  int i;
+
+  function_enter;
+  time (&curTime);
+  for (i = 0; i < MAX_SERVERS; i++)
+    {
+      _nss_mysql_debug (FNAME, D_CONNECT, "# v u l: %d %d %d %d", i,
+                        conf.sql.server[i].status.valid,
+                        conf.sql.server[i].status.up,
+                        conf.sql.server[i].status.last_attempt);
+      if (conf.sql.server[i].status.valid == nfalse)
+        continue;
+      if (conf.sql.server[i].status.up == ntrue)
+        {
+          _nss_mysql_debug (FNAME, D_CONNECT, "Picked %d (up)", i);
+          ci.server_num = i;
+          function_return (NSS_SUCCESS);
+        }
+      else
+        {
+          if (conf.sql.server[i].status.last_attempt == 0 ||
+              conf.sql.server[i].status.last_attempt + conf.global.retry <
+                curTime)
+            {
+              _nss_mysql_debug (FNAME, D_CONNECT, "Picked %d (time)", i);
+              ci.server_num = i;
+              function_return (NSS_SUCCESS);
+            }
+        }
+    }
+  _nss_mysql_debug (FNAME, D_CONNECT, "Found no available servers", i);
+  function_return (NSS_UNAVAIL);
 }
 
 /*
@@ -227,9 +277,6 @@ _nss_mysql_check_existing_connection (void)
 NSS_STATUS
 _nss_mysql_connect_sql (void)
 {
-  int i;
-  time_t curTime;
-
   function_enter;
   if (_nss_mysql_check_existing_connection () == ntrue)
     function_return (NSS_SUCCESS);
@@ -242,14 +289,13 @@ _nss_mysql_connect_sql (void)
     }
 #endif /* HAVE_MYSQL_INIT */
 
-  if (_nss_mysql_try_server (0) != NSS_SUCCESS)
-    if (_nss_mysql_try_server (1) != NSS_SUCCESS)
-      {
-        _nss_mysql_log (LOG_EMERG, "Unable to connect to any MySQL servers");
-        function_return (NSS_UNAVAIL);
-      }
-
-  function_return (NSS_SUCCESS);
+  while (_nss_mysql_pick_server () == NSS_SUCCESS)
+    {
+      if (_nss_mysql_try_server () == NSS_SUCCESS)
+        function_return (NSS_SUCCESS);
+    }
+  _nss_mysql_log (LOG_EMERG, "Unable to connect to any MySQL servers");
+  function_return (NSS_UNAVAIL);
 }
 
 /*
@@ -291,6 +337,16 @@ _nss_mysql_close_sql (int flags)
   function_return (NSS_SUCCESS);
 }
 
+void
+_nss_mysql_fail_server (int server_num)
+{
+  function_enter;
+  _nss_mysql_close_sql (CLOSE_LINK);
+  conf.sql.server[server_num].status.up = nfalse;
+  time (&conf.sql.server[server_num].status.last_attempt);
+  function_leave;
+}
+
 /*
  * Run QUERY against an existing MySQL connection.  If the query fails,
  * try to run the query against all other defined MySQL servers (in case
@@ -300,34 +356,24 @@ _nss_mysql_close_sql (int flags)
 NSS_STATUS
 _nss_mysql_run_query (char *query)
 {
-  int attempts;
-
   function_enter;
 
-  attempts = 0;
-
-  while (attempts < 2)
+  while (_nss_mysql_connect_sql () == NSS_SUCCESS)
     {
-      attempts++;
-      _nss_mysql_debug (FNAME, D_QUERY, "Query attempt #%d", attempts);
-      ci.server_num = (ci.servernum == 1) ? 0 : 1;
-                      
-      if (_nss_mysql_connect_sql () != NSS_SUCCESS)
-        continue;
       _nss_mysql_debug (FNAME, D_QUERY, "Executing query on server #%d: %s",
                         ci.server_num, query);
       if ((mysql_query (&(ci.link), query)) != RETURN_SUCCESS)
         {
           _nss_mysql_log (LOG_ALERT, "mysql_query failed: %s",
                           mysql_error (&(ci.link)));
-          _nss_mysql_close_sql (CLOSE_LINK);
+          _nss_mysql_fail_server (ci.server_num);
           continue;
         }
       if ((ci.result = mysql_use_result (&(ci.link))) == NULL)
         {
           _nss_mysql_log (LOG_ALERT, "mysql_use_result failed: %s",
                           mysql_error (&(ci.link)));
-          _nss_mysql_close_sql (CLOSE_LINK);
+          _nss_mysql_fail_server (ci.server_num);
           continue;
         }
       function_return (NSS_SUCCESS);
@@ -402,9 +448,7 @@ nboolean
 _nss_mysql_active_result (void)
 {
   function_enter;
-  if (ci.result == NULL)
-    function_return (nfalse);
-  function_return (ntrue);
+  function_return (ci.result != NULL);
 }
 
 
@@ -413,6 +457,8 @@ _nss_mysql_escape_string (char *to, const char *from)
 {
   function_enter;
 #if MYSQL_VERSION_ID >= 32300 /* comes from mysql.h, NOT config.h! */
+  if (_nss_mysql_connect_sql () != NSS_SUCCESS)
+    function_return (NSS_UNAVAIL);
   mysql_real_escape_string (&(ci.link), to, from, strlen(from));
 #else
   mysql_escape_string (to, from, strlen(from));
