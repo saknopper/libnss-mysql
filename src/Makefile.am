@@ -20,18 +20,20 @@
 
 AUTOMAKE_OPTIONS = foreign 1.6
 
+library_sources         = version.c nss_config.c nss_main.c \
+                          nss_support.c memory.c mysql.c lookup.c \
+                          mysql-pwd.c mysql-spwd.c mysql-grp.c
+library_ldflags         = -module -version-info @LIBVER@:0:0 \
+                          -export-symbols $(srcdir)/@OS@.sym
+
 if RENAME
 lib_LTLIBRARIES         = nss_mysql.la
-nss_mysql_la_LDFLAGS    = -module -version-info @LIBVER@:0:0 -export-symbols $(srcdir)/@OS@.sym
-nss_mysql_la_SOURCES    = version.c nss_config.c nss_main.c \
-                          nss_support.c memory.c mysql.c lookup.c \
-                          mysql-pwd.c mysql-spwd.c mysql-grp.c
+nss_mysql_la_LDFLAGS    = $(library_ldflags)
+nss_mysql_la_SOURCES    = $(library_sources)
 else
 lib_LTLIBRARIES         = libnss_mysql.la
-libnss_mysql_la_LDFLAGS = -module -version-info @LIBVER@:0:0 -export-symbols $(srcdir)/@OS@.sym
-libnss_mysql_la_SOURCES = version.c nss_config.c nss_main.c \
-                          nss_support.c memory.c mysql.c lookup.c \
-                          mysql-pwd.c mysql-spwd.c mysql-grp.c
+libnss_mysql_la_LDFLAGS = $(library_ldflags)
+libnss_mysql_la_SOURCES = $(library_sources)
 endif
  
 noinst_HEADERS = nss_mysql.h lookup.h
