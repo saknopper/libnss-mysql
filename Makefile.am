@@ -18,6 +18,8 @@
 ## $Id$
 # From Makefile.am $Revision$
 
+AUTOMAKE_OPTIONS = foreign 1.6
+
 lib_LTLIBRARIES = libnss_mysql.la
 
 libnss_mysql_la_SOURCES = nss_config.c nss_main.c \
