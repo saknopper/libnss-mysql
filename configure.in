@@ -57,6 +57,9 @@ linux*)
 solaris*)
     LIBVER=1
     TOS=solaris
+    if test "$ac_cv_prog_gcc" = "yes"; then
+        CPPFLAGS="-m32 $CPPFLAGS"
+    fi
     test "$prefix" = "NONE" && prefix= && libdir=/usr/lib
     ;;
 *) os=unknown ;;
