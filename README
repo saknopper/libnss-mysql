@@ -46,6 +46,9 @@ The details
       o ./configure
       o make
       o make install
+      If your MySQL installation is based in strange directory, use
+      the --with-mysql=DIR option of ./configure to specify.  For example,
+      "./configure --with-mysql=/usr2"
 
     o Edit /etc/libnss-mysql.cfg and /etc/libnss-mysql-root.cfg.
 
@@ -81,7 +84,7 @@ versions of libc, libm, etc, can be found in /usr/lib/sparcv9.
             gcc:      "-m64"
             Sun's CC: "-xarch=v9"
       o Re-run 'configure', pointing it at your 64-bit MySQL library
-        (using --with-mysql-lib=...)
+        (using --with-mysql=...)
       o Edit Makefile and change 'libdir' to be '/usr/lib/sparcv9'
       o Compile and install
     o Test it by using programs such as 'ls' and 'ps' from the /usr/bin/sparcv9

@@ -19,51 +19,58 @@ dnl $Id$
 
 AC_DEFUN([FIND_MYSQL],[
 
-headerlist="$with_mysql_inc \
-            /usr/include \
-            /usr/include/mysql \
-            /usr/local/include \
-            /usr/local/include/mysql \
-            /usr/local/mysql/include \
-            /usr/local/mysql/include/mysql \
-            /opt/local/include \
-            /opt/local/mysql/include"
+baselist="$with_mysql \
+          /usr \
+          /usr/local \
+          /usr/local/mysql \
+          /opt/local \
+          /opt/local/mysql"
 
-for f in $headerlist; do
-    if test -f "$f/mysql.h"
+AC_MSG_CHECKING([for MySQL headers])
+for f in $baselist; do
+    if test -f "$f/include/mysql/mysql.h"
     then
-        MYSQL_INCLUDE_DIR=$f
+        MYSQL_INC_DIR="$f/include/mysql"
+        break
+    fi
+
+    if test -f "$f/include/mysql.h"
+    then
+        MYSQL_INC_DIR="$f/include"
         break
     fi
 done
 
-if test -n "$MYSQL_INCLUDE_DIR"; then
-    CPPFLAGS="-I $MYSQL_INCLUDE_DIR $CPPFLAGS"
+if test -n "$MYSQL_INC_DIR"
+then
+    AC_MSG_RESULT([$MYSQL_INC_DIR])
+    CPPFLAGS="-I $MYSQL_INC_DIR $CPPFLAGS"
+else
+    AC_MSG_ERROR([Cannot locate MySQL headers.  Try using --with-mysql=DIR])
 fi
 
-liblist="$with_mysql_lib \
-         /usr/lib \
-         /usr/lib/mysql \
-         /usr/local/lib \
-         /usr/local/lib/mysql \
-         /usr/local/mysql/lib \
-         /usr/local/mysql/lib/mysql \
-         /opt/local/lib \
-         /opt/local/mysql/lib"
-
-for f in $liblist; do
-    if test -f "$f/libmysqlclient.so" -o -f "$f/libmysqlclient.a"
+AC_MSG_CHECKING([for MySQL libraries])
+for f in $baselist; do
+    if test -f "$f/lib/libmysqlclient.so" -o -f "$f/lib/libmysqlclient.a"
     then
-        MYSQL_LIB_DIR=$f
+        MYSQL_LIB_DIR="$f/lib"
+        break
+    fi
+
+    if test -f "$f/lib/mysql/libmysqlclient.so" -o -f "$f/lib/mysql/libmysqlclient.a"
+    then
+        MYSQL_LIB_DIR="$f/lib/mysql"
         break
     fi
 done
 
-if test -n "$MYSQL_LIB_DIR"; then
+if test -n "$MYSQL_LIB_DIR"
+then
+    AC_MSG_RESULT([$MYSQL_LIB_DIR])
     LDFLAGS="-L$MYSQL_LIB_DIR $LDFLAGS"
+else
+    AC_MSG_ERROR([Cannot locate MySQL libraries.  Try using --with-mysql=DIR])
 fi
-
 
  ])
-
 
