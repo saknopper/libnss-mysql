@@ -96,6 +96,9 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
   int retVal;
   nboolean run_query = ntrue;
 
+  if (restricted == ntrue && geteuid () != 0)
+    return (NSS_NOTFOUND);
+
   if (_nss_mysql_init () != NSS_SUCCESS)
     return (NSS_UNAVAIL);
 
