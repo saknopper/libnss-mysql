@@ -1,14 +1,12 @@
 Summary: NSS library for MySQL.
 Name: libnss-mysql
-Version: 0.8
+Version: 0.9
 Release: 1
 Source0: http://prdownloads.sourceforge.net/libnss-mysql/libnss-mysql-%{version}.tar.gz
 URL: http://libnss-mysql.sourceforge.net/
 License: GPL
 Group: System Environment/Base
 BuildRoot: %{_tmppath}/%{name}-root
-BuildPrereq: mysql-devel
-Requires: mysql
 
 %description
 Store your UNIX user accounts in MySQL
@@ -37,5 +35,8 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %doc sample
 
 %changelog
+* Wed Jun 18 2003 Ben Goodwin <cinergi@users.sourceforge.net> 0.9-1
+- Update to 0.9
+
 * Sun Dec 29 2002 Ben Goodwin <cinergi@users.sourceforge.net> 0.8-1
 - Initial version
