@@ -28,7 +28,9 @@ static const char rcsid[] =
 #include <stdlib.h>
 #include <stdarg.h>
 
-/* There's probably a better way than this hack; if so, please tell me */
+/* 
+ * GNU source only defines RTLD_DEFAULT if __USE_GNU is set
+ */
 #ifndef __USE_GNU
 #define __USE_GNU
 #include <dlfcn.h>
@@ -38,6 +40,13 @@ static const char rcsid[] =
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_once_t _nss_mysql_once_control = {PTHREAD_ONCE_INIT};
 
+/*
+ * Debugs to either a file, stderr, or syslog, depending on the environ var
+ * LIBNSS_MYSQL_DEBUG
+ * none or 0 = file (DEBUG_FILE, defined in nss_mysql.h)
+ *         1 = stderr
+ *         2 = syslog (facility defined at configure, priority DEBUG)
+ */
 #ifdef DEBUG
 void
 _nss_mysql_debug (char *fmt, ...)
@@ -75,7 +84,9 @@ _nss_mysql_debug (char *fmt, ...)
 }
 #endif
 
-/* Called from parent, just before fork */
+/*
+ * Before fork() processing begins, the prepare fork handler is called
+ */
 static void
 _nss_mysql_atfork_prepare (void)
 {
@@ -85,7 +96,10 @@ _nss_mysql_atfork_prepare (void)
   DEXIT
 }
 
-/* Called from parent, just before fork returns */
+/*
+ * The parent fork handler is called after fork() processing finishes
+ * in the parent process
+ */
 static void
 _nss_mysql_atfork_parent (void)
 {
@@ -95,7 +109,10 @@ _nss_mysql_atfork_parent (void)
   DEXIT
 }
 
-/* Called from child, just before fork returns */
+/*
+ * The child fork handler is called after fork() processing finishes in the
+ * child process.
+ */
 static void
 _nss_mysql_atfork_child (void)
 {
@@ -136,7 +153,7 @@ _nss_mysql_init (void)
   pthread_once = (int (*)(int))dlsym (RTLD_DEFAULT, "pthread_once");
   if (pthread_once)
     (*pthread_once) (&_nss_mysql_once_control, _nss_mysql_pthread_once_init);
-  DIRETURN (_nss_mysql_load_config ())
+  DSRETURN (_nss_mysql_load_config ())
 }
 
 /*
@@ -167,7 +184,7 @@ _nss_mysql_default_destr (nss_backend_t *be, void *args)
   DENTER
   _nss_mysql_free (be);
   /* Closing link & freeing memory unnecessary due to link w/ '-znodelete' */
-  DIRETURN (NSS_SUCCESS)
+  DSRETURN (NSS_SUCCESS)
 
 }
 #endif

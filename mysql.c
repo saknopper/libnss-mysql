@@ -54,11 +54,11 @@ _nss_mysql_save_socket_info (void)
   memset(&(ci.sock_info.local), 0, sizeof (ci.sock_info.local));
   r = getsockname (ci.link.net.fd, &(ci.sock_info.local), &local_size);
   if (r != RETURN_SUCCESS)
-    DIRETURN (RETURN_FAILURE)
+    DFRETURN (RETURN_FAILURE)
 
   memset(&(ci.sock_info.remote), 0, sizeof (ci.sock_info.remote));
   r = getpeername (ci.link.net.fd, &(ci.sock_info.remote), &remote_size);
-  DIRETURN (r)
+  DFRETURN (r)
 }
 
 /*
@@ -79,19 +79,19 @@ _nss_mysql_is_same_sockaddr (struct sockaddr orig, struct sockaddr cur)
         orig_sin = *(struct sockaddr_in *) &orig;
         cur_sin = *(struct sockaddr_in *) &cur;
         if (orig_sin.sin_port != cur_sin.sin_port)
-          DIRETURN (nfalse)
+          DBRETURN (nfalse)
         if (orig_sin.sin_addr.s_addr != cur_sin.sin_addr.s_addr)
-          DIRETURN (nfalse)
+          DBRETURN (nfalse)
         break;
     case AF_UNIX:
         if (memcmp (&orig, &cur, sizeof (struct sockaddr)) != 0)
-          DIRETURN (nfalse)
+          DBRETURN (nfalse)
         break;
     default:
         _nss_mysql_log (LOG_ERR, "%s: Unhandled family: %d", FUNCNAME, family);
         break;
     }
-  DIRETURN (ntrue)
+  DBRETURN (ntrue)
 }
 
 /*
@@ -110,17 +110,17 @@ _nss_mysql_validate_socket (void)
   DENTER
   memset(&check, 0, sizeof (check));
   if (getpeername (ci.link.net.fd, &check, &remote_size) != RETURN_SUCCESS)
-    DIRETURN (nfalse)
+    DBRETURN (nfalse)
   if (_nss_mysql_is_same_sockaddr (ci.sock_info.remote, check) != ntrue)
-    DIRETURN (nfalse)
+    DBRETURN (nfalse)
 
   memset(&check, 0, sizeof (check));
   if (getsockname (ci.link.net.fd, &check, &local_size) != RETURN_SUCCESS)
-    DIRETURN (nfalse)
+    DBRETURN (nfalse)
   if (_nss_mysql_is_same_sockaddr (ci.sock_info.local, check) != ntrue)
-    DIRETURN (nfalse)
+    DBRETURN (nfalse)
 
-  DIRETURN (ntrue)
+  DBRETURN (ntrue)
 }
 
 NSS_STATUS
@@ -132,7 +132,7 @@ _nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful)
   if (graceful && ci.valid)
     mysql_close (&(ci.link));
   ci.valid = nfalse;
-  DIRETURN (NSS_SUCCESS)
+  DSRETURN (NSS_SUCCESS)
 }
 
 /*
@@ -151,6 +151,10 @@ _nss_mysql_try_server (MYSQL_RES **mresult)
     flags |= CLIENT_SSL;
 #endif
 
+  D ("%s: Connecting to %s:%s@%s, %u %s %d", FUNCNAME, server->username,
+                                             server->password, server->host,
+                                             server->port, server->socket,
+                                             flags);
   time (&server->status.last_attempt);
   server->status.up = nfalse;
 
@@ -179,21 +183,21 @@ _nss_mysql_try_server (MYSQL_RES **mresult)
           _nss_mysql_log (LOG_EMERG, "Unable to select database %s: %s",
                           server->database, mysql_error ((&ci.link)));
           _nss_mysql_close_sql (mresult, ntrue);
-          DIRETURN (NSS_UNAVAIL)
+          DSRETURN (NSS_UNAVAIL)
         }
       if (_nss_mysql_save_socket_info () != RETURN_SUCCESS )
         {
           _nss_mysql_log (LOG_EMERG, "Unable to save socket info");
           _nss_mysql_close_sql (mresult, ntrue);
-          DIRETURN (NSS_UNAVAIL)
+          DSRETURN (NSS_UNAVAIL)
         }
       ci.valid = ntrue;
       server->status.up = ntrue;
-      DIRETURN (NSS_SUCCESS)
+      DSRETURN (NSS_SUCCESS)
     }
   _nss_mysql_log (LOG_ALERT, "Connection to server '%s' failed: %s",
                   server->host, mysql_error (&(ci.link)));
-  DIRETURN (NSS_UNAVAIL)
+  DSRETURN (NSS_UNAVAIL)
 }
 
 /*
@@ -211,7 +215,7 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
 
   DENTER
   if (ci.valid == nfalse)
-    DIRETURN (nfalse)
+    DBRETURN (nfalse)
 
   if (pid == -1)
     {
@@ -222,7 +226,7 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
       /* saved pid == ppid = we've forked; We MUST create a new connection */
       ci.valid = nfalse;
       pid = getpid ();
-      DIRETURN (nfalse)
+      DBRETURN (nfalse)
     }
 
   if (_nss_mysql_validate_socket () == nfalse)
@@ -230,7 +234,7 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
        /* Do *NOT* CLOSE_LINK - the socket is invalid! */
       _nss_mysql_close_sql (mresult, nfalse);
       ci.valid = nfalse;
-      DIRETURN (nfalse)
+      DBRETURN (nfalse)
     }
    /* Make sure euid hasn't changed, thus changing our access abilities */
   if (euid == -1)
@@ -241,7 +245,7 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
       conf.valid = nfalse;
       (void) _nss_mysql_load_config ();
       euid = geteuid ();
-      DIRETURN (nfalse)
+      DBRETURN (nfalse)
     }
 
   /* Force reversion to primary if appropriate */
@@ -250,9 +254,9 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
         time (&curTime))
     {
       _nss_mysql_close_sql (mresult, ntrue);
-      DIRETURN (nfalse)
+      DBRETURN (nfalse)
     }
-  DIRETURN (ntrue)
+  DBRETURN (ntrue)
 }
 
 static NSS_STATUS
@@ -271,7 +275,7 @@ _nss_mysql_pick_server (void)
       if (conf.sql.server[i].status.up == ntrue)
         {
           ci.server_num = i;
-          DIRETURN (NSS_SUCCESS)
+          DSRETURN (NSS_SUCCESS)
         }
       else
         {
@@ -280,11 +284,11 @@ _nss_mysql_pick_server (void)
                 curTime)
             {
               ci.server_num = i;
-              DIRETURN (NSS_SUCCESS)
+              DSRETURN (NSS_SUCCESS)
             }
         }
     }
-  DIRETURN (NSS_UNAVAIL)
+  DSRETURN (NSS_UNAVAIL)
 }
 
 /*
@@ -301,27 +305,27 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
 
   DENTER
   if (_nss_mysql_check_existing_connection (mresult) == ntrue)
-    DIRETURN (NSS_SUCCESS)
+    DSRETURN (NSS_SUCCESS)
 
   /* Because check_existig_connection can try to reload the config */
   if (conf.valid == nfalse)
-    DIRETURN (NSS_UNAVAIL)
+    DSRETURN (NSS_UNAVAIL)
 
 #ifdef HAVE_MYSQL_INIT
   if (mysql_init (&(ci.link)) == NULL)
     {
       _nss_mysql_log (LOG_EMERG, "mysql_init() failed");
-      DIRETURN (NSS_UNAVAIL)
+      DSRETURN (NSS_UNAVAIL)
     }
 #endif /* HAVE_MYSQL_INIT */
 
   while (_nss_mysql_pick_server () == NSS_SUCCESS)
     {
       if (_nss_mysql_try_server (mresult) == NSS_SUCCESS)
-        DIRETURN (NSS_SUCCESS)
+        DSRETURN (NSS_SUCCESS)
     }
   _nss_mysql_log (LOG_EMERG, "Unable to connect to any MySQL servers");
-  DIRETURN (NSS_UNAVAIL)
+  DSRETURN (NSS_UNAVAIL)
 }
 
 void
@@ -361,8 +365,9 @@ _nss_mysql_run_query (char *query, MYSQL_RES **mresult)
 
   DENTER
   if (!query || !strlen (query))
-    DIRETURN (NSS_NOTFOUND)
+    DSRETURN (NSS_NOTFOUND)
 
+  D ("%s: Executing query: %s", FUNCNAME, query);
   while (_nss_mysql_connect_sql (mresult) == NSS_SUCCESS)
     {
       if ((mysql_query (&(ci.link), query)) != RETURN_SUCCESS)
@@ -379,10 +384,10 @@ _nss_mysql_run_query (char *query, MYSQL_RES **mresult)
           _nss_mysql_fail_server (mresult, ci.server_num);
           continue;
         }
-      DIRETURN (NSS_SUCCESS)
+      DSRETURN (NSS_SUCCESS)
     }
   _nss_mysql_log (LOG_EMERG, "Unable to perform query on any MySQL server");
-  DIRETURN (NSS_UNAVAIL)
+  DSRETURN (NSS_UNAVAIL)
 }
 
 NSS_STATUS
@@ -397,14 +402,14 @@ _nss_mysql_fetch_row (MYSQL_ROW *row, MYSQL_RES *mresult)
         {
           _nss_mysql_log (LOG_ALERT, "mysql_fetch_row() failed: %s",
                           mysql_error (&(ci.link)));
-          DIRETURN (NSS_UNAVAIL)
+          DSRETURN (NSS_UNAVAIL)
         }
       else
         {
-          DIRETURN (NSS_NOTFOUND)
+          DSRETURN (NSS_NOTFOUND)
         }
     }
-  DIRETURN (NSS_SUCCESS)
+  DSRETURN (NSS_SUCCESS)
 }
 
 NSS_STATUS
@@ -415,11 +420,11 @@ _nss_mysql_escape_string (char *to, const char *from, MYSQL_RES **mresult)
   DENTER
 #if MYSQL_VERSION_ID >= 32300 /* comes from mysql.h, NOT config.h! */
   if (_nss_mysql_connect_sql (mresult) != NSS_SUCCESS)
-    DIRETURN (NSS_UNAVAIL)
+    DSRETURN (NSS_UNAVAIL)
   mysql_real_escape_string (&(ci.link), to, from, strlen(from));
 #else
   mysql_escape_string (to, from, strlen(from));
 #endif
-  DIRETURN (NSS_SUCCESS)
+  DSRETURN (NSS_SUCCESS)
 }
 

@@ -58,7 +58,7 @@ _nss_mysql_getpwnam_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  DIRETURN (retVal)
+  DSRETURN (retVal)
 }
 
 /*
@@ -94,7 +94,7 @@ _nss_mysql_getpwuid_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  DIRETURN (retVal)
+  DSRETURN (retVal)
 }
 
 /*
@@ -138,7 +138,7 @@ _nss_mysql_getpwent_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  DIRETURN (retVal)
+  DSRETURN (retVal)
 }
 
 #ifdef HAVE_NSS_COMMON_H

@@ -58,7 +58,7 @@ _nss_mysql_getgrnam_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  DIRETURN (retVal)
+  DSRETURN (retVal)
 }
 
 /*
@@ -94,7 +94,7 @@ _nss_mysql_getgrgid_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  DIRETURN (retVal)
+  DSRETURN (retVal)
 }
 
 /*
@@ -138,7 +138,7 @@ _nss_mysql_getgrent_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  DIRETURN (retVal)
+  DSRETURN (retVal)
 }
 
 /*
@@ -192,12 +192,12 @@ _nss_mysql_getgrmem (nss_backend_t *be, void *args)
 #endif
   UNLOCK;
   if (retVal != NSS_SUCCESS)
-    DIRETURN (retVal)
+    DSRETURN (retVal)
 
 #ifdef HAVE_NSS_COMMON_H
-  DIRETURN (NSS_NOTFOUND)
+  DSRETURN (NSS_NOTFOUND)
 #else
-  DIRETURN (NSS_SUCCESS)
+  DSRETURN (NSS_SUCCESS)
 #endif
 }
 
@@ -207,9 +207,9 @@ static nss_backend_op_t group_ops[] = {
     _nss_mysql_endgrent,            /* NSS_DBOP_ENDENT */
     _nss_mysql_setgrent,            /* NSS_DBOP_SETENT */
     _nss_mysql_getgrent_r,          /* NSS_DBOP_GETENT */
-    _nss_mysql_getgrnam_r,          /* NSS_DBOP_PASSWD_BYNAME */
-    _nss_mysql_getgrgid_r,          /* NSS_DBOP_PASSWD_BYUID */
-    _nss_mysql_getgrmem
+    _nss_mysql_getgrnam_r,          /* NSS_DBOP_GROUP_BYNAME */
+    _nss_mysql_getgrgid_r,          /* NSS_DBOP_GROUP_BYGID */
+    _nss_mysql_getgrmem             /* NSS_DBOP_GROUP_BYMEMBER */
 };
 
 CONSTR(group)

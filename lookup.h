@@ -28,7 +28,7 @@
       LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
       UNLOCK;                                                                \
-      DIRETURN (NSS_SUCCESS)                                                 \
+      DSRETURN (NSS_SUCCESS)                                                 \
     }
 
 #define ENDENT(type)                                                         \
@@ -40,7 +40,7 @@
       LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
       UNLOCK;                                                                \
-      DIRETURN (NSS_SUCCESS)                                                 \
+      DSRETURN (NSS_SUCCESS)                                                 \
     }
 
 #elif defined (HAVE_NSS_COMMON_H)
@@ -54,7 +54,7 @@
       LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
       UNLOCK;                                                                \
-      DIRETURN (NSS_SUCCESS)                                                 \
+      DSRETURN (NSS_SUCCESS)                                                 \
     }
 
 #define ENDENT(type)                                                         \
@@ -66,7 +66,7 @@
       LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
       UNLOCK;                                                                \
-      DIRETURN (NSS_SUCCESS)                                                 \
+      DSRETURN (NSS_SUCCESS)                                                 \
     }
 
 #define CONSTR(type)                                                         \

@@ -58,7 +58,7 @@ _nss_mysql_getspnam_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  DIRETURN (retVal)
+  DSRETURN (retVal)
 }
 
 /*
@@ -102,7 +102,7 @@ _nss_mysql_getspent_r (nss_backend_t *be, void *args)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  DIRETURN (retVal)
+  DSRETURN (retVal)
 }
 
 #ifdef HAVE_NSS_COMMON_H

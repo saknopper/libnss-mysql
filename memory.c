@@ -33,7 +33,10 @@ _nss_mysql_free (void *ptr)
 
   DENTER
   if (ptr)
-    free (ptr);
+    {
+      D ("%s: free (%p)", FUNCNAME, ptr);
+      free (ptr);
+    }
   ptr = NULL;
   DEXIT
 }
@@ -45,6 +48,7 @@ _nss_mysql_malloc (size_t size)
   static void *ptr;
 
   DENTER
+  D ("%s: malloc (%u)", FUNCNAME, size);
   ptr = malloc (size);
   if (ptr == NULL)
     _nss_mysql_log (LOG_ALERT, "malloc of %d bytes failed", size);
@@ -57,6 +61,7 @@ _nss_mysql_realloc (void *ptr, size_t size)
   DN ("_nss_mysql_realloc")
 
   DENTER
+  D ("%s: realloc (%p, %u)", FUNCNAME, ptr, size);
   ptr = realloc (ptr, size);
   if (ptr == NULL)
     _nss_mysql_log (LOG_ALERT, "realloc of %d bytes failed", size);

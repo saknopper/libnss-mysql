@@ -57,9 +57,9 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
   DENTER
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
-    DIRETURN (retVal)
+    DSRETURN (retVal)
   if (_nss_mysql_num_fields (mresult) != 7)
-    DIRETURN (NSS_UNAVAIL)
+    DSRETURN (NSS_UNAVAIL)
 
   lengths = _nss_mysql_fetch_lengths (mresult);
   offsets[0] = 0;
@@ -85,7 +85,7 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
   pw->pw_age = memcpy (buffer + offsets[7], "", 2); // empty string
 #endif
 
-  DIRETURN (NSS_SUCCESS)
+  DSRETURN (NSS_SUCCESS)
 }
 
 NSS_STATUS 
@@ -102,9 +102,9 @@ _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
   DENTER
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
-    DIRETURN (retVal)
+    DSRETURN (retVal)
   if (_nss_mysql_num_fields (mresult) != 9)
-    DIRETURN (NSS_UNAVAIL)
+    DSRETURN (NSS_UNAVAIL)
 
   lengths = _nss_mysql_fetch_lengths (mresult);
   offsets[0] = 0;
@@ -122,7 +122,7 @@ _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
   sp->sp_inact = atol (row[6]);
   sp->sp_expire = atol (row[7]);
   sp->sp_flag = (unsigned long) atol (row[8]);
-  DIRETURN (NSS_SUCCESS)
+  DSRETURN (NSS_SUCCESS)
 }
 
 static NSS_STATUS
@@ -141,7 +141,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
   DENTER
   num_rows = _nss_mysql_num_rows (mresult);
   if (num_rows == 0)
-    DIRETURN (NSS_NOTFOUND)
+    DSRETURN (NSS_NOTFOUND)
 
   align (buffer, buflen, char *);
   members = (char **)buffer;
@@ -155,7 +155,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
   /* Load the first one */
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
-    DIRETURN (retVal)
+    DSRETURN (retVal)
   lengths = _nss_mysql_fetch_lengths (mresult);
   if (lengths[0] + 1 > buflen)
     EXHAUSTED_BUFFER;
@@ -172,7 +172,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
 
       retVal = _nss_mysql_fetch_row (&row, mresult);
       if (retVal != NSS_SUCCESS)
-        DIRETURN (retVal)
+        DSRETURN (retVal)
       lengths = _nss_mysql_fetch_lengths (mresult);
       if (lengths[0] + 1 > buflen)
         EXHAUSTED_BUFFER;
@@ -186,7 +186,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
   /* Set gr->gr_mem to point to start of our pointer-list */
   gr->gr_mem = (char **) (uintptr_t)buffer;
 
-  DIRETURN (NSS_SUCCESS)
+  DSRETURN (NSS_SUCCESS)
 }
 
 NSS_STATUS 
@@ -204,9 +204,9 @@ _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
   DENTER
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
-    DIRETURN (retVal)
+    DSRETURN (retVal)
   if (_nss_mysql_num_fields (mresult) != 3)
-    DIRETURN (NSS_UNAVAIL)
+    DSRETURN (NSS_UNAVAIL)
 
   lengths = _nss_mysql_fetch_lengths (mresult);
   offsets[0] = 0;
@@ -226,7 +226,7 @@ _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
                               errnop, _nss_mysql_load_memsbygid,
                               &mresult_grmem, FUNCNAME);
 
-  DIRETURN (retVal)
+  DSRETURN (retVal)
 }
 
 NSS_STATUS
@@ -246,7 +246,7 @@ _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
 
   // Nothing to load = success
   if (num_rows == 0)
-    DIRETURN (NSS_SUCCESS)
+    DSRETURN (NSS_SUCCESS)
 
   // If we need more room and we're allowed to alloc it, alloc it
   if (num_rows + *gi->start > *gi->size)
@@ -277,11 +277,11 @@ _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
     {
       retVal = _nss_mysql_fetch_row (&row, mresult);
       if (retVal != NSS_SUCCESS)
-        DIRETURN (retVal)
+        DSRETURN (retVal)
       gid = atoi (row[0]);
       if ((long int)gid != gi->group && (long int)gid != groups[0])
         groups[(*gi->start)++] = gid;
     }
 
-  DIRETURN (NSS_SUCCESS)
+  DSRETURN (NSS_SUCCESS)
 }
