@@ -19,8 +19,8 @@ Prerequisites
     o MySQL client library & header files (local)
     o MySQL server (local or remote)
 
-For the impatient
-=================
+The details
+===========
     o Build:
       o ./configure
       o make
@@ -35,6 +35,15 @@ For the impatient
       details on the sample database.
 
     o Edit /etc/nsswitch.conf and add 'mysql' to passwd/shadow/group
+      For example:
+        passwd: files mysql
+        shadow: files mysql
+        group:  files mysql
+
+      If you don't have a 'shadow' line, do not create one - your system
+      doesn't need it (IE: Solaris).
+      If you don't want groups from MySQL, simply don't include it in the
+      'group' line.
 
     o Edit (or create) /etc/my.cnf and add a new section called [libnss_mysql]
       You may specify any of these options:
@@ -44,7 +53,7 @@ For the impatient
         user
         password
         connect-timeout
-      IE:
+      For example:
         [libnss_mysql]
         connect-timeout=5
 
