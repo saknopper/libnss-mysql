@@ -75,42 +75,7 @@ For the impatient
 
 Debugging
 =========
-    Serious problems will sent to syslog, so check there first.
-
-    Set the config option 'priority' (in the [global] section) to debug.
-    Since there are a LOT of debugging messages, you can pick which type(s)
-    you want.  Set the config option 'debug_flags' to be the sum of the
-    options below that you want:
-
-    MEMORY (malloc, free, etc)          1
-    FUNCTION (enter/exit w/ status)     2
-    CONNECT (MySQL connect/disconnect)  4
-    QUERY (MySQL queries)               8 
-    PARSE (File & query result parsing) 16
-    FILE (File opening/closing)         32
-
-    For example, if you want all options, set 'debug_flags' to 63
-    If you want just CONNECT, set it to 4.  If you want CONNECT
-    and QUERY, set it to 12.
-
-    Since there's a period of time where the library has not yet
-    loaded your config, the library defaults to logging to
-    auth.alert until the config is loaded and the defaults are
-    overridden.  If you're not getting ANY messages, it is possible
-    that the error is before the config is loaded.  You *should*
-    have an error message wherever your auth.alert messages go.
-    If you do not, I recommend doing a quick trace ('strace' on Linux,
-    'truss' on Solaris) of a quick command such as 'id' and looking for
-    whether the library even gets loaded, if the library tries to open your
-    config file, etc ...  Just 'strace id username-in-sql' (or
-    'truss id username-in-sql') should do the trick.
-    You could also edit nss_mysql.h, change DEF_PRIO to LOG_DEBUG,
-    change DEF_DFLAGS to D_ALL, recompile & reinstall.  If that doesn't
-    help, the library is probably not being loaded; make sure you've added
-    'mysql' to /etc/nsswitch.conf.  Please also note that daemons, including
-    nscd, will not see changes to nsswitch.conf unless they're restarted.
-    I recommend shutting off nscd until you've debugged your libnss-mysql
-    installation.
+    See the file DEBUGGING
 
 Solaris support
 ===============
@@ -122,7 +87,7 @@ Solaris support
 Tested with
 ===========
     Corel (1.2 - Debian 2.1) and MySQL 3.21.33b
-    RedHat 6.1 and MySQL 3.20.something
+    RedHat 6.1 and MySQL 3.20.??
     RedHat 7.1 and MySQL 3.23.49a
     RedHat 7.2 and MySQL 3.23.49a
     RedHat 7.3 and MySQL 3.23.49a & 3.23.52
@@ -130,6 +95,7 @@ Tested with
     Solaris 9/sparc, MySQL 3.23.52, gcc 3.1 NOTE: PAM programs will fail
     Solaris 8/x86, MySQL 3.23.52, gcc 3.1
     Solaris 8/sparc, MySQL 3.23.52, gcc 2.95.3, 3.0.2 (32 & 64-bit), 3.2
+    Solaris 7/sparc, MySQL 3.23.53 (binary distribution), gcc 2.95.2
     Solaris 6/sparc, MySQL 3.23.39, gcc 2.95.2
 
 
