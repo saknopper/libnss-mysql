@@ -1,5 +1,9 @@
 # $Id$
 
+2002-08-21  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * nss_mysql.h: Added missing #ifdef HAVE_NSS_COMMON_H around a prototype
+
 2002-08-20  Ben Goodwin  <cinergi@users.sourceforge.net>
 
     * sample/nss_mysql.cfg: Back to %d (well, %u) for numerical formats.
