@@ -215,6 +215,8 @@ typedef struct {
     sql_conf_t      sql;                /* [server] sections */
 } conf_t;
 
+#define CONF_INITIALIZER {0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} }
+
 /*
  * As soon as a MySQL link is established, save the results of
  * getsockname and getpeername here so we can make sure our

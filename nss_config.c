@@ -27,7 +27,7 @@ static const char rcsid[] =
 #endif
 #include <stdlib.h>
 
-conf_t  conf = {0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} };
+conf_t  conf = CONF_INITIALIZER;
 
 /*
  * Map config keys to the struct offsets to load their values into
