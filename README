@@ -16,7 +16,6 @@ NOTE: Solaris 9 is not fully unsupported.  Sun's PAM modules have become
 Prerequisites
 =============
     o A functional compile environment (system headers, C compiler, ...)
-    o GNU Make
     o MySQL client library & header files (local)
     o MySQL server (local or remote)
 
