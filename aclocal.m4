@@ -10,179 +10,50 @@ dnl but WITHOUT ANY WARRANTY, to the extent permitted by law; without
 dnl even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 dnl PARTICULAR PURPOSE.
 
-# Configure paths for mysql-client, GPLv2
-# Markus Fischer <mfischer@josefine.ben.tuwien.ac.at>,  23.9.1999
-# URL : http://josefine.ben.tuwien.ac.at/~mfischer/m4/mysql-client.m4
-# Last Modified : Thu Sep 23 14:24:15 CEST 1999
-#
-# written from scratch
+AC_DEFUN([FIND_MYSQL],[
 
-dnl AM_PATH_MYSQLCLIENT([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND ]]])
-dnl Test for libmysqlclient and define MYSQLCLIENT_CFLAGS, MYSQLCLIENT_LDFLAGS and MYSQLCLIENT_LIBS
-dnl
+headerlist="$MYSQL_INCLUDE_DIR/mysql.h \
+            /usr/include/mysql.h \
+            /usr/include/mysql/mysql.h \
+            /usr/local/include/mysql.h \
+            /usr/local/include/mysql/mysql.h"
 
-AC_DEFUN(AM_PATH_MYSQLCLIENT,
-[
-AC_ARG_WITH(mysqlclient-prefix, [--with-mysqlclient-prefix=PFX Prefix where mysqlclient is installed],
-            mysqlclient_prefix="$withval",
-            mysqlclient_prefix="")
-
-AC_ARG_WITH(mysqlclient-include, [--with-mysqlclient-include=DIR Directory pointing to mysqlclient include files],
-            mysqlclient_include="$withval",
-            mysqlclient_include="")
-
-AC_ARG_WITH(mysqlclient-lib,
-[  --with-mysqlclient-lib=LIB  Directory pointing to mysqlclient library
-                          (Note: -include and -lib do override
-                           paths found with -prefix)
-],
-            mysqlclient_lib="$withval",
-            mysqlclient_lib="")
-
-    AC_MSG_CHECKING([for mysqlclient ifelse([$1], , ,[>= v$1])])
-    MYSQLCLIENT_LDFLAGS=""
-    MYSQLCLIENT_CFLAGS=""
-    MYSQLCLIENT_LIBS="-lmysqlclient"
-    mysqlclient_fail=""
-
-    dnl test --with-mysqlclient-prefix
-    if test "x$mysqlclient_prefix" != "x" ; then
-        if test -d "$mysqlclient_prefix" ; then
-            if test -d "$mysqlclient_prefix/lib/mysql" ; then
-                MYSQLCLIENT_LDFLAGS="-L$mysqlclient_prefix/lib/mysql"
-            elif test -d "$mysqlclient_prefix/lib" ; then
-                MYSQLCLIENT_LDFLAGS="-L$mysqlclient_prefix/lib"
-            else
-                MYSQLCLIENT_LDFLAGS="-L$mysqlclient_prefix"
-            fi
-            if test -d "$mysqlclient_prefix/include/mysql" ; then
-                MYSQLCLIENT_CFLAGS="-I$mysqlclient_prefix/include/mysql"
-            elif test -d "$mysqlclient_prefix/mysql" ; then
-                MYSQLCLIENT_CFLAGS="-I$mysqlclient_prefix"
-            fi
-        fi
+for f in $headerlist; do
+    if test -f "$f"
+    then
+        foo=${f%/mysql.h}
+        MYSQL_INCLUDE_DIR=$foo
+        break
     fi
+done
 
-    dnl test --with-mysqlclient-include
-    if test "x$mysqlclient_include" != "x" ; then
-        if test -d "$mysqlclient_include/mysql" ; then
-            MYSQLCLIENT_CFLAGS="-I$mysqlclient_include"
-        elif test -d "$mysqlclient_include/include/mysql" ; then
-            MYSQLCLIENT_CFLAGS="-I$mysqlclient_include/include"
-        elif test -d "$mysqlclient_include" ; then
-            MYSQLCLIENT_CFLAGS="-I$mysqlclient_include"
-        fi
+if test -n "$MYSQL_INCLUDE_DIR"; then
+    CPPFLAGS="-I $MYSQL_INCLUDE_DIR $CPPFLAGS"
+    export CPPFLAGS
+fi
+
+liblist="$MYSQL_LIB_DIR/libmysqlclient.so \
+         /usr/lib/libmysqlclient.so \
+         /usr/local/lib/libmysqlclient.so"
+
+for f in $liblist; do
+    if test -f "$f"
+    then
+        foo=${f%/libmysqlclient.so}
+        MYSQL_LIB_DIR=$foo
+        break
     fi
+done
 
-    dnl test --with-mysqlclient-lib
-    if test "x$mysqlclient_lib" != "x" ; then
-        if test -d "$mysqlclient_lib/lib/mysql" ; then
-            MYSQLCLIENT_LDFLAGS="-L$mysqlclient_lib/lib/mysql"
-        elif test -d "$mysqlclient_lib/lin" ; then
-            MYSQLCLIENT_LDFLAGS="-L$mysqlclient_lib/lib"
-        else
-            MYSQLCLIENT_LDFLAGS="-L$mysqlclient_lib"
-        fi
-    fi
+if test -n "$MYSQL_LIB_DIR"; then
+    LIBS="-L$MYSQL_LIB_DIR $LIBS"
+    export LIBS
+fi
 
-    ac_save_CFLAGS="$CFLAGS"
-    ac_save_LDFLAGS="$LDFLAGS"
-    ac_save_LIBS="$LIBS"
-    CFLAGS="-v $CFLAGS $MYSQLCLIENT_CFLAGS"
-    LDFLAGS="$LDFLAGS $MYSQLCLIENT_LDFLAGS"
-    LIBS="$LIBS $MYSQLCLIENT_LIBS"
-    dnl if no minimum version is given, just try to compile
-    dnl else try to compile AND run
-    if test "x$1" == "x" ; then
-        AC_TRY_COMPILE([
-            #include <mysql.h>
-            #include <mysql_version.h>
-        ],[
-            mysql_connect( NULL, NULL, NULL, NULL);
-        ],[AC_MSG_RESULT(yes)
-           CFLAGS="$ac_save_CFLAGS"
-           LDFLAGS="$ac_save_LDFLAGS"
-           LIBS="$ac_save_LIBS"
-           ifelse([$2], ,:,[$2])
-        ],[
-          mysqlclient_fail="yes"
-        ])
-    else
-        mysqlclient_min_version=$1
-        AC_TRY_RUN([
-            #include <stdarg.h>
-            #include <stdio.h>
-            #include <string.h>
 
-            #include <mysql.h>
-            #include <mysql_version.h>
+ ])
 
-            int main() {
-                int major, minor, micro;
-                int mysqlclient_major, mysqlclient_minor, mysqlclient_micro;
-                char *version1, *version2;
 
-                mysql_connect( NULL, NULL, NULL, NULL);
-
-                version1 = strdup( "$mysqlclient_min_version");
-                if( sscanf( version1, "%d.%d.%d", &major, &minor, &micro) != 3) {
-                  printf( "%s, bad supplied version string\n", "$mysqlclient_min_version");
-                  exit(1);
-                }
-
-                version2 = strdup( MYSQL_SERVER_VERSION);
-                if( sscanf( version2, "%d.%d.%d", &mysqlclient_major, &mysqlclient_minor, &mysqlclient_micro) != 3) {
-                  printf( "%s, bad mysqlclient version string\n", MYSQL_SERVER_VERSION);
-                  exit(1);
-                }
-
-                if((mysqlclient_major > major) ||
-                  ((mysqlclient_major == major) && (mysqlclient_minor > minor)) ||
-                  ((mysqlclient_major == major) && (mysqlclient_minor == minor) && (mysqlclient_micro > micro))) {
-                  return 0;
-                } else {
-                  printf("\n***\n*** An old version of mysqlclient (%d.%d.%d) was found.\n",
-                         mysqlclient_major, mysqlclient_minor, mysqlclient_micro);
-                  printf("*** You need a version of mysqlclient newer than %d.%d.%d. The latest version of\n",
-                         major, minor, micro);
-                  printf("*** mysqlclient is available from http://www.mysql.org/ .\n***\n");
-                }
-                return 1;
-            }
-        ],[AC_MSG_RESULT(yes)
-           CFLAGS="$ac_save_CFLAGS"
-           LDFLAGS="$ac_save_LDFLAGS"
-           LIBS="$ac_save_LIBS"
-           ifelse([$2], ,:,[$2])
-        ],[
-          mysqlclient_fail="yes"
-        ])
-
-    fi
-
-    if test "x$mysqlclient_fail" != "x" ; then
-            dnl AC_MSG_RESULT(no)
-            echo
-            echo "***"
-            echo "*** mysqlclient test source had problems, check your config.log ."
-            echo "*** Also try one of the following switches :"
-            echo "***   --with-mysqlclient-prefix=PFX"
-            echo "***   --with-mysqlclient-include=DIR"
-            echo "***   --with-mysqlclient-lib=DIR"
-            echo "***"
-            CFLAGS="$ac_save_CFLAGS"
-            LDFLAGS="$ac_save_LDFLAGS"
-            LIBS="$ac_save_LIBS"
-            ifelse([$3], ,:,[$3])
-    fi
-
-    CFLAGS="$ac_save_CFLAGS"
-    LDFLAGS="$ac_save_LDFLAGS"
-    LIBS="$ac_save_LIBS"
-    AC_SUBST(MYSQLCLIENT_LDFLAGS)
-    AC_SUBST(MYSQLCLIENT_CFLAGS)
-    AC_SUBST(MYSQLCLIENT_LIBS)
-])
 
 # Do all the work for Automake.  This macro actually does too much --
 # some checks are only needed if your package does certain things.
