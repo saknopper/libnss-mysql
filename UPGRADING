@@ -1,0 +1,13 @@
+$Id$
+
+0.3 -> 0.4
+    First, you should note that the code currently supports only TWO
+    servers.  That's easily changed, and I'll probably up it to a
+    default of THREE later, but 0.4 is released with support for TWO.
+    That said, the [server] section in BOTH of your config files must
+    be changed to either [primary] or [secondary] as appropriate.  See
+    the sample config files if it's not clear.
+
+0.2 -> 0.3
+    Simply change any '%d' you have in your configs to '%u'
+
