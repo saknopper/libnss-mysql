@@ -13,7 +13,8 @@ For the impatient:
     You'll need to make sure you system sees the library you just
     installed into /usr/local/lib (unless you changed the destination)
         Linux:
-            Add /usr/local/lib to /etc/ld.so.conf and run /sbin/ldconfig
+            Add /usr/local/lib to /etc/ld.so.conf and run /sbin/ldconfig.
+            Make sure you do this *after* you've installed the library.
         Solaris:
             ...
     Edit nss_mysql.cfg and nss_mysql_root.cfg (/usr/local/etc)
