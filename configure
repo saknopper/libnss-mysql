@@ -7476,7 +7476,6 @@ done
 
 if test -n "$MYSQL_LIB_DIR"; then
     LDFLAGS="-L$MYSQL_LIB_DIR $LDFLAGS"
-    echo "FOO: $LDFLAGS"
 fi
 
 
