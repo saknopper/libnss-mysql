@@ -78,7 +78,7 @@ typedef enum
 
 /* Use these as defaults until they're overriden via the config file */
 #define DEF_FACIL       LOG_AUTH
-#define DEF_PRIO        LOG_ALERT
+#define DEF_PRIO        LOG_ERR
 #define DEF_RETRY       30
 #define DEF_DFLAGS      0
 
@@ -222,6 +222,7 @@ typedef struct {
 /* nss_main.c */
 void _nss_mysql_debug(const char *function, int flags, char *fmt, ...);
 void _nss_mysql_log (int priority, char *fmt, ...);
+NSS_STATUS _nss_mysql_default_destr (nss_backend_t *be, void *args);
 
 /* nss_support.c */
 NSS_STATUS _nss_mysql_init(conf_t *conf);
