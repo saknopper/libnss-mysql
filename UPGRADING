@@ -4,6 +4,14 @@ $Id$
     NOTE: This included a lot of redesign/rewriting.  It's very possible
           I broke something that used to work.  Please report bugs to me.
 
+    Debugging support has been removed - for now.  The config option
+    'debug_flags' is now ignored.
+    The syslog config options, 'facility' and 'priority' have been removed.
+    Specify the facility at build time using the --with-log-facility
+    option to the 'configure' program.
+    Not that it really eats that many CPU cycles, but I recommend
+    deleting those 3 configuration options from your config file.
+
     Since this version supports initgroups, the design of the group
     database needs to be altered.  You *must* alter your database/data
     in order for groups to work.  If you're not using groups, then you can
