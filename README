@@ -2,26 +2,50 @@
 
 MySQL for NSS systems
 =====================
-
 Please read the file INSTALL for generic installation details.
 
 NOTE: Solaris 9 is currently unsupported.  Sun changed something in the
-      API that's preventing the library from properly functioning.
+      API that's preventing the library from properly functioning.  Fixing
+      this is on my TODO list ...
 
-PREREQUISITES:
+Prerequisites
+=============
 	GCC
 	GNU Make
 	MySQL client library & header files
 
-Only GCC is supported at this time.
-Your MySQL library MUST be 32-bit, as libnss-mysql currently only supports
-a 32-bit output.  This means 64-bit programs will not be able to make use
-of libnss-mysql - yet.  This isn't an issue on intel (32-bit-only) platforms.
-Most programs are still 32-bit even on Solaris 8/sparc so in general, I
-wouldn't really worry about 64-bit support.
+Only GCC is supported at this time.  Sun Workshop's CC may work, but I do
+not have the resources to test it.
 
-For the impatient:
-        ./configure
+32-bit & 64-bit Support
+=======================
+For 32-bit programs to work, you must produce a 32-bit library.  For any
+Intel platform, this is a non-issue - skip this section.
+For Solaris on Sparc, you need to be more careful. Most programs in
+Solaris (7, 8, and 9) are still 32-bit.  Since we're also linking against
+MySQL, your MySQL library must also be 32-bit.  You *can* build a 64-bit
+library if you do a couple of things.  First, get a 32-bit library installed
+and working.  Then:
+    Build a 64-bit MySQL library and install it in a DIFFERENT place than
+        your 32-bit MySQL library
+    Build a 64-bit libnss-mysql by re-running 'configure' and pointing
+        it at your 64-bit MySQL library (using --with-mysql-lib=...) and
+        edit the resulting Makefile:
+            Change 'libdir' to be '/usr/lib/sparcv9'
+            Change '-m32' to be '-m64' (GCC; if not GCC, you're on your own)
+        Now compile and install, and you should now have 64-bit support.
+    Test it by using programs such as 'ls' and 'ps' from the /usr/bin/sparcv9
+    directory.
+
+At some point in the future, 64-bit support will be integrated.
+
+Please also note that the MySQL folks don't yet support 64-bit; my limited
+testing, however, has shown that at least the client libraries seem to
+work OK.
+    
+For the impatient
+=================
+    ./configure
 	make
 	make install
 
@@ -36,7 +60,10 @@ For the impatient:
     On systems with older or nonstandard MySQL installations, you may
     need to use the --with-mysql-lib and/or --with-mysql-inc options.
 
-Debugging:
+Debugging
+=========
+    Serious problems will sent to syslog, so check there first.
+
     Set the config option 'priority' (in the [global] section) to debug.
     Since there are a LOT of debugging messages, you can pick which type(s)
     you want.  Set the config option 'debug_flags' to be the sum of the
@@ -72,21 +99,22 @@ Debugging:
     I recommend shutting off nscd until you've debugged your libnss-mysql
     installation.
 
-Solaris support:
+Solaris support
+===============
     libnss-mysql appears to work fine under the Solaris' I've tested (see
-    below).  There are a few things you need to pay special attention to
-    when compiling (above).  I plan to fully support Solaris as the
-    library matures.  As it stands now, it should work for most people.
-    If it doesn't, *please* let me know so I can make sure to investigate.
+    below). I plan to fully support Solaris as the library matures.  As
+    it stands now, it should work for most people.  If it doesn't,
+    *please* let me know so I can make sure to investigate.
 
-Tested with:
+Tested with
+===========
     Corel (1.2 - Debian 2.1) and MySQL 3.21.33b
     RedHat 6.1 and MySQL 3.20.something
     RedHat 7.1 and MySQL 3.23.49a
     RedHat 7.2 and MySQL 3.23.49a
-    RedHat 7.3 and MySQL 3.23.49a
+    RedHat 7.3 and MySQL 3.23.49a & 3.23.52
 
     Solaris 8/x86, MySQL 3.23.52, gcc 3.1
-    Solaris 8/sparc, MySQL 3.23.52, gcc 3.0.2 & 3.2
+    Solaris 8/sparc, MySQL 3.23.52, gcc 2.95.3, 3.0.2 (32 & 64-bit), 3.2
 
 
