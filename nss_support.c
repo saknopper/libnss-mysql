@@ -41,7 +41,7 @@ do {                                                                         \
   char *qtr = ptr;                                                           \
   ptr += alignof(TYPE) - 1;                                                  \
   ptr -= ((ptr - (char *)NULL) % alignof(TYPE));                             \
-  blen += (ptr - qtr);                                                       \
+  blen -= (ptr - qtr);                                                       \
 } while (0)
 
 NSS_STATUS 
@@ -126,7 +126,6 @@ _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
 }
 
 // TODO
-// Align buffer
 // Double-check all the buflen/strings_len math
 // How to know if RESULT's connection ID changed (due to another routine
 // needing to close it) - may be moot as query will fail anyway no?  Check...
@@ -148,6 +147,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
   if (num_rows == 0)
     function_return (NSS_NOTFOUND);
 
+  align (buffer, buflen, char *);
   strings_offset = (num_rows + 1) * PTRSIZE;
   strings_len = buflen - strings_offset;
   /* Allow room for NUM_ROWS + 1 pointers */
