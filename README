@@ -10,8 +10,12 @@ For the impatient:
         ./configure
         make
         make install
-    You'll probably have to add /usr/local/lib to /etc/ld.so.conf (Linux)
-    Solaris, I don't know yet :-)
+    You'll need to make sure you system sees the library you just
+    installed into /usr/local/lib (unless you changed the destination)
+        Linux:
+            Add /usr/local/lib to /etc/ld.so.conf and run /sbin/ldconfig
+        Solaris:
+            ...
     Edit nss_mysql.cfg and nss_mysql_root.cfg (/usr/local/etc)
     Edit /etc/nsswitch.conf and add 'mysql' to passwd/shadow/group
     Enjoy!
@@ -32,7 +36,7 @@ Debugging:
     PARSE (File & query result parsing) 16
     FILE (File opening/closing)         32
 
-    For example, if you want all options, set DEBUG_NSS to 63
+    For example, if you want all options, set 'debug_flags' to 63
     If you want just CONNECT, set it to 4.  If you want CONNECT
     and QUERY, set it to 12.
 
@@ -54,7 +58,7 @@ Debugging:
         Linux:   edited /etc/ld.so.conf, run 'ldconfig', and edited
                  /etc/nsswitch.conf
         Solaris:
-
+                ...
 Solaris support:
     Coming soon.  It actually compiles on my Solaris 8 x86 box, but
     I have NOT implemented the interface Solaris requires yet.
