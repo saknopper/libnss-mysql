@@ -68,7 +68,7 @@ typedef nss_status_t NSS_STATUS;
 
 #ifdef DEBUG
 void _nss_mysql_debug (char *fmt, ...);
-#define DEBUG_FILE "/tmp/libnss_mysql-debug.log"
+#define DEBUG_FILE "/tmp/libnss-mysql-debug.log"
 #define D _nss_mysql_debug
 #define DN(n) static const char FUNCNAME[] = n;
 #define DENTER D ("%s: ENTER", FUNCNAME);
