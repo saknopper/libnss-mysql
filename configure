@@ -1068,7 +1068,7 @@ fi
 
 PACKAGE=libnss_mysql
 
-VERSION=0.1
+VERSION=0.2d
 
 if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
   { echo "configure: error: source directory already configured; run "make distclean" there first" 1>&2; exit 1; }
@@ -6080,7 +6080,7 @@ fi
 rm -f conftest*
 case "$have_func" in
   yes) cat >> confdefs.h <<\EOF
-#define HAVE_UUFUNCUU 1
+#define HAVE___FUNC__ 1
 EOF
  ;;
    no) ;;

@@ -1,15 +1,31 @@
-dnl Process this file with autoconf to produce a configure script.
+dnl Copyright (C) 2002 Ben Goodwin
+dnl This file is part of the nss-mysql library.
+dnl
+dnl The nss-mysql library is free software; you can redistribute it and/or
+dnl modify it under the terms of the GNU General Public License as published
+dnl by the Free Software Foundation; either version 2 of the License, or
+dnl (at your option) any later version.
+dnl
+dnl The nss-mysql library is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl GNU General Public License for more details.
+dnl
+dnl You should have received a copy of the GNU General Public License
+dnl along with the nss-mysql library; if not, write to the Free Software
+dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+dnl
+dnl $Id$ */
+
 AC_REVISION($Revision$)dnl
 AC_INIT(nss_mysql.c)
-AM_INIT_AUTOMAKE(libnss_mysql, 0.1)
+AM_INIT_AUTOMAKE(libnss_mysql, 0.2d)
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
-dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_LIBTOOL
 
-dnl Checks for libraries.
 AC_ARG_WITH(mysql-inc, [  --with-mysql-inc=DIR    Location of your MySQL include files],
 [
 case "${withval}" in
@@ -37,11 +53,9 @@ fi
 AC_CHECK_LIB(mysqlclient, mysql_connect, ,
              [AC_MSG_ERROR(Unable find a functioning MySQL library)])
 
-dnl Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS(syslog.h unistd.h mysql/mysql.h mysql.h nss.h strings.h)
 
-dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_UID_T
 AC_TYPE_SIZE_T
@@ -55,7 +69,6 @@ case "$have_intptr_t" in
    no) AC_DEFINE_UNQUOTED(intptr_t, int) ;;
 esac
 
-dnl Checks for library functions.
 AC_CHECK_FUNCS(strcspn strspn strtok, ,
                [AC_MSG_ERROR(The above function is required)])
 AC_CHECK_FUNCS(mysql_connect mysql_ping mysql_init)
@@ -78,7 +91,7 @@ AC_TRY_COMPILE([
 [have_func=yes],
 [have_func=no])
 case "$have_func" in
-  yes) AC_DEFINE(HAVE_UUFUNCUU) ;;
+  yes) AC_DEFINE(HAVE___FUNC__) ;;
    no) ;;
 esac
 
