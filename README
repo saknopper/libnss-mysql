@@ -60,6 +60,14 @@ For the impatient
     On systems with older or nonstandard MySQL installations, you may
     need to use the --with-mysql-lib and/or --with-mysql-inc options.
 
+    You may use a section called [libnss_mysql] in your 'my.cnf' file to
+    specify various options.  Options that should work:
+        compress
+        debug
+        init-command
+        user
+        password
+
 Debugging
 =========
     Serious problems will sent to syslog, so check there first.
@@ -116,5 +124,6 @@ Tested with
 
     Solaris 8/x86, MySQL 3.23.52, gcc 3.1
     Solaris 8/sparc, MySQL 3.23.52, gcc 2.95.3, 3.0.2 (32 & 64-bit), 3.2
+    Solaris 6/sparc, MySQL 3.23.39, gcc 2.95.2
 
 
