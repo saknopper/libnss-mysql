@@ -194,10 +194,15 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
 
   DENTER
   num_rows = _nss_mysql_num_rows (mresult);
-  if (num_rows == 0)
-    DSRETURN (NSS_NOTFOUND)
-
   align (buffer, buflen, char *);
+
+  /* Return empty/NULL group list if no members */
+  if (num_rows == 0)
+    {
+      gr->gr_mem = (char **) (uintptr_t)buffer;
+      DSRETURN (NSS_SUCCESS)
+    }
+
   members = (char **)buffer;
   strings_offset = (num_rows + 1) * sizeof (char *);
   /* Allow room for NUM_ROWS + 1 pointers */
