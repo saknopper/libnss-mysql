@@ -46,7 +46,7 @@ CREATE TABLE users (
   class varchar(64) NOT NULL default '',
   gecos varchar(128) NOT NULL default '',
   homedir varchar(255) NOT NULL default '',
-  shell varchar(64) NOT NULL default '/bin/bash',
+  shell varchar(64) NOT NULL default '/bin/sh',
   password varchar(34) NOT NULL default 'x',
   expire bigint(20) NOT NULL default '0',
   PRIMARY KEY  (uid),
@@ -63,16 +63,29 @@ INSERT INTO grouplist (gid,username)
     VALUES (5000,'cinergi');
 
 # The permissions ...
+GRANT USAGE ON *.* TO `nss-root`@`localhost` IDENTIFIED BY 'rootpass';
 GRANT USAGE ON *.* TO `nss-user`@`localhost` IDENTIFIED BY 'userpass';
 
-GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`, `password`,
+GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`,
               `pwchange`,`class`,`expire`)
              ON `auth`.`users`
              TO 'nss-user'@'localhost';
+GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`, `password`,
+              `pwchange`,`class`,`expire`)
+             ON `auth`.`users`
+             TO 'nss-root'@'localhost';
+
 GRANT Select (`name`, `password`, `gid`)
              ON `auth`.`groups`
              TO 'nss-user'@'localhost';
+GRANT Select (`name`, `password`, `gid`)
+             ON `auth`.`groups`
+             TO 'nss-root'@'localhost';
+
 GRANT Select (`username`, `gid`)
              ON `auth`.`grouplist`
              TO 'nss-user'@'localhost';
+GRANT Select (`username`, `gid`)
+             ON `auth`.`grouplist`
+             TO 'nss-root'@'localhost';
 
