@@ -21,7 +21,7 @@ AC_REVISION($Revision$)dnl
 AC_INIT(nss_main.c)
 AC_CANONICAL_SYSTEM
 AC_PREFIX_DEFAULT()
-AM_INIT_AUTOMAKE(libnss_mysql, 0.3)
+AM_INIT_AUTOMAKE(libnss_mysql, 0.4dev)
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
