@@ -156,7 +156,6 @@ _nss_mysql_getgrmem (nss_backend_t *be, void *args)
   MYSQL_RES *mresult = NULL;
   group_info_t gi;
 
-  LOCK;
 #ifdef HAVE_NSS_H
   gi.start = start;
   gi.size = size;
@@ -171,6 +170,7 @@ _nss_mysql_getgrmem (nss_backend_t *be, void *args)
   gi.group = -1;
 #endif
 
+  LOCK;
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNAME, user, 0, &conf.sql.query.gidsbymem,
                               nfalse, &gi, NULL, 0, errnop,
@@ -183,6 +183,7 @@ _nss_mysql_getgrmem (nss_backend_t *be, void *args)
                               0, NULL, _nss_mysql_load_gidsbymem, &mresult,
                               "initgroups");
 #endif
+  UNLOCK;
   if (retVal != NSS_SUCCESS)
     return (retVal);
 
