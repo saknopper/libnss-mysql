@@ -24,9 +24,10 @@ static const char rcsid[] =
     "$Id$";
 
 #include "nss_mysql.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include <stdio.h>      /* fprintf() */
+#include <stdlib.h>     /* atoi() */
+#include <stdarg.h>     /* va_start() */
+#include <sys/stat.h>   /* umask() */
 
 /* 
  * GNU source only defines RTLD_DEFAULT if __USE_GNU is set
@@ -41,6 +42,8 @@ pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_once_t _nss_mysql_once_control = {PTHREAD_ONCE_INIT};
 static int _nss_mysql_locked_by_atfork = 0;
 
+#define MAX_MSG_SIZE 1024
+
 /*
  * Debugs to either a file, stderr, or syslog, depending on the environ var
  * LIBNSS_MYSQL_DEBUG
@@ -53,14 +56,14 @@ void
 _nss_mysql_debug (char *fmt, ...)
 {
   va_list ap;
-  char msg[1000];
+  char msg[MAX_MSG_SIZE];
   FILE *fh;
   char *env;
   int type = 0;
   mode_t old_mask;
 
   va_start (ap, fmt);
-  vsnprintf (msg, 1000, fmt, ap);
+  vsnprintf (msg, MAX_MSG_SIZE, fmt, ap);
   env = getenv ("LIBNSS_MYSQL_DEBUG");
   if (env)
     type = atoi (env);
@@ -89,6 +92,27 @@ _nss_mysql_debug (char *fmt, ...)
   va_end (ap);
 }
 #endif
+
+/*
+ *                          THREADING NOTES
+ *
+ * libnss-mysql is *not* to be linked against any threading library.
+ * Instead, check for pthread functions in the current namespace
+ * by using dlsym() and RTLD_DEFAULT.  This way we don't litter every
+ * application with a thread library (since libnss-mysql would be linked
+ * against it and so many applications would dlopen libnss-mysql).
+ * Applications often misbehave when a thread environment is unexpected
+ *
+ * libnss-mysql is *not* to be linked against the threaded version
+ * of MySQL for the same reasons.  libnss-mysql is not coded in such
+ * a way that a threaded MySQL library is needed, anyway.
+ *
+ * libnss-mysql locks just prior to calling _nss_mysql_lookup() and
+ * unlocks when done with it and all data handled by it.  Since the lock
+ * occurs so early on and lasts so long, libnss-mysql doesn't perform
+ * that well in a heavily threaded application (e.g. a threaded radius
+ * server).  Use of "nscd" is highly recommended.
+ */
 
 /*
  * Before fork() processing begins, the prepare fork handler is called
@@ -192,7 +216,6 @@ _nss_mysql_init (void)
       if (atexit(_nss_mysql_atexit_handler) == RETURN_SUCCESS)
         atexit_isset = ntrue;
     }
-  UNLOCK;
   DSRETURN (_nss_mysql_load_config ())
 }
 
@@ -206,10 +229,10 @@ _nss_mysql_log (int priority, char *fmt, ...)
 {
   DN ("_nss_mysql_log")
   va_list ap;
-  char msg[1000];
+  char msg[MAX_MSG_SIZE];
 
   va_start (ap, fmt);
-  vsnprintf (msg, 1000, fmt, ap);
+  vsnprintf (msg, MAX_MSG_SIZE, fmt, ap);
   syslog (priority, "%s: %s", PACKAGE, msg);
   va_end (ap);
 }
@@ -229,8 +252,8 @@ _nss_mysql_default_destr (nss_backend_t *be, void *args)
 
 /*
  * SET/END ent's call this.  While the definition of endent is to close
- * the file, I see no reason to actually do that - just clear the
- * current result set.
+ * the "file", we need to keep the MySQL link persistent, so we just
+ * clear any lingering MySQL result set.
  */
 void
 _nss_mysql_reset_ent (MYSQL_RES **mresult)
