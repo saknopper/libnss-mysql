@@ -119,7 +119,7 @@ _nss_mysql_validate_socket (void)
   return (ntrue);
 }
 
-static NSS_STATUS
+NSS_STATUS
 _nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful)
 {
 
