@@ -23,6 +23,10 @@
 #endif
 #ifdef HAVE_NSS_H
 #include <nss.h>
+#elif defined HAVE_NSS_COMMON_H
+#include <nss_common.h>
+#else
+#error I need either nss.h or nss_common.h!
 #endif
 #ifdef HAVE_MYSQL_MYSQL_H
 #include <mysql/mysql.h>
@@ -31,7 +35,7 @@
 #endif
 #include <sys/socket.h>
 
-#ifdef HAVE_UUFUNCUU
+#ifdef HAVE___FUNC__
 #define FNAME __func__
 #else
 #define FNAME "UNKNOWN"
