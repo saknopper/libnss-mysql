@@ -4,15 +4,20 @@ MySQL for NSS systems
 =====================
 Please read the file INSTALL for generic installation details.
 
-NOTE: Solaris 9 is currently unsupported.  Sun changed something in the
-      API that's preventing the library from properly functioning.  Fixing
-      this is on my TODO list ...
+NOTE: Solaris 9 is not fully unsupported.  Sun's PAM modules have become
+      so restrictive that you can't even properly authenticate via PAM
+      anymore if there's a "mysql" in /etc/nsswitch.conf.  System routines
+      like getpwnam will still work, so you can work around it some by
+      compiling your apps with PAM turned *off* - however logging in via
+      system programs such as telnet will fail.  I'll be addressing this
+      when I can; unfortunately it requires a PAM module that I'd need to
+      write.  It's on my TODO list ...
 
 Prerequisites
 =============
-	GCC
-	GNU Make
-	MySQL client library & header files
+    GCC
+    GNU Make
+    MySQL client library & header files
 
 Only GCC is supported at this time.  Sun Workshop's CC may work, but I do
 not have the resources to test it.
@@ -28,11 +33,11 @@ library if you do a couple of things.  First, get a 32-bit library installed
 and working.  Then:
     Build a 64-bit MySQL library and install it in a DIFFERENT place than
         your 32-bit MySQL library
-    Build a 64-bit libnss-mysql by re-running 'configure' and pointing
+    Build a 64-bit libnss-mysql by re-running 'configure' with the appropriate
+        CPPFLAGS settings in your environment (for gcc, "-m64") and pointing
         it at your 64-bit MySQL library (using --with-mysql-lib=...) and
         edit the resulting Makefile:
             Change 'libdir' to be '/usr/lib/sparcv9'
-            Change '-m32' to be '-m64' (GCC; if not GCC, you're on your own)
         Now compile and install, and you should now have 64-bit support.
     Test it by using programs such as 'ls' and 'ps' from the /usr/bin/sparcv9
     directory.
@@ -46,8 +51,8 @@ work OK.
 For the impatient
 =================
     ./configure
-	make
-	make install
+    make
+    make install
 
     Edit /etc/nss_mysql.cfg and /etc/nss_mysql_root.cfg.  Pay special
     attention to the socket location.  The default may not work in your
@@ -122,6 +127,7 @@ Tested with
     RedHat 7.2 and MySQL 3.23.49a
     RedHat 7.3 and MySQL 3.23.49a & 3.23.52
 
+    Solaris 9/sparc, MySQL 3.23.52, gcc 3.1 NOTE: PAM programs will fail
     Solaris 8/x86, MySQL 3.23.52, gcc 3.1
     Solaris 8/sparc, MySQL 3.23.52, gcc 2.95.3, 3.0.2 (32 & 64-bit), 3.2
     Solaris 6/sparc, MySQL 3.23.39, gcc 2.95.2
