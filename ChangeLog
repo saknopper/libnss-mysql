@@ -19,8 +19,8 @@
               As such, there's no more 'configure' option to specify the
               syslog facility to use
 
-    * BUGFIX: Initialize all config options to non-null values to prevent
-              O/S-dependant NULL dereference crashes.
+    * BUGFIX: Fixed Solaris coredump when debug was on and a non-local
+              MySQL server was specified
 
     * CHANGE: Create debug file with a umask of '000' so any process
               can write to it
@@ -34,6 +34,8 @@
     * CHANGE: Updated sample database: uid=primary autoincremeting key,
               gid=primary autoincrementing key, default values for password
               and shell, and cosmetic changes.  Nothing major
+
+    * CHANGE: port/socket are now optional parameters in the config file
 
     * CHANGE: Many updates to various documentation
 
