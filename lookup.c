@@ -57,7 +57,8 @@ _nss_mysql_lookup_name (const char *name, int qofs, const char *caller)
       _nss_mysql_free (query);
       function_return (NSS_UNAVAIL);
     }
-  _nss_mysql_escape_string (clean_name, name);
+  if (_nss_mysql_escape_string (clean_name, name) != NSS_SUCCESS)
+    function_return (NSS_UNAVAIL);
   snprintf (query, qsize, (char *)q, clean_name);
   _nss_mysql_free (clean_name);
   _nss_mysql_reset_ent ();
