@@ -49,12 +49,6 @@
 
 #include <pthread.h>
 
-#ifdef HAVE___FUNC__
-#define FNAME __func__
-#else
-#define FNAME "UNKNOWN"
-#endif
-
 #ifdef HAVE_NSS_H
 #define NSS_SUCCESS     NSS_STATUS_SUCCESS
 #define NSS_NOTFOUND    NSS_STATUS_NOTFOUND
@@ -64,14 +58,6 @@ typedef enum nss_status NSS_STATUS;
 #elif defined HAVE_NSS_COMMON_H
 typedef nss_status_t NSS_STATUS;
 #define NSS_ARGS(args)  ((nss_XbyY_args_t *)args)
-#else
-typedef enum
-{
-  NSS_SUCCESS,
-  NSS_NOTFOUND,
-  NSS_UNAVAIL,
-  NSS_TRYAGAIN
-} NSS_STATUS;
 #endif
 
 #define MAX_LINE_LEN    1024            /* Max line length in config file */
@@ -85,35 +71,7 @@ typedef enum
 #define MAX_LOG_LEN     2000            /* Max length of syslog entry */
 
 /* Use these as defaults until they're overriden via the config file */
-#define DEF_FACIL       LOG_AUTH
-#define DEF_PRIO        LOG_ERR
 #define DEF_RETRY       30
-#define DEF_DFLAGS      0
-
-/* Debug flags; used in conf.global.debug_flags and the debug function */
-#define D_MEMORY        0x0001          /* malloc, realloc, free, etc */
-#define D_FUNCTION      0x0002          /* function enter/leave */
-#define D_CONNECT       0x0004          /* MySQL connect/disconnect */
-#define D_QUERY         0x0008          /* MySQL queries */
-#define D_PARSE         0x0010          /* File & Query parsing */
-#define D_FILE          0x0020          /* File opening & closing */
-#define D_ALL           0x0040 - 1      /* All of the above */
-
-#define PTRSIZE sizeof (void *)     /* My attempt at being portable */
-
-#define FOFS(x,y) ((int)&(((x *)0)->y))     /* Get Field OfFSet */
-typedef unsigned char _nss_mysql_byte;      /* for pointer arithmetic */
-
-/* These should be used in almost every function for debugging purposes */
-#define function_enter _nss_mysql_debug (FNAME, D_FUNCTION, "BEGIN");
-#define function_leave _nss_mysql_debug (FNAME, D_FUNCTION, "LEAVE: -");
-#define function_return(to_return)                                            \
-  {                                                                           \
-    if (to_return == NSS_TRYAGAIN)                                            \
-      errno = ERANGE;                                                         \
-    _nss_mysql_debug (FNAME, D_FUNCTION, "LEAVE: %d",  to_return);            \
-    return to_return;                                                         \
-  }
 
 extern pthread_mutex_t lock;
 #define LOCK pthread_mutex_lock (&lock);
@@ -138,8 +96,7 @@ typedef enum {
     RETURN_FAILURE
 } freturn_t;
 
-typedef enum
-{
+typedef enum {
     BYNONE,
     BYNAME,
     BYNUM
@@ -153,7 +110,6 @@ typedef enum {
     FT_NONE,
     FT_PCHAR,    /* char *  Pointer to char (unallocated) */
     FT_UINT,
-    FT_SYSLOG,   /* incoming string, convert to appropriate integer */
 } ftype_t;
 
 /*
@@ -185,13 +141,13 @@ typedef struct {
     char        *getgrgid;
     char        *getgrent;
     char        *gidsbymem;     /* list of gids a username belongs to */
-    char        *memsbygid;     /* list of members a group has */
+    char        *memsbygid;     /* list of members a gid has */
 } sql_query_t;
 
 typedef struct {
-    nboolean    valid;
-    time_t      last_attempt;
-    nboolean    up;
+    nboolean    valid;      /* valid config for this server? */
+    time_t      last_attempt; /* Last time we tried this server */
+    nboolean    up;         /* self explanatory I hope */
 } server_status_t;
 
 typedef struct {
@@ -202,7 +158,7 @@ typedef struct {
     char        *password;  /* Password to connect with */
     char        *database;  /* SQL Database to open */
     unsigned int ssl;       /* Connect with CLIENT_SSL flag? */
-    server_status_t status;     /* */
+    server_status_t status;
 } sql_server_t;
 
 typedef struct {
@@ -212,9 +168,6 @@ typedef struct {
 
 typedef struct {
     int             retry;              /* retry server #0 every x seconds */
-    int             syslog_facility;    /* facility to log with */
-    int             syslog_priority;    /* Log at this prio and higher */
-    int             debug_flags;        /* if prio = debug, log only these */
 } global_conf_t;
 
 typedef struct {
@@ -223,7 +176,7 @@ typedef struct {
     sql_conf_t      sql;                /* [server] sections */
 } conf_t;
 
-#define CONF_INITIALIZER {0, {DEF_RETRY, DEF_FACIL, DEF_PRIO, DEF_DFLAGS} }
+#define CONF_INITIALIZER {0, {DEF_RETRY}}
 
 /*
  * As soon as a MySQL link is established, save the results of
@@ -244,7 +197,6 @@ typedef struct {
 } con_info_t;
 
 /* nss_main.c */
-void _nss_mysql_debug(const char *function, int flags, char *fmt, ...);
 void _nss_mysql_log (int priority, char *fmt, ...);
 #ifdef HAVE_NSS_COMMON_H
 NSS_STATUS _nss_mysql_default_destr (nss_backend_t *be, void *args);
@@ -268,7 +220,6 @@ NSS_STATUS _nss_mysql_fetch_row (MYSQL_ROW *row, MYSQL_RES *mresult);
 my_ulonglong _nss_mysql_num_rows (MYSQL_RES *mresult);
 unsigned long * _nss_mysql_fetch_lengths (MYSQL_RES *mresult);
 unsigned int _nss_mysql_num_fields (MYSQL_RES *mresult);
-
 void _nss_mysql_reset_ent (MYSQL_RES **mresult);
 NSS_STATUS _nss_mysql_escape_string (char *to, const char *from,
                                      MYSQL_RES **mresult);
@@ -293,3 +244,4 @@ NSS_STATUS _nss_mysql_lookup (lookup_t ltype, const char *name,
 NSS_STATUS _nss_mysql_build_query (lookup_t ltype, const char *name,
                                    unsigned int num, char **qin, char **qout,
                                    MYSQL_RES **mresult, const char *caller);
+
