@@ -13,3 +13,4 @@ stamp-h1
 .deps
 .libs
 *.gz
+autom4te-2.53.cache
