@@ -2,6 +2,10 @@
 
 2002-08-23  Ben Goodwin  <cinergi@users.sourceforge.net>
 
+    * lookup.c, lookup.h, memory.c, nss_config.c, nss_main.c,
+      nss_mysql.h, nss_support.h: Renamed memory functions to avoid
+      clashes.
+
     * lookup.c: Fixed memory leak 
 
     * lookup.h: Added CLOSE_RESULT in GET on the HAVE_NSS_COMMON_H side
