@@ -37,5 +37,5 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %doc sample
 
 %changelog
-* Sun Dec 29 2002 Ben Goodwin <cinergi@users.sourceforge.net> 1.0-1
+* Sun Dec 29 2002 Ben Goodwin <cinergi@users.sourceforge.net> 0.8-1
 - Initial version
