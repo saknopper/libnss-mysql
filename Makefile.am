@@ -23,8 +23,8 @@ lib_LTLIBRARIES = libnss_mysql.la
 libnss_mysql_la_SOURCES = nss_config.c nss_main.c nss_structures.c \
                           nss_support.c memory.c mysql.c lookup.c \
                           mysql-pwd.c mysql-spwd.c mysql-grp.c
-libnss_mysql_la_LDFLAGS = -version-info @LIBVER@:0:0
-
+libnss_mysql_la_LDFLAGS = -module -version-info @LIBVER@:0:0
+ 
 noinst_HEADERS = nss_mysql.h lookup.h
 CPPFLAGS = @CPPFLAGS@ -Wall -D_REENTRANT
 EXTRA_DIST = INTERNALS TODO FAQ sample/*.cfg sample/*.sql
