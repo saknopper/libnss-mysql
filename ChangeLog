@@ -16,6 +16,12 @@
     * BUGFIX: Fixed crash/hang under certain circumstances (usually when
               forking).
 
+    * BUGFIX: Don't re-create SQL query string every time we iterate
+              through a get*ent routine - will result in speedier lookups
+
+    * BUGFIX: Check for comment lines before checking for bracketed sections -
+              minor speed improvement
+
 0.5 - 0.6
 
     * NEW:    Support for Sun Workshop compiler
