@@ -50,7 +50,7 @@ conf_t  conf = { 0, 0 };
     int retVal, i;                                                            \
     int size;                                                                 \
                                                                               \
-    if (restrict && geteuid() != 0)                                           \
+    if (restrict && geteuid () != 0)                                          \
       return NSS_NOTFOUND;                                                    \
     LOCK;                                                                     \
     if (_nss_mysql_init (&conf, &other_state) != NSS_SUCCESS)                 \
@@ -90,9 +90,7 @@ conf_t  conf = { 0, 0 };
   {                                                                           \
     LOCK;                                                                     \
     type##_state.idx = 0;                                                     \
-    if (type##_state.mysql_result)                                            \
-      mysql_free_result(type##_state.mysql_result);                           \
-    type##_state.mysql_result = NULL;                                         \
+    _nss_mysql_close_sql (&type##_state, CLOSE_RESULT);                       \
     UNLOCK;                                                                   \
     return NSS_SUCCESS;                                                       \
   }
@@ -136,8 +134,7 @@ conf_t  conf = { 0, 0 };
               }                                                               \
             strcpy (type##_state.query[i], conf.sql[i].query.get##type);      \
           }                                                                   \
-        if (_nss_mysql_run_query (conf, &type##_state)                        \
-            != NSS_SUCCESS)                                                   \
+        if (_nss_mysql_run_query (conf, &type##_state) != NSS_SUCCESS)        \
           {                                                                   \
             UNLOCK;                                                           \
             return NSS_UNAVAIL;                                               \
@@ -164,3 +161,4 @@ GETENT (spent, spwd);
 ENDENT (grent);
 SETENT (grent);
 GETENT (grent, group);
+
