@@ -50,7 +50,7 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
   MYSQL_ROW row;
   int retVal;
   struct passwd *pw = (struct passwd *)result;
-  size_t offsets[7];
+  size_t offsets[8]; // 7 rows + an empty string
   unsigned long *lengths;
 
   retVal = _nss_mysql_fetch_row (&row, mresult);
@@ -65,7 +65,8 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
   offsets[4] = offsets[1] + lengths[1] + 1;
   offsets[5] = offsets[4] + lengths[4] + 1;
   offsets[6] = offsets[5] + lengths[5] + 1;
-  if (offsets[6] + lengths[6] + 1 > buflen)
+  offsets[7] = offsets[6] + 1 + 1;	// An empty string
+  if (offsets[7] + 1 + 1 > buflen)
     EXHAUSTED_BUFFER;
 
   memset (buffer, 0, buflen);
@@ -76,6 +77,12 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
   pw->pw_gecos = memcpy (buffer + offsets[4], row[4], lengths[4]);
   pw->pw_dir = memcpy (buffer + offsets[5], row[5], lengths[5]);
   pw->pw_shell = memcpy (buffer + offsets[6], row[6], lengths[6]);
+#ifdef HAVE_NSS_COMMON_H
+  // Without these, 'nscd' on Solaris will segfault
+  pw->pw_comment = pw->pw_gecos;
+  pw->pw_age = memcpy (buffer + offsets[7], "", 2); // empty string
+#endif
+
   return (NSS_SUCCESS);
 }
 
