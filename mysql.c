@@ -182,6 +182,8 @@ _nss_mysql_try_server (sql_server_t server)
 static nboolean
 _nss_mysql_check_existing_connection (void)
 {
+  static int euid = -1;
+
   function_enter;
   if (ci.valid == nfalse)
     function_return (nfalse);
@@ -190,8 +192,20 @@ _nss_mysql_check_existing_connection (void)
     {
        _nss_mysql_debug (FNAME, D_CONNECT,
                          "Socket changed - forcing reconnect");
+       /* Do *NOT* CLOSE_LINK - the socket is invalid! */
       _nss_mysql_close_sql (CLOSE_RESULT);
       ci.valid = nfalse;
+      function_return (nfalse);
+    }
+   /* Make sure euid hasn't changed, thus changing our access abilities */
+  if (euid == -1)
+    euid = geteuid();
+  else if (euid != geteuid())
+    {
+      _nss_mysql_debug (FNAME, D_CONNECT,
+                        "euid changed - forcing reconnect");
+      _nss_mysql_close_sql (CLOSE_LINK);
+      euid = geteuid();
       function_return (nfalse);
     }
   _nss_mysql_debug (FNAME, D_CONNECT, "Using existing link");
@@ -395,5 +409,14 @@ _nss_mysql_active_result (void)
   if (ci.result == NULL)
     function_return (nfalse);
   function_return (ntrue);
+}
+
+
+NSS_STATUS
+_nss_mysql_escape_string (char *to, const char *from)
+{
+  function_enter;
+  mysql_real_escape_string (&(ci.link), to, from, strlen(from));
+  function_return (NSS_SUCCESS);
 }
 
