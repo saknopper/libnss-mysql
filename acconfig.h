@@ -12,3 +12,6 @@
 
 /* Some systems have a LOG_AUTHPRIV syslog facility */
 #undef HAVE_LOG_AUTHPRIV
+
+/* Some systems have a LOG_FTP syslog facility */
+#undef HAVE_LOG_FTP
