@@ -16,6 +16,11 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * MySQL-specific functions; ALL MySQL calls that any other source functions
+ * need should come from here.
+ */
+
 static const char rcsid[] =
     "$Id$";
 
@@ -31,6 +36,10 @@ static const char rcsid[] =
 
 con_info_t ci = { nfalse, 0, 0, NULL };
 
+/*
+ * Immediately after connecting to a MySQL server, save the current
+ * socket information for later comparison purposes
+ */
 static freturn_t
 _nss_mysql_save_socket_info (void)
 {
@@ -49,6 +58,9 @@ _nss_mysql_save_socket_info (void)
   function_return (r);
 }
 
+/*
+ * Compare ORIG and CUR
+ */
 static nboolean
 _nss_mysql_is_same_sockaddr (struct sockaddr orig, struct sockaddr cur)
 {
@@ -78,6 +90,11 @@ _nss_mysql_is_same_sockaddr (struct sockaddr orig, struct sockaddr cur)
   function_return (ntrue);
 }
 
+/*
+ * Check to see what current socket info is and compare to the saved
+ * socket info (from _nss_mysql_save_socket_info() above).  Return
+ * NTRUE if the current socket and saved socket match.
+ */
 static nboolean
 _nss_mysql_validate_socket (void)
 {
@@ -114,6 +131,9 @@ _nss_mysql_validate_socket (void)
   function_return (ntrue);
 }
 
+/*
+ * Attempt to connect to server using info provided by SERVER
+ */
 static NSS_STATUS
 _nss_mysql_try_server (sql_server_t server)
 {
@@ -155,6 +175,7 @@ _nss_mysql_try_server (sql_server_t server)
 }
 
 /*
+ * Validate existing connection.
  * This does NOT run mysql_ping because that function is
  * extraordinarily slow (~doubles time to fetch a query)
  */
@@ -177,6 +198,13 @@ _nss_mysql_check_existing_connection (void)
   function_return (ntrue);
 }
 
+/*
+ * Connect to a MySQL server.  Try all servers defined until a working
+ * one is found.  If current server != primary server, attempt to revert
+ * to primary if RETRY (config option) seconds has passed and we're not
+ * in the middle of an active result set.
+ * Set CI.VALID to ntrue if we manage to connect to a server.
+ */
 NSS_STATUS
 _nss_mysql_connect_sql (conf_t conf)
 {
@@ -222,6 +250,12 @@ _nss_mysql_connect_sql (conf_t conf)
   function_return (NSS_UNAVAIL);
 }
 
+/*
+ * If flags | CLOSE_RESULT, then finish fetching any remaining MySQL rows
+ * and free the MySQL result stored in CI.
+ * If flags | CLOSE_LINK, then CLOSE_RESULT and close the link, setting
+ * CI.VALID to nfalse.
+ */
 NSS_STATUS
 _nss_mysql_close_sql (int flags)
 {
@@ -244,6 +278,11 @@ _nss_mysql_close_sql (int flags)
   function_return (NSS_SUCCESS);
 }
 
+/*
+ * Run QUERY against an existing MySQL connection.  If the query fails,
+ * try to run the query against all other defined MySQL servers (in case
+ * the query failure is due to a server failure/loss).
+ */
 NSS_STATUS
 _nss_mysql_run_query (conf_t conf, char *query)
 {
@@ -262,24 +301,21 @@ _nss_mysql_run_query (conf_t conf, char *query)
         continue;
       if (!query || !strlen (query))
         {
-          _nss_mysql_log (LOG_ALERT,
-                          "Server #%d is missing a query in config",
-                          ci.server_num);
+          _nss_mysql_log (LOG_ALERT, "Empty/NULL query");
           continue;
         }
-      _nss_mysql_debug (FNAME, D_QUERY,
-                        "Executing query on server #%d: %s",
+      _nss_mysql_debug (FNAME, D_QUERY, "Executing query on server #%d: %s",
                         ci.server_num, query);
       if ((mysql_query (&(ci.link), query)) != RETURN_SUCCESS)
         {
-          _nss_mysql_log (LOG_ALERT, "Query failed: %s",
+          _nss_mysql_log (LOG_ALERT, "mysql_query failed: %s",
                           mysql_error (&(ci.link)));
           _nss_mysql_close_sql (CLOSE_LINK);
           continue;
         }
       if ((ci.result = mysql_use_result (&(ci.link))) == NULL)
         {
-          _nss_mysql_log (LOG_ALERT, "use_result failed: %s",
+          _nss_mysql_log (LOG_ALERT, "mysql_use_result failed: %s",
                           mysql_error (&(ci.link)));
           _nss_mysql_close_sql (CLOSE_LINK);
           continue;
@@ -290,6 +326,10 @@ _nss_mysql_run_query (conf_t conf, char *query)
   function_return (NSS_UNAVAIL);
 }
 
+/*
+ * Fetch next row from a MySQL result set and load the data into
+ * RESULT using FIELDS as a guide for what goes where
+ */
 NSS_STATUS
 _nss_mysql_load_result (void *result, char *buffer, size_t buflen,
                         field_info_t *fields)
@@ -332,6 +372,11 @@ _nss_mysql_load_result (void *result, char *buffer, size_t buflen,
   function_return (NSS_SUCCESS);
 }
 
+/*
+ * SET/END ent's call this.  While the definition of endent is to close
+ * the file, I see no reason to actually do that - just clear the
+ * current result set.
+ */
 void
 _nss_mysql_reset_ent (void)
 {
@@ -340,6 +385,9 @@ _nss_mysql_reset_ent (void)
   function_leave;
 }
 
+/*
+ * Returns NTRUE if there's a currently-active result set
+ */
 nboolean
 _nss_mysql_active_result (void)
 {
