@@ -1,6 +1,6 @@
 Summary: NSS library for MySQL.
 Name: libnss-mysql
-Version: 1.2
+Version: 1.3
 Release: 1
 Source0: http://prdownloads.sourceforge.net/libnss-mysql/libnss-mysql-%{version}.tar.gz
 URL: http://libnss-mysql.sourceforge.net
@@ -18,13 +18,6 @@ Store your UNIX user accounts in MySQL
 ./configure
 make
 
-# Manually relink libnss-mysql with a few libraries static
-# I can't find a way to do this with libtool (as it's technically not portable)
-# This also assumes libmysqlclient.so* is in default linker path or
-# /usr/lib/mysql ...
-rm -f .libs/libnss_mysql.so.2.0.0
-gcc -shared .libs/*.o -L/usr/lib/mysql -Wl,-Bstatic -lmysqlclient -lz -Wl,-Bdynamic -ldl -lm -lcrypt -lnsl -Wl,-znodelete -Wl,-soname -Wl,libnss_mysql.so.2 -Wl,--version-script,.libs/libnss_mysql.ver -o .libs/libnss_mysql.so.2.0.0
-
 %install
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/{etc,lib}
@@ -38,10 +31,15 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %attr(0755,root,root) /lib/*.so*
 %attr(0644,root,root) %config(noreplace) /etc/libnss-mysql.cfg
 %attr(0600,root,root) %config(noreplace) /etc/libnss-mysql-root.cfg
-%doc README ChangeLog AUTHORS THANKS NEWS COPYING FAQ DEBUGGING UPGRADING
+%doc README ChangeLog AUTHORS THANKS NEWS COPYING FAQ DEBUGGING UPGRADING TODO
 %doc sample
 
 %changelog
+* Sat Apr 10 2004 Ben Goodwin <cinergi@users.sourceforge.net> 1.3-1
+- Update to 1.3
+- Remove manual static re-link (1.3 relieves the need for this)
+- doc += TODO
+
 * Sun Mar 28 2004 Ben Goodwin <cinergi@users.sourceforge.net> 1.2-1
 - Update to 1.2
 
