@@ -1,5 +1,7 @@
 develop tests - including multi-threaded
-Solaris support
 Make my own, non-destructive, strtok replacement?
 Align pointers stored in buffer
 Better/more generic parser?
+Support other NSS calls (like group_bymember)
+Solaris 9 support
+Check current error returns/conditions; properly use errno, herrno etc
