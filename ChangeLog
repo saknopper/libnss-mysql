@@ -1,5 +1,22 @@
 # $Id$
 
+0.8 - 0.9
+
+    * BUGFIX: Don't compile against threaded MySQL libraries.  It was
+              causing deadlocks
+
+    * BUGFIX: Preallocate exactly as much memory as needed to create the
+              MySQL query string; fixes loops/errors with usernames that
+              were extra-long
+
+    * CHANGE: Only one server is supported.  The multi-server code was
+              always buggy so I've decided to remove it, at least for 1.0.
+              It also part of the looping mentioned above
+
+    * CHANGE: Renamed module from libnss_mysql to libnss-mysql for consistency.
+              This includes renaming configuration files.  See UPGRADING for
+              more information
+
 0.7a - 0.8
 
     * NEW:    Added RPM SPEC file to distribution
