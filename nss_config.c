@@ -33,6 +33,26 @@ typedef unsigned char nbyte;
 #define FOFS(x,y) ((int)&(((x *)0)->y))     /* Get Field OFfSet */
 
 /*
+ * Parse types for _nss_mysql_lis.  This is how I accomplish
+ * loading data into a struct without referencing the structure's members
+ */
+typedef enum {
+    FT_NONE,
+    FT_PCHAR,    /* (char *) */
+    FT_UINT,     /* (unsigned int) */
+} ftype_t;
+
+/*
+ * Mostly used to use a string to describe where in a structure something
+ * goes.  I overload it's purpose in a couple places though
+ */
+typedef struct {
+    char    *name;
+    int     ofs;
+    int     type;
+} field_info_t;
+
+/*
  * Map config keys to the struct offsets to load their values into
  */
 static field_info_t server_fields[] =
@@ -387,37 +407,5 @@ _nss_mysql_load_config (void)
     return (NSS_UNAVAIL);
   conf.valid = ntrue;
   return (NSS_SUCCESS);
-}
-
-/*
- * Free all memory related to conf and reset it back to the defaults
- */
-void
-_nss_mysql_reset_config (void)
-{
-  int i;
-  field_info_t *f;
-
-  for (i = 0; i < MAX_SERVERS; i++)
-  {
-    _nss_mysql_free (conf.sql.server[i].host);
-    _nss_mysql_free (conf.sql.server[i].socket);
-    _nss_mysql_free (conf.sql.server[i].username);
-    _nss_mysql_free (conf.sql.server[i].password);
-    _nss_mysql_free (conf.sql.server[i].database);
-  }
-
-  for (f = query_fields; f->name; f++)
-    {
-      /* I use variables for clarity here.  This is ugly */
-      char *q;
-      nbyte *b;
-      b = (nbyte *)&conf.sql.query + f->ofs;
-      (uintptr_t *)q = *(uintptr_t *)b;
-      _nss_mysql_free (q);
-    }
-
-  memset (&conf, 0, sizeof (conf));
-  conf.global.retry = DEF_RETRY;
 }
 
