@@ -136,7 +136,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
   MYSQL_ROW row;
   int retVal;
   struct group *gr = (struct group *)result;
-  char **members = (char **)buffer;
+  char **members;
   unsigned long num_rows, i;
   unsigned long *lengths;
   size_t strings_offset;
@@ -148,6 +148,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
     function_return (NSS_NOTFOUND);
 
   align (buffer, buflen, char *);
+  members = (char **)buffer;
   strings_offset = (num_rows + 1) * PTRSIZE;
   strings_len = buflen - strings_offset;
   /* Allow room for NUM_ROWS + 1 pointers */
