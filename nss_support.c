@@ -254,24 +254,43 @@ _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
 
   function_enter;
   num_rows = _nss_mysql_num_rows (mresult);
+
+  // Nothing to load = success
   if (num_rows == 0)
-    function_return (NSS_NOTFOUND);
+    function_return (NSS_SUCCESS);
 
-  if (num_rows + *gi->start > gi->limit)
-    function_return (NSS_UNAVAIL);  // TODO: Proper return value? errno?
+  // If we need more room and we're allowed to alloc it, alloc it
+  if (num_rows + *gi->start > *gi->size)
+    {
+      long int newsize = *gi->size;
 
-  // FIXME: realloc instead
-  if ((num_rows + *gi->start) * sizeof (gid_t) > *gi->size)
-    function_return (NSS_UNAVAIL);
+      if (gi->limit <= 0)                // Allocate as much as we need
+        newsize = num_rows + *gi->start;
+      else if (*gi->size != gi->limit)   // Allocate to limit
+        newsize = gi->limit;
+
+      if (newsize != *gi->size)         // If we've got more room, do it
+        {
+          gid_t *groups = *gi->groupsp;
+          gid_t *newgroups;
+
+          newgroups = _nss_mysql_realloc (groups, newsize * sizeof (*groups));
+          if (newgroups != NULL)
+            {
+              *gi->groupsp = groups = newgroups;
+              *gi->size = newsize;
+            }
+        }
+    }
 
   groups = *gi->groupsp;
-  for (i = 0; i < num_rows; i++)
+  for (i = *gi->start; i < *gi->size; i++)
     {
       retVal = _nss_mysql_fetch_row (&row, mresult);
       if (retVal != NSS_SUCCESS)
         function_return (retVal);
       gid = atoi (row[0]);
-      if (gid != gi->group)
+      if ((long int)gid != gi->group)
         groups[(*gi->start)++] = gid;
     }
 
