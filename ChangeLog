@@ -10,6 +10,9 @@
 
     * CHANGE: Minimum supported MySQL version is 3.23.09
 
+    * CHANGE: Removed 'ssl' config option - it's not supposed to be used by
+              client programs
+
 1.0 - 1.1
 
     * CHANGE: 'configure' now takes just --with-mysql to specify MySQL
