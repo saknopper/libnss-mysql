@@ -214,14 +214,21 @@ typedef struct {
 } server_status_t;
 
 typedef struct {
-    char            *host;      /* SQL Server to connect to */
-    unsigned int    port;       /* SQL port to connect to */
-    char            *socket;    /* SQL socket path to use */
-    char            *username;  /* Username to connect as */
-    char            *password;  /* Password to connect with */
-    char            *database;  /* SQL Database to open */
-    unsigned int    ssl;        /* Connect with CLIENT_SSL flag? */
-    server_status_t status;
+    unsigned int timeout;        /* Connect timeout in seconds */
+    unsigned int compress;       /* Use compressed MySQL protocol? */
+    char         *initcmd;       /* Send to server at time of connect */
+    unsigned int ssl;            /* Connect with CLIENT_SSL flag? */
+} server_options_t;
+
+typedef struct {
+    char             *host;      /* SQL Server to connect to */
+    unsigned int     port;       /* SQL port to connect to */
+    char             *socket;    /* SQL socket path to use */
+    char             *username;  /* Username to connect as */
+    char             *password;  /* Password to connect with */
+    char             *database;  /* SQL Database to open */
+    server_options_t options;
+    server_status_t  status;
 } sql_server_t;
 
 typedef struct {
