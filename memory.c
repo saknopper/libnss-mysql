@@ -29,28 +29,37 @@ static const char rcsid[] =
 void
 _nss_mysql_free (void *ptr)
 {
+  DN ("_nss_mysql_free")
+
+  DENTER
   if (ptr)
     free (ptr);
   ptr = NULL;
+  DEXIT
 }
 
 void *
 _nss_mysql_malloc (size_t size)
 {
+  DN ("_nss_mysql_malloc")
   static void *ptr;
 
+  DENTER
   ptr = malloc (size);
   if (ptr == NULL)
     _nss_mysql_log (LOG_ALERT, "malloc of %d bytes failed", size);
-  return (ptr);
+  DPRETURN (ptr)
 }
 
 void *
 _nss_mysql_realloc (void *ptr, size_t size)
 {
+  DN ("_nss_mysql_realloc")
+
+  DENTER
   ptr = realloc (ptr, size);
   if (ptr == NULL)
     _nss_mysql_log (LOG_ALERT, "realloc of %d bytes failed", size);
-  return (ptr);
+  DPRETURN (ptr)
 }
 

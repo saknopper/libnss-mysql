@@ -23,20 +23,24 @@
     NSS_STATUS                                                               \
     _nss_mysql_set##type (void)                                              \
     {                                                                        \
+      DN ("_nss_mysql_set" #type)                                            \
+      DENTER                                                                 \
       LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
       UNLOCK;                                                                \
-      return (NSS_SUCCESS);                                                  \
+      DPRETURN (NSS_SUCCESS)                                                 \
     }
 
 #define ENDENT(type)                                                         \
     NSS_STATUS                                                               \
     _nss_mysql_end##type (void)                                              \
     {                                                                        \
+      DN ("_nss_mysql_end" #type)                                            \
+      DENTER                                                                 \
       LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
       UNLOCK;                                                                \
-      return (NSS_SUCCESS);                                                  \
+      DPRETURN (NSS_SUCCESS)                                                 \
     }
 
 #elif defined (HAVE_NSS_COMMON_H)
@@ -45,20 +49,24 @@
     NSS_STATUS                                                               \
     _nss_mysql_set##type (nss_backend_t *be, void *args)                     \
     {                                                                        \
+      DN ("_nss_mysql_set" #type)                                            \
+      DENTER                                                                 \
       LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
       UNLOCK;                                                                \
-      return (NSS_SUCCESS);                                                  \
+      DPRETURN (NSS_SUCCESS)                                                 \
     }
 
 #define ENDENT(type)                                                         \
     NSS_STATUS                                                               \
     _nss_mysql_end##type (nss_backend_t *be, void *args)                     \
     {                                                                        \
+      DN ("_nss_mysql_end" #type)                                            \
+      DENTER                                                                 \
       LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
       UNLOCK;                                                                \
-      return (NSS_SUCCESS);                                                  \
+      DPRETURN (NSS_SUCCESS)                                                 \
     }
 
 #define CONSTR(type)                                                         \
@@ -66,13 +74,15 @@
     _nss_mysql_##type##_constr (const char *db_name, const char *src_name,   \
                                 const char *cfg_args)                        \
     {                                                                        \
+      DN ("_nss_mysql_" #type "_constr")                                     \
       nss_backend_t *be;                                                     \
+      DENTER                                                                 \
       be = (nss_backend_t *) _nss_mysql_malloc (sizeof (*be));               \
       if (!be)                                                               \
-        return (NULL);                                                       \
+        DPRETURN (NULL)                                                      \
       be->ops = type##_ops;                                                  \
       be->n_ops = sizeof (type##_ops) / sizeof (nss_backend_op_t);           \
-      return (be);                                                           \
+      DPRETURN (be)                                                          \
     }
 #endif
 

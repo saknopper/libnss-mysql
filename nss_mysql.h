@@ -73,6 +73,26 @@ typedef nss_status_t NSS_STATUS;
 /* Use these as defaults until they're overridden via the config file */
 #define DEF_RETRY       30
 
+#define DEBUG
+#ifdef DEBUG
+void _nss_mysql_debug (char *fmt, ...);
+#define DEBUG_FILE "/tmp/libnss_mysql-debug.log"
+#define D _nss_mysql_debug
+#define DN(n) static const char FUNCNAME[] = n;
+#define DENTER D ("%s: ENTER", FUNCNAME);
+#define DIRETURN(r) { D ("%s: EXIT (%d)", FUNCNAME, r); return (r); }
+#define DPRETURN(r) { D ("%s: EXIT (%p)", FUNCNAME, r); return (r); }
+#define DEXIT D ("%s: EXIT", FUNCNAME);
+#else
+#define D
+#define DN(n)
+#define DENTER
+#define DIRETURN(r) return (r);
+#define DPRETURN(r) return (r);
+#define DEXIT
+#define FUNCNAME ""
+#endif
+
 extern pthread_mutex_t lock;
 #define LOCK pthread_mutex_lock (&lock)
 #define UNLOCK pthread_mutex_unlock (&lock)
@@ -93,14 +113,14 @@ extern pthread_mutex_t lock;
 #define EXHAUSTED_BUFFER                                                     \
   {                                                                          \
     *errnop = ERANGE;                                                        \
-    return (NSS_TRYAGAIN);                                                   \
+    DIRETURN (NSS_TRYAGAIN);                                                 \
   }
 #else
 #define EXHAUSTED_BUFFER                                                     \
   {                                                                          \
     if (errnop)                                                              \
       *errnop = 1;                                                           \
-    return (NSS_NOTFOUND);                                                   \
+    DIRETURN (NSS_NOTFOUND);                                                 \
   }
 #endif
 

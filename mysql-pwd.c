@@ -36,15 +36,16 @@ _nss_mysql_getpwnam_r (const char *name, struct passwd *result, char *buffer,
 _nss_mysql_getpwnam_r (nss_backend_t *be, void *args)
 #endif
 {
-  static const char FNAME[] = "_nss_mysql_getpwnam_r";
+  DN ("_nss_mysql_getpwnam_r")
   int retVal;
   MYSQL_RES *mresult = NULL;
 
+  DENTER
   LOCK;
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNAME, name, 0, &conf.sql.query.getpwnam,
                               nfalse, result, buffer, buflen, errnop,
-                              _nss_mysql_load_passwd, &mresult, FNAME);
+                              _nss_mysql_load_passwd, &mresult, FUNCNAME);
 #else
   retVal = _nss_mysql_lookup (BYNAME, NSS_ARGS(args)->key.name, 0,
                               &conf.sql.query.getpwnam, nfalse,
@@ -52,12 +53,12 @@ _nss_mysql_getpwnam_r (nss_backend_t *be, void *args)
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
                               &NSS_ARGS(args)->erange,
-                              _nss_mysql_load_passwd, &mresult, FNAME);
+                              _nss_mysql_load_passwd, &mresult, FUNCNAME);
   if (retVal == NSS_SUCCESS)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  return (retVal);
+  DIRETURN (retVal)
 }
 
 /*
@@ -71,15 +72,16 @@ _nss_mysql_getpwuid_r (uid_t uid, struct passwd *result, char *buffer,
 _nss_mysql_getpwuid_r (nss_backend_t *be, void *args)
 #endif
 {
-  static const char FNAME[] = "_nss_mysql_getpwuid_r";
+  DN ("_nss_mysql_getpwuid_r")
   int retVal;
   MYSQL_RES *mresult = NULL;
 
+  DENTER
   LOCK;
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNUM, NULL, uid, &conf.sql.query.getpwuid,
                               nfalse, result, buffer, buflen, errnop,
-                              _nss_mysql_load_passwd, &mresult, FNAME);
+                              _nss_mysql_load_passwd, &mresult, FUNCNAME);
 #else
   retVal = _nss_mysql_lookup (BYNUM, NULL, NSS_ARGS(args)->key.uid,
                               &conf.sql.query.getpwuid, nfalse,
@@ -87,12 +89,12 @@ _nss_mysql_getpwuid_r (nss_backend_t *be, void *args)
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
                               &NSS_ARGS(args)->erange,
-                              _nss_mysql_load_passwd, &mresult, FNAME);
+                              _nss_mysql_load_passwd, &mresult, FUNCNAME);
   if (retVal == NSS_SUCCESS)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  return (retVal);
+  DIRETURN (retVal)
 }
 
 /*
@@ -116,26 +118,27 @@ _nss_mysql_getpwent_r (struct passwd *result, char *buffer, size_t buflen,
 _nss_mysql_getpwent_r (nss_backend_t *be, void *args)
 #endif
 {
-  static const char FNAME[] = "_nss_mysql_getpwent_r";
+  DN ("_nss_mysql_getpwent_r")
   int retVal;
 
+  DENTER
   LOCK;
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, &conf.sql.query.getpwent,
                               nfalse, result, buffer, buflen, errnop,
-                              _nss_mysql_load_passwd, &mresult_pwent, FNAME);
+                              _nss_mysql_load_passwd, &mresult_pwent, FUNCNAME);
 #else
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, &conf.sql.query.getpwent,
                               nfalse, NSS_ARGS(args)->buf.result,
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
                               &NSS_ARGS(args)->erange,
-                              _nss_mysql_load_passwd, &mresult_pwent, FNAME);
+                              _nss_mysql_load_passwd, &mresult_pwent, FUNCNAME);
   if (retVal == NSS_SUCCESS)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
   UNLOCK;
-  return (retVal);
+  DIRETURN (retVal)
 }
 
 #ifdef HAVE_NSS_COMMON_H

@@ -47,17 +47,19 @@ NSS_STATUS
 _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
                         MYSQL_RES *mresult, int *errnop)
 {
+  DN ("_nss_mysql_load_passwd")
   MYSQL_ROW row;
   int retVal;
   struct passwd *pw = (struct passwd *)result;
   size_t offsets[8]; // 7 rows + an empty string
   unsigned long *lengths;
 
+  DENTER
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
-    return (retVal);
+    DIRETURN (retVal)
   if (_nss_mysql_num_fields (mresult) != 7)
-    return (NSS_UNAVAIL);
+    DIRETURN (NSS_UNAVAIL)
 
   lengths = _nss_mysql_fetch_lengths (mresult);
   offsets[0] = 0;
@@ -83,24 +85,26 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
   pw->pw_age = memcpy (buffer + offsets[7], "", 2); // empty string
 #endif
 
-  return (NSS_SUCCESS);
+  DIRETURN (NSS_SUCCESS)
 }
 
 NSS_STATUS 
 _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
                         MYSQL_RES *mresult, int *errnop)
 {
+  DN ("_nss_mysql_load_shadow")
   MYSQL_ROW row;
   int retVal;
   struct spwd *sp = (struct spwd *)result;
   size_t offsets[9];
   unsigned long *lengths;
 
+  DENTER
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
-    return (retVal);
+    DIRETURN (retVal)
   if (_nss_mysql_num_fields (mresult) != 9)
-    return (NSS_UNAVAIL);
+    DIRETURN (NSS_UNAVAIL)
 
   lengths = _nss_mysql_fetch_lengths (mresult);
   offsets[0] = 0;
@@ -118,13 +122,14 @@ _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
   sp->sp_inact = atol (row[6]);
   sp->sp_expire = atol (row[7]);
   sp->sp_flag = (unsigned long) atol (row[8]);
-  return (NSS_SUCCESS);
+  DIRETURN (NSS_SUCCESS)
 }
 
 static NSS_STATUS
 _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
                            MYSQL_RES *mresult, int *errnop)
 {
+  DN ("_nss_mysql_load_memsbygid")
   MYSQL_ROW row;
   int retVal;
   struct group *gr = (struct group *)result;
@@ -133,9 +138,10 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
   unsigned long *lengths;
   size_t strings_offset;
 
+  DENTER
   num_rows = _nss_mysql_num_rows (mresult);
   if (num_rows == 0)
-    return (NSS_NOTFOUND);
+    DIRETURN (NSS_NOTFOUND)
 
   align (buffer, buflen, char *);
   members = (char **)buffer;
@@ -149,7 +155,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
   /* Load the first one */
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
-    return (retVal);
+    DIRETURN (retVal)
   lengths = _nss_mysql_fetch_lengths (mresult);
   if (lengths[0] + 1 > buflen)
     EXHAUSTED_BUFFER;
@@ -166,7 +172,7 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
 
       retVal = _nss_mysql_fetch_row (&row, mresult);
       if (retVal != NSS_SUCCESS)
-        return (retVal);
+        DIRETURN (retVal)
       lengths = _nss_mysql_fetch_lengths (mresult);
       if (lengths[0] + 1 > buflen)
         EXHAUSTED_BUFFER;
@@ -180,14 +186,14 @@ _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
   /* Set gr->gr_mem to point to start of our pointer-list */
   gr->gr_mem = (char **) (uintptr_t)buffer;
 
-  return (NSS_SUCCESS);
+  DIRETURN (NSS_SUCCESS)
 }
 
 NSS_STATUS 
 _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
                        MYSQL_RES *mresult, int *errnop)
 {
-  static const char FNAME[] = "_nss_mysql_load_group";
+  DN ("_nss_mysql_load_group")
   MYSQL_ROW row;
   MYSQL_RES *mresult_grmem = NULL;
   int retVal;
@@ -195,11 +201,12 @@ _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
   size_t offsets[4];
   unsigned long *lengths;
 
+  DENTER
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
-    return (retVal);
+    DIRETURN (retVal)
   if (_nss_mysql_num_fields (mresult) != 3)
-    return (NSS_UNAVAIL);
+    DIRETURN (NSS_UNAVAIL)
 
   lengths = _nss_mysql_fetch_lengths (mresult);
   offsets[0] = 0;
@@ -217,15 +224,16 @@ _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
                               &conf.sql.query.memsbygid, nfalse, result,
                               buffer + offsets[3], buflen - offsets[3],
                               errnop, _nss_mysql_load_memsbygid,
-                              &mresult_grmem, FNAME);
+                              &mresult_grmem, FUNCNAME);
 
-  return (retVal);
+  DIRETURN (retVal)
 }
 
 NSS_STATUS
 _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
                            MYSQL_RES *mresult, int *errnop)
 {
+  DN ("_nss_mysql_load_gidsbymem")
   MYSQL_ROW row;
   unsigned long num_rows, i;
   group_info_t *gi = (group_info_t *)result;
@@ -233,11 +241,12 @@ _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
   int retVal;
   gid_t gid;
 
+  DENTER
   num_rows = _nss_mysql_num_rows (mresult);
 
   // Nothing to load = success
   if (num_rows == 0)
-    return (NSS_SUCCESS);
+    DIRETURN (NSS_SUCCESS)
 
   // If we need more room and we're allowed to alloc it, alloc it
   if (num_rows + *gi->start > *gi->size)
@@ -268,11 +277,11 @@ _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
     {
       retVal = _nss_mysql_fetch_row (&row, mresult);
       if (retVal != NSS_SUCCESS)
-        return (retVal);
+        DIRETURN (retVal)
       gid = atoi (row[0]);
       if ((long int)gid != gi->group && (long int)gid != groups[0])
         groups[(*gi->start)++] = gid;
     }
 
-  return (NSS_SUCCESS);
+  DIRETURN (NSS_SUCCESS)
 }
