@@ -2,6 +2,17 @@
 
 2002-08-22  Ben Goodwin  <cinergi@users.sourceforge.net>
 
+    * mysql-grp.c, mysql-pwd.c, mysql-spwd.c: Added euid restrict -
+      don't allow non-root access to certain functions
+
+    * mysql.c: Added CLOSE_NOGRACE for when MySQL socket is stomped on
+      Header cleanup
+
+    * nss_main.c, lookup.c, nss_config.c, nss_support.c: Header cleanup
+
+    * nss_mysql.h: Added CLOSE_NOGRACE flag.  See mysql.h
+      Header cleanup
+
     * README: Solaris changes.  Info about sample MySQL database.  Prefix
       changed.
 
