@@ -1,5 +1,8 @@
 $Id$
 
+0.5 -> 0.6
+    No changes are needed on your part.  Simply install the new version!
+
 0.4 -> 0.5
     NOTE: This included a lot of redesign/rewriting.  It's very possible
           I broke something that used to work.  Please report bugs to me.
