@@ -70,9 +70,6 @@ LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
-MYSQLCLIENT_CFLAGS = @MYSQLCLIENT_CFLAGS@
-MYSQLCLIENT_LDFLAGS = @MYSQLCLIENT_LDFLAGS@
-MYSQLCLIENT_LIBS = @MYSQLCLIENT_LIBS@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
@@ -87,7 +84,7 @@ libnss_mysql_la_SOURCES = nss_config.c nss_main.c nss_structures.c \
 libnss_mysql_la_LDFLAGS = -version-info 2:0:0
 noinst_HEADERS = nss_mysql.h
 CPPFLAGS = @CPPFLAGS@ -Wall -D_REENTRANT
-EXTRA_DIST = INTERNALS TODO FAQ sample/*.cfg
+EXTRA_DIST = INTERNALS TODO FAQ sample/*.cfg sample/*.sql
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
@@ -109,9 +106,9 @@ LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 HEADERS =  $(noinst_HEADERS)
 
 DIST_COMMON =  README ./stamp-h.in AUTHORS COPYING ChangeLog INSTALL \
-Makefile.am Makefile.in NEWS TODO acconfig.h aclocal.m4 config.guess \
-config.h.in config.sub configure configure.in install-sh ltmain.sh \
-missing mkinstalldirs
+Makefile.am Makefile.in NEWS TODO acconfig.h acinclude.m4 aclocal.m4 \
+config.guess config.h.in config.sub configure configure.in install-sh \
+ltmain.sh missing mkinstalldirs
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -133,7 +130,7 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ configure.in 
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ configure.in  acinclude.m4
 	cd $(srcdir) && $(ACLOCAL)
 
 config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
