@@ -1,0 +1,7 @@
+Add debugging to nss_mysql.c
+develop tests - including multi-threaded
+Better MySQL autoconf find/check
+Allow syslog config from config file
+additional error-checking
+Reconnect upon euid change
+better connect code

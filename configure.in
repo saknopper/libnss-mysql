@@ -1,0 +1,89 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(nss_mysql.c)
+AM_INIT_AUTOMAKE(libnss_mysql, 0.1)
+AM_CONFIG_HEADER(config.h)
+AM_MAINTAINER_MODE
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_LIBTOOL
+
+dnl Checks for libraries.
+AC_ARG_WITH(mysql-inc, [  --with-mysql-inc=DIR    Location of your MySQL include files],
+[
+case "${withval}" in
+ yes) ;;
+  no) ;;
+   *) MYSQL_INCLUDE_DIR=${withval} ;;
+esac
+])
+AC_ARG_WITH(mysql-lib, [  --with-mysql-lib=DIR    Location of your MySQL libraries],
+[
+case "${withval}" in
+ yes) ;;
+  no) ;;
+   *) MYSQL_LIB_DIR=${withval} ;;
+esac
+])
+if test -n "$MYSQL_INCLUDE_DIR"; then
+  CPPFLAGS="-I $MYSQL_INCLUDE_DIR $CPPFLAGS"
+  export CPPFLAGS
+fi
+if test -n "$MYSQL_LIB_DIR"; then
+  LIBS="-L$MYSQL_LIB_DIR $LIBS"
+  export LIBS
+fi
+AC_CHECK_LIB(mysqlclient, mysql_connect, ,
+             [AC_MSG_ERROR(Unable find a functioning MySQL library)])
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(syslog.h unistd.h mysql/mysql.h mysql.h nss.h strings.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_UID_T
+AC_TYPE_SIZE_T
+AC_TRY_COMPILE([
+#include <unistd.h>],
+[intptr_t foo;],
+[have_intptr_t=yes],
+[have_intptr_t=no])
+case "$have_intptr_t" in
+  yes) ;;
+   no) AC_DEFINE_UNQUOTED(intptr_t, int) ;;
+esac
+
+dnl Checks for library functions.
+AC_CHECK_FUNCS(strcspn strspn strtok, ,
+               [AC_MSG_ERROR(The above function is required)])
+AC_CHECK_FUNCS(mysql_connect mysql_ping mysql_init)
+
+AC_ENABLE_SHARED(yes)
+AC_ENABLE_STATIC(no)
+
+AC_ARG_ENABLE(debug, [  --enable-debug=FILE     Send debugging to this file.],
+[
+case "${enableval}" in
+  yes) AC_DEFINE_UNQUOTED(DEBUG_FILE,"/tmp/debug") ;;
+   no) ;;
+    *) AC_DEFINE_UNQUOTED(DEBUG_FILE,"$enableval") ;;
+esac
+])
+
+AC_TRY_COMPILE([
+#include <stdio.h>],
+[printf ("Foo: %s\n", __func__);],
+[have_func=yes],
+[have_func=no])
+case "$have_func" in
+  yes) AC_DEFINE(HAVE_UUFUNCUU) ;;
+   no) ;;
+esac
+
+test "$prefix" = "NONE" && prefix=/usr/local
+EXPANDED_SYSCONFDIR=`eval echo $sysconfdir`
+AC_DEFINE_UNQUOTED(MAINCFG,"$EXPANDED_SYSCONFDIR/nss_mysql.cfg")
+AC_DEFINE_UNQUOTED(ROOTCFG,"$EXPANDED_SYSCONFDIR/nss_mysql_root.cfg")
+
+AC_OUTPUT(Makefile)

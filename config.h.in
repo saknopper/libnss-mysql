@@ -1,0 +1,80 @@
+/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+
+/* Define to empty if the keyword does not work.  */
+#undef const
+
+/* Define to `int' if <sys/types.h> doesn't define.  */
+#undef gid_t
+
+/* Define to `unsigned' if <sys/types.h> doesn't define.  */
+#undef size_t
+
+/* Define if you have the ANSI C header files.  */
+#undef STDC_HEADERS
+
+/* Define to `int' if <sys/types.h> doesn't define.  */
+#undef uid_t
+
+/* define to int if your system doesn't define it for you */
+#undef intptr_t
+
+/* Define this with a file to send debugging information to */
+#undef DEBUG_FILE
+
+/* */
+#undef MAINCFG
+
+/* */
+#undef ROOTCFG
+
+/* */
+#undef HAVE_UUFUNCUU
+
+/* Define if you have the mysql_connect function.  */
+#undef HAVE_MYSQL_CONNECT
+
+/* Define if you have the mysql_init function.  */
+#undef HAVE_MYSQL_INIT
+
+/* Define if you have the mysql_ping function.  */
+#undef HAVE_MYSQL_PING
+
+/* Define if you have the strcspn function.  */
+#undef HAVE_STRCSPN
+
+/* Define if you have the strspn function.  */
+#undef HAVE_STRSPN
+
+/* Define if you have the strtok function.  */
+#undef HAVE_STRTOK
+
+/* Define if you have the <dlfcn.h> header file.  */
+#undef HAVE_DLFCN_H
+
+/* Define if you have the <mysql.h> header file.  */
+#undef HAVE_MYSQL_H
+
+/* Define if you have the <mysql/mysql.h> header file.  */
+#undef HAVE_MYSQL_MYSQL_H
+
+/* Define if you have the <nss.h> header file.  */
+#undef HAVE_NSS_H
+
+/* Define if you have the <strings.h> header file.  */
+#undef HAVE_STRINGS_H
+
+/* Define if you have the <syslog.h> header file.  */
+#undef HAVE_SYSLOG_H
+
+/* Define if you have the <unistd.h> header file.  */
+#undef HAVE_UNISTD_H
+
+/* Define if you have the mysqlclient library (-lmysqlclient).  */
+#undef HAVE_LIBMYSQLCLIENT
+
+/* Name of package */
+#undef PACKAGE
+
+/* Version number of package */
+#undef VERSION
+
