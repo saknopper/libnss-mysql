@@ -182,6 +182,24 @@ _nss_mysql_pthread_once_init (void)
 }
 
 /*
+ * Prevent the "dead store removal" problem present with stock memset()
+ */
+static void *
+_nss_mysql_safe_memset (void *s, int c, size_t n)
+{
+  DN ("_nss_mysql_realloc")
+  volatile char *p = s;
+
+  DENTER
+  if (p)
+    {
+      while (n--)
+        *p++ = c;
+    }
+  DPRETURN (s)
+}
+
+/*
  * Make an attempt to close the link when the process exits
  * Set in _nss_mysql_init() below
  */

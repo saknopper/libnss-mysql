@@ -237,9 +237,12 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
     port = atoi (server->port);
   else
     port = 0;
-  if (mysql_real_connect (&ci.link, server->host, server->username,
-                          server->password, server->database,
-                          port, server->socket, 0))
+  if (mysql_real_connect (&ci.link, server->host,
+                          server->username[0] ? server->username : NULL,
+                          server->password[0] ? server->password : NULL,
+                          server->database, port,
+                          server->socket[0] ? server->socket : NULL,
+                          0))
     {
       if (_nss_mysql_save_socket_info () != RETURN_SUCCESS )
         {

@@ -44,12 +44,12 @@ _nss_mysql_getspnam_r (nss_backend_t *be, void *args)
   DENTER
   LOCK;
 #ifdef HAVE_NSS_H
-  retVal = _nss_mysql_lookup (BYNAME, name, 0, &conf.sql.query.getspnam,
+  retVal = _nss_mysql_lookup (BYNAME, name, 0, conf.sql.query.getspnam,
                               ntrue, result, buffer, buflen, errnop,
                               _nss_mysql_load_shadow, &mresult, FUNCNAME);
 #else
   retVal = _nss_mysql_lookup (BYNAME, NSS_ARGS(args)->key.name, 0,
-                              &conf.sql.query.getspnam, ntrue,
+                              conf.sql.query.getspnam, ntrue,
                               NSS_ARGS(args)->buf.result,
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
@@ -89,11 +89,11 @@ _nss_mysql_getspent_r (nss_backend_t *be, void *args)
   DENTER
   LOCK;
 #ifdef HAVE_NSS_H
-  retVal = _nss_mysql_lookup (BYNONE, NULL, 0, &conf.sql.query.getspent,
+  retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getspent,
                               ntrue, result, buffer, buflen, errnop,
                               _nss_mysql_load_shadow, &mresult_spent, FUNCNAME);
 #else
-  retVal = _nss_mysql_lookup (BYNONE, NULL, 0, &conf.sql.query.getspent,
+  retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getspent,
                               ntrue, NSS_ARGS(args)->buf.result,
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,

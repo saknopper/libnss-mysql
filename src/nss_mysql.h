@@ -62,7 +62,7 @@ typedef nss_status_t NSS_STATUS;
 #define NSS_ARGS(args)  ((nss_XbyY_args_t *)args)
 #endif
 
-#define MAX_LINE_SIZE       128         /* Max line length in config file */
+#define MAX_LINE_SIZE       1024        /* Max line length in config file */
 #define MAX_QUERY_SIZE      2048        /* Max size of SQL query */
 #define MAX_NAME_SIZE       128         /* Max username/groupname size */
 #define MAX_KEY_SIZE        128         /* Max length of a key in cfg file */
@@ -195,31 +195,31 @@ typedef struct {
 
 /* Sql queries to execute for ... */
 typedef struct {
-    char        *getpwuid;
-    char        *getpwnam;
-    char        *getspnam;
-    char        *getpwent;
-    char        *getspent;
-    char        *getgrnam;
-    char        *getgrgid;
-    char        *getgrent;
-    char        *gidsbymem;       /* list of gids a username belongs to */
-    char        *memsbygid;       /* list of members a gid has */
+    char        getpwuid[MAX_VAL_SIZE];
+    char        getpwnam[MAX_VAL_SIZE];
+    char        getspnam[MAX_VAL_SIZE];
+    char        getpwent[MAX_VAL_SIZE];
+    char        getspent[MAX_VAL_SIZE];
+    char        getgrnam[MAX_VAL_SIZE];
+    char        getgrgid[MAX_VAL_SIZE];
+    char        getgrent[MAX_VAL_SIZE];
+    char        gidsbymem[MAX_VAL_SIZE];       /* list of gids a username belongs to */
+    char        memsbygid[MAX_VAL_SIZE];       /* list of members a gid has */
 } sql_query_t;
 
 typedef struct {
-    char        *timeout;         /* Connect timeout in seconds */
-    char        *compress;        /* Use compressed MySQL protocol? */
-    char        *initcmd;         /* Send to server at time of connect */
+    char        timeout[MAX_VAL_SIZE];         /* Connect timeout in seconds */
+    char        compress[MAX_VAL_SIZE];        /* Use compressed MySQL protocol? */
+    char        initcmd[MAX_VAL_SIZE];         /* Send to server at time of connect */
 } server_options_t;
 
 typedef struct {
-    char        *host;            /* SQL Server to connect to */
-    char        *port;            /* SQL port to connect to */
-    char        *socket;          /* SQL socket path to use */
-    char        *username;        /* Username to connect as */
-    char        *password;        /* Password to connect with */
-    char        *database;        /* SQL Database to open */
+    char        host[MAX_VAL_SIZE];            /* SQL Server to connect to */
+    char        port[MAX_VAL_SIZE];            /* SQL port to connect to */
+    char        socket[MAX_VAL_SIZE];          /* SQL socket path to use */
+    char        username[MAX_VAL_SIZE];        /* Username to connect as */
+    char        password[MAX_VAL_SIZE];        /* Password to connect with */
+    char        database[MAX_VAL_SIZE];        /* SQL Database to open */
     server_options_t options;
 } sql_server_t;
 
@@ -282,16 +282,12 @@ NSS_STATUS _nss_mysql_escape_string (char *to, const char *from,
 #define _nss_mysql_fetch_lengths(m) mysql_fetch_lengths (m)
 #define _nss_mysql_num_fields(m) mysql_num_fields (m)
 
-/* memory.c */
-void *_nss_mysql_realloc (void *ptr, size_t size);
-void *_nss_mysql_safe_memset (void *s, int c, size_t n);
-
 /* nss_config.c */
 NSS_STATUS _nss_mysql_load_config (void);
 
 /* lookup.c */
 NSS_STATUS _nss_mysql_lookup (lookup_t ltype, const char *name,
-                              unsigned int num, char **q, nboolean restricted,
+                              unsigned int num, char *q, nboolean restricted,
                               void *result, char *buffer, size_t buflen,
                               int *errnop,
                               NSS_STATUS (*load_func)(void *, char *, size_t,

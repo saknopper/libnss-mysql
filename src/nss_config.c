@@ -29,13 +29,13 @@ conf_t  conf = CONF_INITIALIZER;
 /* maps config key to spot in 'conf' */
 typedef struct {
     char    *name;  /* key string */
-    char    **ptr;  /* where in 'conf' to load this string */
+    char    *ptr;  /* where in 'conf' to load this string */
 } config_info_t;
 
 /*
  * Get the next key/value pair from an open file
- * return NSS_SUCCESS if a key/val pair is found
- * return NSS_NOTFOUND if EOF
+ * return NTRUE if a key/val pair is found
+ * return NFALSE if EOF or error
  * Lines can begin (column 0) with a '#' for comments
  * key/val pairs must be in the following format
  *      key = val
@@ -53,7 +53,7 @@ typedef struct {
  * val = config value loaded here
  * val_size = storage size of val
  */
-static NSS_STATUS
+static nboolean
 _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
                      int val_size)
 {
@@ -114,25 +114,24 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
       if (val_size <= 0)
         {
           _nss_mysql_log (LOG_ERR, "%s: Config value too long", FUNCNAME);
-          DSRETURN (NSS_NOTFOUND)
+          DBRETURN (nfalse)
         }
 
       if (!fetch_key)             /* Next line continues a value */
         continue;
 
       D ("%s: Found: %s -> %s", FUNCNAME, key, val);
-      DSRETURN (NSS_SUCCESS)
+      DBRETURN (ntrue)
     }
-  DSRETURN (NSS_NOTFOUND)
+  DBRETURN (nfalse)
 }
 
 /*
  * Load configuration data from file
  *
  * file = full path of file to load
- * eaccess_is_fatal = should "access denied" be a FATAL error?
  */
-static NSS_STATUS
+static void
 _nss_mysql_load_config_file (char *file)
 {
   DN ("_nss_mysql_load_config_file")
@@ -145,58 +144,42 @@ _nss_mysql_load_config_file (char *file)
   /* map config key to 'conf' location; must be NULL-terminated */
   config_info_t config_fields[] =
   {
-      /* MySQL queries to execute */
-      {"getpwnam",  &conf.sql.query.getpwnam},
-      {"getpwuid",  &conf.sql.query.getpwuid},
-      {"getspnam",  &conf.sql.query.getspnam},
-      {"getpwent",  &conf.sql.query.getpwent},
-      {"getspent",  &conf.sql.query.getspent},
-      {"getgrnam",  &conf.sql.query.getgrnam},
-      {"getgrgid",  &conf.sql.query.getgrgid},
-      {"getgrent",  &conf.sql.query.getgrent},
-      {"memsbygid", &conf.sql.query.memsbygid},
-      {"gidsbymem", &conf.sql.query.gidsbymem},
-
-      /* MySQL server configuration */
-      {"host",      &conf.sql.server.host},
-      {"port",      &conf.sql.server.port},
-      {"socket",    &conf.sql.server.socket},
-      {"username",  &conf.sql.server.username},
-      {"password",  &conf.sql.server.password},
-      {"database",  &conf.sql.server.database},
-      {"timeout",   &conf.sql.server.options.timeout},
-      {"compress",  &conf.sql.server.options.compress},
-      {"initcmd",   &conf.sql.server.options.initcmd},
+      {"getpwnam",  conf.sql.query.getpwnam},
+      {"getpwuid",  conf.sql.query.getpwuid},
+      {"getspnam",  conf.sql.query.getspnam},
+      {"getpwent",  conf.sql.query.getpwent},
+      {"getspent",  conf.sql.query.getspent},
+      {"getgrnam",  conf.sql.query.getgrnam},
+      {"getgrgid",  conf.sql.query.getgrgid},
+      {"getgrent",  conf.sql.query.getgrent},
+      {"memsbygid", conf.sql.query.memsbygid},
+      {"gidsbymem", conf.sql.query.gidsbymem},
+      {"host",      conf.sql.server.host},
+      {"port",      conf.sql.server.port},
+      {"socket",    conf.sql.server.socket},
+      {"username",  conf.sql.server.username},
+      {"password",  conf.sql.server.password},
+      {"database",  conf.sql.server.database},
+      {"timeout",   conf.sql.server.options.timeout},
+      {"compress",  conf.sql.server.options.compress},
+      {"initcmd",   conf.sql.server.options.initcmd},
 
       {NULL}
   };
 
   DENTER
+  D ("%s: Attempting to load: %s", FUNCNAME, file);
+  /* No error-handling here; validate_config will catch missing data */
   if ((fh = fopen (file, "r")) == NULL)
     DRETURN;
 
-  D ("%s: Loading: %s", FUNCNAME, file);
+  D ("%s: fopen() successful", FUNCNAME);
 
   /* Step through all key/val pairs available */
-  while (_nss_mysql_next_key (fh, key, MAX_KEY_SIZE, val, MAX_VAL_SIZE)
-          == NSS_SUCCESS)
-    {
-      /* Search for matching key */
-      for (c = config_fields; c->name; c++)
-        {
-          if (strcmp (key, c->name) == 0)
-            {
-              size = strlen (val) + 1;
-              if ((*c->ptr = _nss_mysql_realloc (*c->ptr, size)) == NULL)
-                {
-                  fclose (fh);
-                  DRETURN
-                }
-              /* load value into proper place in 'conf' */
-              memcpy (*c->ptr, val, size);
-            }
-        }
-    }
+  while (_nss_mysql_next_key (fh, key, MAX_KEY_SIZE, val, MAX_VAL_SIZE))
+    for (c = config_fields; c->name; c++)
+      if (!strcmp (key, c->name))
+        strncpy (c->ptr, val, MAX_VAL_SIZE);
 
   fclose (fh);
   DRETURN
@@ -212,9 +195,7 @@ _nss_mysql_validate_config (void)
   DN ("_nss_mysql_validate_config")
 
   DENTER
-  if (!conf.sql.server.host || !(*conf.sql.server.host))
-    DBRETURN (nfalse);
-  if (!conf.sql.server.database || !(*conf.sql.server.database))
+  if (!conf.sql.server.host[0] || !conf.sql.server.database[0])
     DBRETURN (nfalse);
 
   DBRETURN (ntrue)
@@ -235,6 +216,7 @@ _nss_mysql_load_config (void)
     DSRETURN (NSS_SUCCESS)
 
   memset (&conf, 0, sizeof (conf));
+
   /* Load main (world-readable) config */
   _nss_mysql_load_config_file (MAINCFG);
 

@@ -43,12 +43,12 @@ _nss_mysql_getpwnam_r (nss_backend_t *be, void *args)
   DENTER
   LOCK;
 #ifdef HAVE_NSS_H
-  retVal = _nss_mysql_lookup (BYNAME, name, 0, &conf.sql.query.getpwnam,
+  retVal = _nss_mysql_lookup (BYNAME, name, 0, conf.sql.query.getpwnam,
                               nfalse, result, buffer, buflen, errnop,
                               _nss_mysql_load_passwd, &mresult, FUNCNAME);
 #else
   retVal = _nss_mysql_lookup (BYNAME, NSS_ARGS(args)->key.name, 0,
-                              &conf.sql.query.getpwnam, nfalse,
+                              conf.sql.query.getpwnam, nfalse,
                               NSS_ARGS(args)->buf.result,
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
@@ -79,12 +79,12 @@ _nss_mysql_getpwuid_r (nss_backend_t *be, void *args)
   DENTER
   LOCK;
 #ifdef HAVE_NSS_H
-  retVal = _nss_mysql_lookup (BYNUM, NULL, uid, &conf.sql.query.getpwuid,
+  retVal = _nss_mysql_lookup (BYNUM, NULL, uid, conf.sql.query.getpwuid,
                               nfalse, result, buffer, buflen, errnop,
                               _nss_mysql_load_passwd, &mresult, FUNCNAME);
 #else
   retVal = _nss_mysql_lookup (BYNUM, NULL, NSS_ARGS(args)->key.uid,
-                              &conf.sql.query.getpwuid, nfalse,
+                              conf.sql.query.getpwuid, nfalse,
                               NSS_ARGS(args)->buf.result,
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
@@ -124,11 +124,11 @@ _nss_mysql_getpwent_r (nss_backend_t *be, void *args)
   DENTER
   LOCK;
 #ifdef HAVE_NSS_H
-  retVal = _nss_mysql_lookup (BYNONE, NULL, 0, &conf.sql.query.getpwent,
+  retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getpwent,
                               nfalse, result, buffer, buflen, errnop,
                               _nss_mysql_load_passwd, &mresult_pwent, FUNCNAME);
 #else
-  retVal = _nss_mysql_lookup (BYNONE, NULL, 0, &conf.sql.query.getpwent,
+  retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getpwent,
                               nfalse, NSS_ARGS(args)->buf.result,
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,

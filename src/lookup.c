@@ -119,7 +119,7 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
  */
 NSS_STATUS
 _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
-                   char **q, nboolean restricted, void *result,
+                   char *q, nboolean restricted, void *result,
                    char *buffer, size_t buflen, int *errnop,
                    NSS_STATUS (*load_func)(void *, char *, size_t,
                                            MYSQL_RES *, int *),
@@ -159,7 +159,7 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
   if (!(ltype == BYNONE && mresult && *mresult))
     {
       /* Create query string using config & args */
-      retVal = _nss_mysql_build_query (ltype, name, num, *q, query, mresult,
+      retVal = _nss_mysql_build_query (ltype, name, num, q, query, mresult,
                                        caller);
       if (retVal != NSS_SUCCESS)
         DSRETURN (retVal)
