@@ -2,6 +2,9 @@ Official website: http://libnss-mysql.sourceforge.net/
 
 MySQL for NSS systems
 =====================
+libnss-mysql currently runs on Linux and Solaris.  FreeBSD (5.1+) support
+will be coming soon.
+
 NOTE: Solaris 9 is not fully unsupported.  Sun's PAM modules have become
       so restrictive that you can't even properly authenticate via PAM
       anymore if there's a "mysql" in /etc/nsswitch.conf.  System routines
@@ -13,18 +16,22 @@ NOTE: Solaris 9 is not fully unsupported.  Sun's PAM modules have become
 
 Prerequisites
 =============
-    o A functional compile environment (system headers, C compiler, ...)
-    o MySQL client library & header files (local)
-    o MySQL server (local or remote)
+    o Installing from source:
+      o A functional compile environment (system headers, C compiler, ...)
+      o MySQL client library & header files (local)
+      o MySQL server (local or remote)
+    o Installing from RPM:
+      o MySQL client library (local)
+      o MySQL server (local or remote)
 
 The details
 ===========
-    o Build:
+    o If installing from source:
       o ./configure
       o make
       o make install
 
-    o Edit /etc/nss_mysql.cfg and /etc/nss_mysql_root.cfg.
+    o Edit /etc/libnss-mysql.cfg and /etc/libnss-mysql-root.cfg.
 
     o Add data to MySQL. The default configs will work well with the sample
       sql database in sample/sample_database.sql.  Read that file for more
@@ -77,19 +84,14 @@ Debugging
 
 Tested with
 ===========
-    Corel (1.2 - Debian 2.1), MySQL 3.21.33b
-    RedHat 6.1, MySQL 3.20.??
-    RedHat 7.1, MySQL 3.23.49a
-    RedHat 7.2, MySQL 3.23.49a
-    RedHat 7.3, MySQL 3.23.49a & 3.23.52
-    RedHat 8.0, MySQL 3.23.52
-
-    Solaris 9/sparc, MySQL 3.23.52, gcc 3.1 NOTE: PAM programs will fail
-    Solaris 8/x86,   MySQL 3.23.52, gcc 3.1
-    Solaris 8/sparc, MySQL 3.23.52, gcc 2.95.3, 3.0.2 (32 & 64-bit), 3.2,
-                                    Forte Developer 7 C 5.4 (Sun Workshop)
-    Solaris 7/sparc, MySQL 3.23.53 (binary distribution), gcc 2.95.2
-    Solaris 6/sparc, MySQL 3.23.39, gcc 2.95.2
-
+    Operating Systems
+      RedHat 6.1 - 9.0
+      Solaris 6-9 (sparc)
+      Solaris 8 (x86)
+    MySQL
+      MySQL 3.20.?? - 4.0.??
+    Compilers
+      gcc 2.95.2 - 3.2
+      Forte Developer 7 C 5.4 (Sun Workshop)
 
 $Id$
