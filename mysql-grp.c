@@ -152,7 +152,7 @@ _nss_mysql_getgrmem (nss_backend_t *be, void *args)
   group_info_t gi;
 #ifdef HAVE_NSS_COMMON_H
   const char *user = ((struct nss_groupsbymem *)args)->username;
-  long int size = 16;
+  long int size;
   long int start;
 #endif
 
@@ -164,23 +164,24 @@ _nss_mysql_getgrmem (nss_backend_t *be, void *args)
   gi.size = size;
   gi.limit = limit;
   gi.groupsp = groupsp;
+  gi.group = (long int) group;
 #elif defined(HAVE_NSS_COMMON_H)
   start = ((struct nss_groupsbymem *)args)->numgids;
   gi.start = &start;
-  gi.limit = 16;
+  gi.limit = ((struct nss_groupsbymem *)args)->maxgids;
+  size = sizeof (gid_t) * gi.limit;
   gi.size = &size;
   gi.groupsp = &(((struct nss_groupsbymem *)args)->gid_array);
+  gi.group = -1;
 #endif
 
-  // FIXME - proper values for Solaris
   retVal = _nss_mysql_lookup (BYNAME, user, 0, &conf.sql.query.gidsbymem,
                               nfalse, &gi, NULL, 0,
                               _nss_mysql_load_gidsbymem, &mresult, FNAME);
 
 #ifdef HAVE_NSS_COMMON_H
   return NSS_NOTFOUND;
-#endif
-#ifdef HAVE_NSS_H
+#else
   return NSS_SUCCESS;
 #endif
 }
