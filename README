@@ -24,9 +24,7 @@ The details
       o make
       o make install
 
-    o Edit /etc/nss_mysql.cfg and /etc/nss_mysql_root.cfg.  Pay special
-      attention to the socket location.  The default may not work in your
-      environment!
+    o Edit /etc/nss_mysql.cfg and /etc/nss_mysql_root.cfg.
 
     o Add data to MySQL. The default configs will work well with the sample
       sql database in sample/sample_database.sql.  Read that file for more
@@ -42,24 +40,6 @@ The details
       doesn't need it (IE: Solaris).
       If you don't want groups from MySQL, simply don't include it in the
       'group' line.
-
-    o Edit (or create) /etc/my.cnf and add a new section called [libnss_mysql]
-      You may specify any of these options:
-        compress
-        debug
-        init-command
-        user
-        password
-        connect-timeout
-      For example:
-        [libnss_mysql]
-        connect-timeout=5
-
-   *************************************************************************
-   * IT IS HIGHLY RECOMMENDED THAT YOU SET connect-timeout TO A RELATIVELY *
-   * LOW NUMBER, ELSE YOU MAY FIND YOURSELF UNABLE TO LOG IN (EVEN AS ROOT)*
-   * IF A SERVER BECOMES UNREACHABLE                                       *
-   *************************************************************************
 
 64-bit Support (SPARC V9/Solaris 7+)
 ====================================
