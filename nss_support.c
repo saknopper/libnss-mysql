@@ -23,15 +23,11 @@ static const char rcsid[] =
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #include <stdarg.h>
 #include <time.h>
-#ifdef HAVE_SYSLOG_H
-#include <syslog.h>
-#endif
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
@@ -590,21 +586,5 @@ _nss_mysql_load_result (void *result, char *buffer, size_t buflen,
         function_return (to_return);
     }
   function_return (NSS_SUCCESS);
-}
-
-extern conf_t foobaz;
-void
-_nss_mysql_log_error (char *function, char *fmt, ...)
-{
-  va_list ap;
-  char string[2000];
-
-  va_start (ap, fmt);
-  vsnprintf (string, 2000, fmt, ap);
-  va_end (ap);
-  _nss_mysql_debug (function, D_ERROR, "%s\n", string);
-  openlog ("nss_mysql", 0, SYSLOG_FACILITY);
-  syslog (SYSLOG_PRIORITY, string);
-  closelog ();
 }
 
