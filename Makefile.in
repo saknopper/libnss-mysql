@@ -443,6 +443,8 @@ distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
 
+@SOLARIS_TRUE@export LD_OPTIONS=-z nodelete
+
 install-exec-local:
 	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.la
 @SOLARIS_TRUE@	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.so
