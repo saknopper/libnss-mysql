@@ -95,14 +95,10 @@ _nss_mysql_atfork_prepare (void)
   int (*trylock)();
 
   DENTER
-#if 1
   trylock = (int (*)(int))dlsym (RTLD_DEFAULT, "pthread_mutex_trylock");
   if (trylock)
     if ((*trylock) (&lock) == 0)
       _nss_mysql_locked_by_atfork = 1;
-#else
-  LOCK;
-#endif
   DEXIT
 }
 
