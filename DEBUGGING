@@ -16,7 +16,7 @@ Debugging libnss-mysql
     as to where debug information goes.  By default, it will go to the
     file '/tmp/libnss-mysql-debug.log'. Setting the environment variable
     'LIBNSS_MYSQL_DEBUG' will change where debug information goes.
-        0 = /tmp/libnss_mysql-debug.log
+        0 = /tmp/libnss-mysql-debug.log
         1 = stderr
         2 = syslog (prio = debug, same facility compiled with (default=auth))
     Note that setting the environment variable will ONLY affect commands
@@ -52,9 +52,9 @@ Debugging libnss-mysql
     libraries such as libmysqlclient (if you're using a shared MySQL library).
     Make SURE the return code is NOT -1 (it is '3' in the example line above) -
     otherwise the system isn't finding the libraries it needs.  After
-    the libraries are opened, you should see the nss_mysql.cfg file get opened
-    and whatnot.  If you get this far, we know that the library is properly
-    installed.
+    the libraries are opened, you should see the libnss-mysql.cfg file get
+    opened and whatnot.  If you get this far, we know that the library is
+    properly installed.
     You can also check to see what the actual MySQL queries are like.
     Search for 'S E L' or 'SEL' in the output.  Depending on your OS, you'll
     see something like:
