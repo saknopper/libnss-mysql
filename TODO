@@ -9,3 +9,4 @@ BUGFIXES
     Turn off socket keepalive?
     full fork/pid-change handling
     sigpipe handling
+    Don't leave MySQL root password in memory
