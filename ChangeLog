@@ -20,7 +20,8 @@
 
     * CHANGE: Send a syslog if number of columns returned != expected #
 
-    * CHANGE: (Internal) Code cleanup
+    * CHANGE: (Internal) code cleanup (including Makefile.am) and
+              comments
 
 1.1 - 1.2
 
