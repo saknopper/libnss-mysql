@@ -42,6 +42,7 @@ fi
 
 liblist="$with_mysql_lib \
          /usr/lib \
+         /usr/lib/mysql \
          /usr/local/lib \
          /usr/local/lib/mysql \
          /usr/local/mysql/lib \
@@ -58,6 +59,7 @@ done
 
 if test -n "$MYSQL_LIB_DIR"; then
     LDFLAGS="-L$MYSQL_LIB_DIR $LDFLAGS"
+    echo "FOO: $LDFLAGS"
 fi
 
 
