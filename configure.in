@@ -72,12 +72,12 @@ FIND_MYSQL()
 AC_CHECK_LIB(socket, getsockname)
 AC_CHECK_LIB(nsl, gethostbyname)
 AC_CHECK_LIB(m, floor)
+AC_CHECK_LIB(dl, dlsym)
+AC_CHECK_LIB(z, compress)
 
 AC_CHECK_LIB(mysqlclient_r, mysql_connect, ,
              [AC_CHECK_LIB(mysqlclient, mysql_connect, ,
                            [AC_MSG_ERROR([Unable find a functioning MySQL library])])])
-
-AC_CHECK_LIB(dl, dlsym)
 
 AC_HEADER_STDC
 AC_CHECK_HEADER(mysql.h, , [AC_MSG_ERROR([Unable to find mysql.h])])
