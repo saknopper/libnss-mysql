@@ -52,15 +52,7 @@ NSS_STATUS
 _nss_mysql_default_destr (nss_backend_t *be, void *args)
 {
   _nss_mysql_free (be);
-  /*
-   * We MUST close the link as the NSS subsystem unloads the module and thus
-   * all static variables are lost
-   * FIXME: This may no longer be necessary since we link with -z nodelete
-   */
-  LOCK;
-  _nss_mysql_close_sql (NULL, ntrue);
-  _nss_mysql_reset_config ();
-  UNLOCK;
+  /* Closing link & freeing memory unnecessary due to link w/ '-z nodelete' */
   return (NSS_SUCCESS);
 
 }
