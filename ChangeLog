@@ -1,5 +1,13 @@
 # $Id$
 
+0.7a - xxx
+
+    * BUGFIX: Disable MySQL automatic reconnect.  It's not safe in this
+              environment
+
+    * BUGFIX: Try server #0 if all servers are marked down.  Was causing
+              bogus NSS_UNAVAIL returns if connection had been lost.
+
 0.7 - 0.7a
 
     * CHANGE: Don't send syslog messages to *.EMERG (causing console
