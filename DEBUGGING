@@ -29,7 +29,7 @@ Debugging libnss-mysql
   ****************************************************************************
     Soon after that line you should see further attempts to open other
     libraries such as libmysqlclient (if you're using a shared MySQL library).
-    Make SURE the return code is 3 (as it is in the example line above) -
+    Make SURE the return code is NOT -1 (it is '3' in the example line above) -
     otherwise the system isn't finding the libraries it needs.  After
     the libraries are opened, you should see the nss_mysql.cfg file get opened
     and whatnot.  If you get this far, we know that the library is properly
