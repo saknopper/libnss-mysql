@@ -62,8 +62,6 @@ typedef nss_status_t NSS_STATUS;
 
 #define MAX_LINE_LEN    1024            /* Max line length in config file */
 #define MAX_KEY_LEN     128             /* Max length of a key in config file */
-#define MAX_SERVERS     2               /* Max # of configured SQL servers
-                                           See nss_config.c before changing */
 #define PADSIZE         64              /* malloc this much more for queries
                                            to allow for format expansion.
                                            Max username length ~ 1/2 this val */
@@ -71,7 +69,6 @@ typedef nss_status_t NSS_STATUS;
 #define MAX_LOG_LEN     2000            /* Max length of syslog entry */
 
 /* Use these as defaults until they're overridden via the config file */
-#define DEF_RETRY       30
 #define DEF_TIMEOUT     3
 
 #ifdef DEBUG
@@ -209,12 +206,6 @@ typedef struct {
 } sql_query_t;
 
 typedef struct {
-    nboolean    valid;          /* valid config for this server? */
-    time_t      last_attempt;   /* Last time we tried this server */
-    nboolean    up;             /* self explanatory I hope */
-} server_status_t;
-
-typedef struct {
     unsigned int timeout;        /* Connect timeout in seconds */
     unsigned int compress;       /* Use compressed MySQL protocol? */
     char         *initcmd;       /* Send to server at time of connect */
@@ -229,25 +220,19 @@ typedef struct {
     char             *password;  /* Password to connect with */
     char             *database;  /* SQL Database to open */
     server_options_t options;
-    server_status_t  status;
 } sql_server_t;
 
 typedef struct {
     sql_query_t     query;
-    sql_server_t    server[MAX_SERVERS];
+    sql_server_t    server;
 } sql_conf_t;
 
 typedef struct {
-    int             retry;              /* retry server #0 every x seconds */
-} global_conf_t;
-
-typedef struct {
     nboolean        valid;              /* Have we loaded config yet? */
-    global_conf_t   global;             /* settings that apply everywhere */
-    sql_conf_t      sql;                /* [server] sections */
+    sql_conf_t      sql;                /* [server] section */
 } conf_t;
 
-#define CONF_INITIALIZER {0, {DEF_RETRY}}
+#define CONF_INITIALIZER {0}
 
 /*
  * As soon as a MySQL link is established, save the results of
@@ -262,7 +247,6 @@ typedef struct {
 /* All information regarding existing MySQL link */
 typedef struct {
     nboolean        valid;          /* Are we connected to a server? */
-    int             server_num;     /* 0 .. MAX_SERVERS - 1 */
     MYSQL           link;
     socket_info_t   sock_info;      /* See above */
 } con_info_t;

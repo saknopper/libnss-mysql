@@ -28,14 +28,13 @@ static const char rcsid[] =
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
-#include <time.h>
 #include <netinet/in.h>
 
 #ifndef HAVE_SOCKLEN_T
 typedef size_t socklen_t;
 #endif
 
-con_info_t ci = { nfalse, 0 };
+con_info_t ci = { nfalse };
 extern conf_t conf;
 
 /*
@@ -132,7 +131,7 @@ _nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful)
   if (graceful && ci.valid)
     {
       D ("%s: calling mysql_close()", FUNCNAME);
-      mysql_close (&(ci.link));
+      mysql_close (&ci.link);
     }
   ci.valid = nfalse;
   DSRETURN (NSS_SUCCESS)
@@ -153,83 +152,25 @@ _nss_mysql_set_options (sql_server_t *server, int *flags)
 #endif
 #if MYSQL_VERSION_ID >= 32304
   D ("%s: Setting connect timeout to %d", FUNCNAME, server->options.timeout);
-  mysql_options(&(ci.link), MYSQL_OPT_CONNECT_TIMEOUT,
+  mysql_options(&ci.link, MYSQL_OPT_CONNECT_TIMEOUT,
                 (char *)&server->options.timeout);
 #endif
 #if MYSQL_VERSION_ID >= 32202
   if (server->options.compress)
     {
       D ("%s: Setting compressed protocol", FUNCNAME);
-      mysql_options(&(ci.link), MYSQL_OPT_COMPRESS, (char *)NULL);
+      mysql_options(&ci.link, MYSQL_OPT_COMPRESS, (char *)NULL);
     }
 #endif
 #if MYSQL_VERSION_ID >= 32210
   if (server->options.initcmd && strlen (server->options.initcmd))
     {
       D ("%s: Setting init-command to '%s'", FUNCNAME, server->options.initcmd);
-      mysql_options(&(ci.link), MYSQL_INIT_COMMAND,
+      mysql_options(&ci.link, MYSQL_INIT_COMMAND,
                     (char *)&server->options.initcmd);
     }
 #endif
   DEXIT
-}
-
-/*
- * Attempt to connect to server number ci.server_num
- */
-static NSS_STATUS
-_nss_mysql_try_server (MYSQL_RES **mresult)
-{
-  DN ("_nss_mysql_try_server")
-  sql_server_t *server = &conf.sql.server[ci.server_num];
-  int flags = 0;
-
-  DENTER
-  time (&server->status.last_attempt);
-  server->status.up = nfalse;
-
-  _nss_mysql_set_options (server, &flags);
-  D ("%s: Connecting to %s", FUNCNAME, server->host);
-#ifdef HAVE_MYSQL_REAL_CONNECT /* comes from mysql.h, NOT config.h! */
-#if MYSQL_VERSION_ID >= 32200  /* ditto */
-  if (mysql_real_connect (&(ci.link), server->host, server->username,
-                          server->password, NULL, server->port,
-                          server->socket, flags))
-#else /* MYSQL_VERSION_ID < 32200 */
-  if (mysql_real_connect (&(ci.link), server->host, server->username,
-                          server->password, server->port, server->socket,
-                          flags))
-#endif /* MYSQL_VERSION_ID >= 32200 */
-#else /* HAVE_MYSQL_REAL_CONNECT */
-  if (mysql_connect (&(ci.link), server->host, server->username,
-                     server->password))
-#endif /* HAVE_MYSQL_REAL_CONNECT */
-  
-    {
-      if (mysql_select_db (&(ci.link), server->database) != RETURN_SUCCESS)
-        {
-          _nss_mysql_log (LOG_ALERT, "Unable to select database %s: %s",
-                          server->database, mysql_error ((&ci.link)));
-          _nss_mysql_close_sql (mresult, ntrue);
-          DSRETURN (NSS_UNAVAIL)
-        }
-      if (_nss_mysql_save_socket_info () != RETURN_SUCCESS )
-        {
-          _nss_mysql_log (LOG_ALERT, "Unable to save socket info");
-          _nss_mysql_close_sql (mresult, ntrue);
-          DSRETURN (NSS_UNAVAIL)
-        }
-      ci.valid = ntrue;
-      server->status.up = ntrue;
-#if MYSQL_VERSION_ID >= 32118
-      ci.link.reconnect = 0; /* Safety: We can't let MySQL assume socket is
-                                still valid; see _nss_mysql_validate_socket */
-#endif
-      DSRETURN (NSS_SUCCESS)
-    }
-  _nss_mysql_log (LOG_ALERT, "Connection to server '%s' failed: %s",
-                  server->host, mysql_error (&(ci.link)));
-  DSRETURN (NSS_UNAVAIL)
 }
 
 /*
@@ -243,16 +184,13 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
   DN ("_nss_mysql_check_existing_connection")
   static int euid = -1;
   static pid_t pid = -1;
-  time_t curTime;
 
   DENTER
-  if (ci.valid == nfalse)
+  if (ci.valid == nfalse || conf.valid == nfalse)
     DBRETURN (nfalse)
 
   if (pid == -1)
-    {
-      pid = getpid ();
-    }
+    pid = getpid ();
   else if (pid == getppid ())
     {
       /* saved pid == ppid = we've forked; We MUST create a new connection */
@@ -278,115 +216,87 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
       D ("%s:, euid changed", FUNCNAME);
       _nss_mysql_close_sql (mresult, ntrue);
       conf.valid = nfalse;
-      (void) _nss_mysql_load_config ();
       euid = geteuid ();
       DBRETURN (nfalse)
     }
 
-  /* Force reversion to primary if appropriate */
-  if (mresult == NULL && ci.server_num != 0 &&
-      conf.sql.server[0].status.last_attempt + conf.global.retry <=
-        time (&curTime))
-    {
-      D ("%s: forcing reversion to primary", FUNCNAME);
-      _nss_mysql_close_sql (mresult, ntrue);
-      DBRETURN (nfalse)
-    }
   DBRETURN (ntrue)
 }
 
-static NSS_STATUS
-_nss_mysql_pick_server (int attempt)
-{
-  DN ("_nss_mysql_pick_server")
-  time_t curTime;
-
-  DENTER
-  time (&curTime);
-  for (ci.server_num = 0; ci.server_num < MAX_SERVERS; ci.server_num++)
-    {
-      // Make sure valid config
-      if (conf.sql.server[ci.server_num].status.valid == nfalse)
-        {
-          D ("%s: Skipping %d - status.valid = false", FUNCNAME,
-                                                       ci.server_num);
-          continue;
-        }
-      // Good if marked UP or if this is our first attempt
-      if (conf.sql.server[ci.server_num].status.up == ntrue || !attempt)
-        {
-          D ("%s: Using %d - Up = %d, attempt = %d\n", FUNCNAME,
-                  ci.server_num, conf.sql.server[ci.server_num].status.up,
-                  attempt);
-          DSRETURN (NSS_SUCCESS)
-        }
-      // Good if we've never tried this server before
-      if (conf.sql.server[ci.server_num].status.last_attempt == 0)
-        {
-          D ("%s: Using %d - last_attempt is 0", FUNCNAME, ci.server_num);
-          DSRETURN (NSS_SUCCESS)
-        }
-    }
-  // Didn't find valid config or an UP server or this isn't first attempt
-  // Try primary if we're within retry limits
-  if (conf.sql.server[0].status.valid == ntrue &&
-      (conf.sql.server[0].status.last_attempt == 0 ||
-       conf.sql.server[0].status.last_attempt +
-       conf.global.retry <= curTime))
-    {
-      D ("%s:Using 0. last = %d, retry = %d, curTime = %d", FUNCNAME,
-              conf.sql.server[0].status.last_attempt,
-              conf.global.retry, curTime);
-      ci.server_num = 0;
-      DSRETURN (NSS_SUCCESS)
-    }
-
-  // DON'T always try server #0 if all else fails - that would result
-  // in an infinite loop
-  DSRETURN (NSS_UNAVAIL)
-}
-
 /*
- * Connect to a MySQL server.  Try all servers defined until a working
- * one is found.  If current server != primary server, attempt to revert
- * to primary if RETRY (config option) seconds has passed and we're not
- * in the middle of an active result set.
- * Set CI.VALID to ntrue if we manage to connect to a server.
+ * Connect to a MySQL server.
  */
 static NSS_STATUS
 _nss_mysql_connect_sql (MYSQL_RES **mresult)
 {
   DN ("_nss_mysql_connect_sql")
-  int attempt = 0;
+  int retval;
+  sql_server_t *server = &conf.sql.server;
+  int flags = 0;
 
   DENTER
+
   if (_nss_mysql_check_existing_connection (mresult) == ntrue)
     {
       D ("%s: Using existing connection", FUNCNAME);
       DSRETURN (NSS_SUCCESS)
     }
 
-  /* Because check_existing_connection can try to reload the config */
-  if (conf.valid == nfalse)
+  retval = _nss_mysql_load_config ();
+  if (retval != NSS_SUCCESS)
     {
-      D ("%s: Config not yet loaded", FUNCNAME);
+      _nss_mysql_log (LOG_ALERT, "Failed to load configuration");
       DSRETURN (NSS_UNAVAIL)
     }
 
 #ifdef HAVE_MYSQL_INIT
-  if (mysql_init (&(ci.link)) == NULL)
+  if (mysql_init (&ci.link) == NULL)
     {
       _nss_mysql_log (LOG_ALERT, "mysql_init() failed");
       DSRETURN (NSS_UNAVAIL)
     }
 #endif /* HAVE_MYSQL_INIT */
 
-  while (_nss_mysql_pick_server (attempt++) == NSS_SUCCESS)
+  _nss_mysql_set_options (server, &flags);
+  D ("%s: Connecting to %s", FUNCNAME, server->host);
+#ifdef HAVE_MYSQL_REAL_CONNECT /* comes from mysql.h, NOT config.h! */
+#if MYSQL_VERSION_ID >= 32200  /* ditto */
+  if (mysql_real_connect (&ci.link, server->host, server->username,
+                          server->password, NULL, server->port,
+                          server->socket, flags))
+#else /* MYSQL_VERSION_ID < 32200 */
+  if (mysql_real_connect (&ci.link, server->host, server->username,
+                          server->password, server->port, server->socket,
+                          flags))
+#endif /* MYSQL_VERSION_ID >= 32200 */
+#else /* HAVE_MYSQL_REAL_CONNECT */
+  if (mysql_connect (&ci.link, server->host, server->username,
+                     server->password))
+#endif /* HAVE_MYSQL_REAL_CONNECT */
+  
     {
-      if (_nss_mysql_try_server (mresult) == NSS_SUCCESS)
-        DSRETURN (NSS_SUCCESS)
+      if (mysql_select_db (&ci.link, server->database) != RETURN_SUCCESS)
+        {
+          _nss_mysql_log (LOG_ALERT, "Unable to select database %s: %s",
+                          server->database, mysql_error (&ci.link));
+          _nss_mysql_close_sql (mresult, ntrue);
+          DSRETURN (NSS_UNAVAIL)
+        }
+      if (_nss_mysql_save_socket_info () != RETURN_SUCCESS )
+        {
+          _nss_mysql_log (LOG_ALERT, "Unable to save socket info");
+          _nss_mysql_close_sql (mresult, ntrue);
+          DSRETURN (NSS_UNAVAIL)
+        }
+      ci.valid = ntrue;
+#if MYSQL_VERSION_ID >= 32118
+      ci.link.reconnect = 0; /* Safety: We can't let MySQL assume socket is
+                                still valid; see _nss_mysql_validate_socket */
+#endif
+      DSRETURN (NSS_SUCCESS)
     }
-  _nss_mysql_log (LOG_ALERT, "Unable to connect to any MySQL servers");
+  _nss_mysql_log (LOG_ALERT, "Connection to server '%s' failed: %s",
+                  server->host, mysql_error (&ci.link));
   DSRETURN (NSS_UNAVAIL)
 }
 
@@ -405,54 +315,40 @@ _nss_mysql_close_result (MYSQL_RES **mresult)
   DEXIT
 }
 
-static void
-_nss_mysql_fail_server (MYSQL_RES **mresult, int server_num)
-{
-  DN ("_nss_mysql_fail_server")
-
-  DENTER
-  D ("Failing server number %d", server_num);
-  _nss_mysql_close_sql (mresult, ntrue);
-  conf.sql.server[server_num].status.up = nfalse;
-  time (&conf.sql.server[server_num].status.last_attempt);
-  DEXIT
-}
-
 /*
- * Run QUERY against an existing MySQL connection.  If the query fails,
- * try to run the query against all other defined MySQL servers (in case
- * the query failure is due to a server failure/loss).
+ * Run MySQL query
  */
 NSS_STATUS
 _nss_mysql_run_query (char *query, MYSQL_RES **mresult)
 {
   DN ("_nss_mysql_run_query")
+  int retval;
 
   DENTER
   if (!query || !strlen (query))
     DSRETURN (NSS_NOTFOUND)
 
   D ("%s: Executing query: %s", FUNCNAME, query);
-  while (_nss_mysql_connect_sql (mresult) == NSS_SUCCESS)
+
+  retval = _nss_mysql_connect_sql (mresult);
+  if (retval != NSS_SUCCESS)
+    DSRETURN (retval);
+
+  retval = mysql_query (&ci.link, query);
+  if (retval != RETURN_SUCCESS)
     {
-      if ((mysql_query (&(ci.link), query)) != RETURN_SUCCESS)
-        {
-          _nss_mysql_log (LOG_ALERT, "mysql_query failed: %s",
-                          mysql_error (&(ci.link)));
-          _nss_mysql_fail_server (mresult, ci.server_num);
-          continue;
-        }
-      if ((*mresult = mysql_store_result (&(ci.link))) == NULL)
-        {
-          _nss_mysql_log (LOG_ALERT, "mysql_store_result failed: %s",
-                          mysql_error (&(ci.link)));
-          _nss_mysql_fail_server (mresult, ci.server_num);
-          continue;
-        }
-      DSRETURN (NSS_SUCCESS)
+      _nss_mysql_log (LOG_ALERT, "mysql_query failed: %s",
+                      mysql_error (&ci.link));
+      DSRETURN (retval);
     }
-  _nss_mysql_log (LOG_ALERT, "Unable to perform query on any MySQL server");
-  DSRETURN (NSS_UNAVAIL)
+
+  if ((*mresult = mysql_store_result (&ci.link)) == NULL)
+    {
+      _nss_mysql_log (LOG_ALERT, "mysql_store_result failed: %s",
+                      mysql_error (&ci.link));
+      DSRETURN (NSS_UNAVAIL);
+    }
+  DSRETURN (NSS_SUCCESS)
 }
 
 NSS_STATUS
@@ -463,16 +359,14 @@ _nss_mysql_fetch_row (MYSQL_ROW *row, MYSQL_RES *mresult)
   DENTER
   if ((*row = mysql_fetch_row (mresult)) == NULL)
     {
-      if (mysql_errno (&(ci.link)))
+      if (mysql_errno (&ci.link))
         {
           _nss_mysql_log (LOG_ALERT, "mysql_fetch_row() failed: %s",
-                          mysql_error (&(ci.link)));
+                          mysql_error (&ci.link));
           DSRETURN (NSS_UNAVAIL)
         }
       else
-        {
-          DSRETURN (NSS_NOTFOUND)
-        }
+        DSRETURN (NSS_NOTFOUND)
     }
   DSRETURN (NSS_SUCCESS)
 }
@@ -486,7 +380,7 @@ _nss_mysql_escape_string (char *to, const char *from, MYSQL_RES **mresult)
 #if MYSQL_VERSION_ID >= 32300 /* comes from mysql.h, NOT config.h! */
   if (_nss_mysql_connect_sql (mresult) != NSS_SUCCESS)
     DSRETURN (NSS_UNAVAIL)
-  mysql_real_escape_string (&(ci.link), to, from, strlen(from));
+  mysql_real_escape_string (&ci.link, to, from, strlen(from));
 #else
   mysql_escape_string (to, from, strlen(from));
 #endif

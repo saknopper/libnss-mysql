@@ -85,43 +85,27 @@ static field_info_t query_fields[] =
     {NULL}
 };
 
-static field_info_t global_fields[]=
-{
-    {"retry",       FOFS (global_conf_t, retry),           FT_UINT},
-    {NULL}
-};
-
 /*
- * The various sections (IE '[global]') of the config file
+ * The various sections (IE '[server]') of the config file
  */
 typedef enum
 {
   SECTION_INVALID = -1,
-  SECTION_GLOBAL,
-
-  /* 1 for each server; edit to match MAX_SERVERS; ALSO EDIT section_info[] */
-  SECTION_PRIMARY,
-  SECTION_SECONDARY,
-
+  SECTION_SERVER,
   SECTION_QUERIES
 } sections_t;
 
 /* I'm overloading the 'purpose' of field_info_t here ... */
 static field_info_t section_info[] =
 {
-    {"global",    0, SECTION_GLOBAL},
-
-    /* 1 for each server; edit to match MAX_SERVERS; ALSO EDIT sections_t */
-    {"primary",   0, SECTION_PRIMARY},
-    {"secondary", 0, SECTION_SECONDARY},
-
+    {"server",    0, SECTION_SERVER},
     {"queries",   0, SECTION_QUERIES},
     {NULL}
 };
 
 /*
  * "translate" NAME to a number using FIELDS
- * IE translate "global" to SECTION_GLOBAL using SECTION_INFO above
+ * IE translate "server" to SECTION_SERVER using SECTION_INFO above
  */
 static int
 _nss_mysql_name_to_id (field_info_t *fields, const char *name)
@@ -314,7 +298,6 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
   FILE *fh;
   int section;
   int to_return;
-  int server_num;
 
   DENTER
   if ((fh = fopen (file, "r")) == NULL)
@@ -329,27 +312,9 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
     {
       switch (section)
         {
-        case SECTION_GLOBAL:
-          to_return = _nss_mysql_load_section (fh, &conf.global,
-                                               global_fields);
-          if (to_return != NSS_SUCCESS)
-            {
-              fclose (fh);
-              DSRETURN (to_return)
-            }
-            break;
-        /* Add to list if you edit MAX_SERVERS/sections_t/etc */
-        case SECTION_PRIMARY:
-        case SECTION_SECONDARY:
-          server_num = section - SECTION_PRIMARY;
-          if (server_num >= MAX_SERVERS)
-            {
-              fclose (fh);
-              DSRETURN (NSS_UNAVAIL)
-            }
-          to_return =
-            _nss_mysql_load_section (fh, &(conf.sql.server[server_num]),
-                                     server_fields);
+        case SECTION_SERVER:
+          to_return = _nss_mysql_load_section (fh, &conf.sql.server,
+                                               server_fields);
           if (to_return != NSS_SUCCESS)
             {
               fclose (fh);
@@ -372,36 +337,24 @@ _nss_mysql_load_config_file (char *file, nboolean eacces_is_fatal)
 }
 
 static nboolean
-_nss_mysql_validate_servers (void)
+_nss_mysql_validate_config (void)
 {
-  DN ("_nss_mysql_validate_servers")
-  int i;
-  nboolean is_valid = nfalse;
+  DN ("_nss_mysql_validate_config")
 
   DENTER
-  for (i = 0; i < MAX_SERVERS; i++)
-    {
-      if (!conf.sql.server[i].host || !strlen (conf.sql.server[i].host))
-        continue;
-      if (!conf.sql.server[i].database || !strlen (conf.sql.server[i].database))
-        continue;
+  if (!conf.sql.server.host || !strlen (conf.sql.server.host))
+    DBRETURN (nfalse);
+  if (!conf.sql.server.database || !strlen (conf.sql.server.database))
+    DBRETURN (nfalse);
 
-      conf.sql.server[i].status.valid = ntrue;
-      is_valid = ntrue;
-    }
-
-  DBRETURN (is_valid)
+  DBRETURN (ntrue)
 }
 
 static void
 _nss_mysql_set_defaults (void)
 {
   DN ("_nss_mysql_set_defaults")
-  int i;
-
-  conf.global.retry = DEF_RETRY;
-  for (i = 0; i < MAX_SERVERS; i++)
-    conf.sql.server[i].options.timeout = DEF_TIMEOUT;
+  conf.sql.server.options.timeout = DEF_TIMEOUT;
   DEXIT
 }
 
@@ -428,7 +381,7 @@ _nss_mysql_load_config (void)
   to_return = _nss_mysql_load_config_file (ROOTCFG, nfalse);
   if (to_return != NSS_SUCCESS)
     DSRETURN (to_return)
-  if (_nss_mysql_validate_servers () == nfalse)
+  if (_nss_mysql_validate_config () == nfalse)
     DSRETURN (NSS_UNAVAIL)
   conf.valid = ntrue;
   DSRETURN (NSS_SUCCESS)
