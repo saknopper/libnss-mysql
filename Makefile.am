@@ -20,35 +20,34 @@
 
 AUTOMAKE_OPTIONS = foreign 1.6
 
-lib_LTLIBRARIES = libnss_mysql.la
-
+if RENAME
+lib_LTLIBRARIES         = nss_mysql.la
+nss_mysql_la_LDFLAGS    = -module -version-info @LIBVER@:0:0
+nss_mysql_la_SOURCES    = version.c nss_config.c nss_main.c \
+                          nss_support.c memory.c mysql.c lookup.c \
+                          mysql-pwd.c mysql-spwd.c mysql-grp.c
+else
+lib_LTLIBRARIES         = libnss_mysql.la
+libnss_mysql_la_LDFLAGS = -module -version-info @LIBVER@:0:0
 libnss_mysql_la_SOURCES = version.c nss_config.c nss_main.c \
                           nss_support.c memory.c mysql.c lookup.c \
                           mysql-pwd.c mysql-spwd.c mysql-grp.c
-libnss_mysql_la_LDFLAGS = -module -version-info @LIBVER@:0:0
+endif
  
 noinst_HEADERS = nss_mysql.h lookup.h
 CPPFLAGS = @CPPFLAGS@ -D_REENTRANT
 EXTRA_DIST = TODO FAQ THANKS UPGRADING DEBUGGING libnss-mysql.spec \
-             sample/*.* sample/complex/*.* sample/minimal/*.* sample/README
-
-install-exec-hook:
-	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.la
-if SOLARIS
-	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.so
-	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.so.@LIBVER@
-	-mv -f $(DESTDIR)$(libdir)/libnss_mysql.so.@LIBVER@.0.0 \
-           $(DESTDIR)$(libdir)/nss_mysql.so.1
-endif
+             sample/README sample/complex/*.* sample/minimal/*.* \
+             sample/linux/*.* sample/solaris/*.* sample/freebsd/*.*
 
 install-data-hook:
 	@if test ! -f ${DESTDIR}${sysconfdir}/libnss-mysql.cfg; then \
 		${srcdir}/mkinstalldirs ${DESTDIR}${sysconfdir}; \
-		${INSTALL_DATA} ${srcdir}/sample/libnss-mysql.cfg \
+		${INSTALL_DATA} ${srcdir}/sample/@OS@/libnss-mysql.cfg \
 			${DESTDIR}${sysconfdir}/libnss-mysql.cfg; \
 	fi
 	@if test ! -f ${DESTDIR}${sysconfdir}/libnss-mysql-root.cfg; then \
 		${srcdir}/mkinstalldirs ${DESTDIR}${sysconfdir}; \
-		${INSTALL_DATA} -m 600 ${srcdir}/sample/libnss-mysql-root.cfg \
+		${INSTALL_DATA} -m 600 ${srcdir}/sample/@OS@/libnss-mysql-root.cfg \
 			${DESTDIR}${sysconfdir}/libnss-mysql-root.cfg; \
 	fi
