@@ -187,7 +187,7 @@ _nss_mysql_pthread_once_init (void)
 static void *
 _nss_mysql_safe_memset (void *s, int c, size_t n)
 {
-  DN ("_nss_mysql_realloc")
+  DN ("_nss_mysql_safe_memset")
   volatile char *p = s;
 
   DENTER
