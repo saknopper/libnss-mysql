@@ -2,15 +2,12 @@
 
 Debugging libnss-mysql
 ======================
-    Serious problems will sent to syslog, so check there first.
+    Serious problems will be sent to syslog, so check there first.
 
-    Debugging code was removed in version 0.5, but re-added in 0.7.
     To use it, you must compile with it enabled.  To do so, add
     '--enable-debug' to the 'configure' line, compile, and install.
     Then, you have a choice as to where debug information goes.
     By default, it will go to the file '/tmp/libnss_mysql-debug.log'
-    You should set the file to mode 666 so any process can write to it
-    (you may need to create the file first).
     Setting the environment variable 'LIBNSS_MYSQL_DEBUG' will change
     where debug information goes.
         0 = /tmp/libnss_mysql-debug.log
