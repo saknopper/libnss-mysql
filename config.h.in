@@ -27,9 +27,6 @@
 /* Define to 1 if you have the `mysql_init' function. */
 #undef HAVE_MYSQL_INIT
 
-/* Define to 1 if the system has the type `my_ulonglong'. */
-#undef HAVE_MY_ULONGLONG
-
 /* Define to 1 if you have the <nss_common.h> header file. */
 #undef HAVE_NSS_COMMON_H
 
