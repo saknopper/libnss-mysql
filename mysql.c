@@ -29,7 +29,7 @@ static const char rcsid[] =
 #include <time.h>
 #include <netinet/in.h>
 
-con_info_t ci = { nfalse, 0, 0, 0, NULL };
+con_info_t ci = { nfalse, 0, 0, NULL };
 
 static freturn_t
 _nss_mysql_save_socket_info (void)
@@ -154,6 +154,10 @@ _nss_mysql_try_server (sql_server_t server)
   function_return (NSS_UNAVAIL);
 }
 
+/*
+ * This does NOT run mysql_ping because that function is
+ * extraordinarily slow (~doubles time to fetch a query)
+ */
 static nboolean
 _nss_mysql_check_existing_connection (void)
 {
@@ -169,15 +173,6 @@ _nss_mysql_check_existing_connection (void)
       ci.valid = nfalse;
       function_return (nfalse);
     }
-#ifdef HAVE_MYSQL_PING
-  if (mysql_ping (&(ci.link)) == RETURN_FAILURE)
-    {
-      _nss_mysql_debug (FNAME, D_CONNECT, "Existing link failed: %s",
-                        mysql_error (&(ci.link)));
-      _nss_mysql_close_sql (CLOSE_LINK);
-      function_return (nfalse);
-    }
-#endif
   _nss_mysql_debug (FNAME, D_CONNECT, "Using existing link");
   function_return (ntrue);
 }
@@ -232,9 +227,11 @@ _nss_mysql_close_sql (int flags)
 {
 
   function_enter;
-  if (flags & (CLOSE_RESULT | CLOSE_LINK) && ci.result)
+  if (flags & (CLOSE_RESULT | CLOSE_LINK) && ci.valid == ntrue && ci.result)
     {
       _nss_mysql_debug (FNAME, D_CONNECT | D_MEMORY, "Freeing result");
+      /* mysql_use_result requires fetching all rows */
+      while (mysql_fetch_row (ci.result) != NULL) {}
       mysql_free_result (ci.result);
       ci.result = NULL;
     }
@@ -280,15 +277,13 @@ _nss_mysql_run_query (conf_t conf, char *query)
           _nss_mysql_close_sql (CLOSE_LINK);
           continue;
         }
-      if ((ci.result = mysql_store_result (&(ci.link))) == NULL)
+      if ((ci.result = mysql_use_result (&(ci.link))) == NULL)
         {
-          _nss_mysql_log (LOG_ALERT, "store_result failed: %s",
+          _nss_mysql_log (LOG_ALERT, "use_result failed: %s",
                           mysql_error (&(ci.link)));
           _nss_mysql_close_sql (CLOSE_LINK);
           continue;
         }
-      _nss_mysql_debug (FNAME, D_QUERY, "Rows returned: %d",
-                        mysql_num_rows (ci.result));
       function_return (NSS_SUCCESS);
     }
   _nss_mysql_log (LOG_EMERG, "Unable to perform query on any MySQL server");
@@ -303,28 +298,23 @@ _nss_mysql_load_result (void *result, char *buffer, size_t buflen,
   int to_return;
   field_info_t *f;
   int i;
-  int num_rows;
   char *p;
   int bufused;
 
   function_enter;
-  num_rows = mysql_num_rows (ci.result);
-  _nss_mysql_debug (FNAME, D_QUERY, "num = %d, idx = %d", num_rows, ci.idx);
-
-  if (num_rows == 0)
-    function_return (NSS_NOTFOUND);
-
-  if (ci.idx > num_rows - 1)
-    function_return (NSS_NOTFOUND);
-
-  mysql_data_seek (ci.result, ci.idx);
-  ci.idx++;
-
   if ((row = mysql_fetch_row (ci.result)) == NULL)
     {
-      _nss_mysql_log (LOG_ALERT, "mysql_fetch_row() failed: %s",
-                      mysql_error (&(ci.link)));
-      function_return (NSS_UNAVAIL);
+      if (mysql_errno (&(ci.link)))
+        {
+          _nss_mysql_log (LOG_ALERT, "mysql_fetch_row() failed: %s",
+                          mysql_error (&(ci.link)));
+          function_return (NSS_UNAVAIL);
+        }
+      else
+        {
+          _nss_mysql_debug (FNAME, D_QUERY, "NOTFOUND in mysql_fetch_row()");
+          function_return (NSS_NOTFOUND);
+        }
     }
 
   memset (buffer, 0, buflen);
@@ -347,7 +337,6 @@ _nss_mysql_reset_ent (void)
 {
   function_enter;
   _nss_mysql_close_sql (CLOSE_RESULT);
-  ci.idx = 0;
   function_leave;
 }
 
