@@ -15,12 +15,6 @@
 /* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
 
-/* Some systems have a LOG_AUTHPRIV syslog facility */
-#undef HAVE_LOG_AUTHPRIV
-
-/* Some systems have a LOG_FTP syslog facility */
-#undef HAVE_LOG_FTP
-
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
@@ -54,9 +48,6 @@
 /* Define to 1 if you have the `strspn' function. */
 #undef HAVE_STRSPN
 
-/* Define to 1 if you have the `strtok' function. */
-#undef HAVE_STRTOK
-
 /* Define to 1 if you have the <syslog.h> header file. */
 #undef HAVE_SYSLOG_H
 
@@ -68,9 +59,6 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
-
-/* Recent GCCs have built-in __FUNC__ */
-#undef HAVE___FUNC__
 
 /* Main config file */
 #undef MAINCFG
@@ -98,6 +86,9 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
+
+/* Log important messages to this facility */
+#undef SYSLOG_FACILITY
 
 /* Version number of package */
 #undef VERSION
