@@ -29,9 +29,7 @@ noinst_HEADERS = nss_mysql.h lookup.h
 CPPFLAGS = @CPPFLAGS@ -Wall -D_REENTRANT
 EXTRA_DIST = INTERNALS TODO FAQ THANKS UPGRADING sample/*.cfg sample/*.sql
 
-if SOLARIS
-export LD_OPTIONS=-z nodelete -B group
-endif
+LDFLAGS = @LDFLAGS@ -Wl,-znodelete -Wl,-Bgroup
 
 install-exec-local:
 	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.la
