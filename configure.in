@@ -82,7 +82,10 @@ AC_CHECK_HEADERS(syslog.h stdint.h nss.h nss_common.h strings.h)
 AC_C_CONST
 AC_TYPE_UID_T
 AC_TYPE_SIZE_T
-AC_CHECK_TYPE(socklen_t, size_t)
+AC_CHECK_TYPES([socklen_t], , , [
+#include <unistd.h>
+#include <sys/socket.h>
+])
 
 AC_CHECK_FUNCS(strcspn strspn strtok, ,
                [AC_MSG_ERROR([The above function is required])])
