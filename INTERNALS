@@ -19,9 +19,9 @@ retry the call.  That way we're pretty well guaranteed we've got enough
 space to work with.
 
 Presently, I memset(buffer, 0, buflen).  This makes it relatively
-easy for me to insert strings and have them automatically NULL-terminated,
-as well as find the next free spot.  Data is arranged pointers first, then
-general data (usually strings).  For example:
+easy for me to insert strings and have them automatically NULL-terminated.
+Data is arranged pointers first, then general data (usually strings).
+For example:
 
 01234567890123456789012345678901234567890
 username password gecos ... 
