@@ -20,7 +20,6 @@ static const char rcsid[] =
 
 #include "nss_mysql.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 extern conf_t conf;
@@ -33,19 +32,18 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
   char *clean_name;
   size_t qout_size;
 
-  function_enter;
   *qout = NULL;
 
   if (!*qin || strlen (*qin) == 0)
     {
      _nss_mysql_log (LOG_CRIT, "%s has no valid query in config", caller);
-     function_return (NSS_UNAVAIL);
+     return (NSS_UNAVAIL);
     }
 
   qout_size = strlen (*qin) + PADSIZE + 1;
   *qout = _nss_mysql_malloc (qout_size);
   if (*qout == NULL)
-    function_return (NSS_UNAVAIL);
+    return (NSS_UNAVAIL);
 
   switch (ltype)
     {
@@ -53,19 +51,19 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
       if (strlen (name) == 0)
         {
           _nss_mysql_free (*qout);
-          function_return (NSS_NOTFOUND);
+          return (NSS_NOTFOUND);
         }
       clean_name = _nss_mysql_malloc (strlen (name) * 2 + 1);
       if (clean_name == NULL)
         {
           _nss_mysql_free (*qout);
-          function_return (NSS_UNAVAIL);
+          return (NSS_UNAVAIL);
         }
       if (_nss_mysql_escape_string (clean_name, name, mresult) != NSS_SUCCESS)
         {
           _nss_mysql_free (*qout);
           _nss_mysql_free (clean_name);
-          function_return (NSS_UNAVAIL);
+          return (NSS_UNAVAIL);
         }
       snprintf (*qout, qout_size, *qin, clean_name);
       _nss_mysql_free (clean_name);
@@ -81,9 +79,9 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
       break;
     default:
       _nss_mysql_free (*qout);
-      function_return (NSS_UNAVAIL);
+      return (NSS_UNAVAIL);
     }
-  function_return (NSS_SUCCESS);
+  return (NSS_SUCCESS);
 }
 
 NSS_STATUS
@@ -98,15 +96,14 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
   int retVal;
   nboolean run_query = ntrue;
 
-  function_enter;
   if (_nss_mysql_init () != NSS_SUCCESS)
-    function_return (NSS_UNAVAIL);
+    return (NSS_UNAVAIL);
 
   /* Create query string using config & args; QUERY is malloc'ed! */
   retVal = _nss_mysql_build_query (ltype, name, num, q, &query, mresult,
                                    caller);
   if (retVal != NSS_SUCCESS)
-    function_return (retVal);
+    return (retVal);
 
   /* BYNONE indicates *ent; don't run the query if we already did */
   if (ltype == BYNONE && *mresult)
@@ -120,7 +117,7 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
 
   _nss_mysql_free (query);
   if (retVal != NSS_SUCCESS)
-    function_return (retVal);
+    return (retVal);
 
   /* Take result of query and load RESULT & BUFFER */
   retVal = load_func (result, buffer, buflen, *mresult);
@@ -129,6 +126,6 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
   if (ltype != BYNONE)
     mysql_free_result (*mresult);
 
-  function_return (retVal);
+  return (retVal);
 }
 
