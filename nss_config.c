@@ -70,7 +70,7 @@ static field_info_t global_fields[]=
  */
 typedef enum
 {
-  SECTION_INVALID,
+  SECTION_INVALID = -1,
   SECTION_GLOBAL,
 
   /* 1 for each server; edit to match MAX_SERVERS; ALSO EDIT section_info[] */
@@ -137,16 +137,16 @@ static field_info_t syslog_names[] =
 };
 
 /*
- * For a given NAME, return the matching enum'ed value.
- * Return -1 if not found.
+ * "translate" NAME to a number using FIELDS
+ * IE translate "local7" to LOG_LOCAL7 using SYSLOG_NAMES above
  */
 static int
-_nss_mysql_syslog_name_to_id (const char *name)
+_nss_mysql_name_to_id (field_info_t *fields, const char *name)
 {
   field_info_t *f;
 
   function_enter;
-  for (f = syslog_names; f->name; f++)
+  for (f = fields; f->name; f++)
     {
       if (strcmp (name, f->name) == 0)
         function_return (f->type);
@@ -194,7 +194,7 @@ _nss_mysql_lis (const char *key, const char *val, field_info_t *fields,
               *(unsigned int *) (b + f->ofs) = (unsigned int) atoi (val);
               break;
             case FT_SYSLOG:
-              tmp = _nss_mysql_syslog_name_to_id (val);
+              tmp = _nss_mysql_name_to_id (syslog_names, val);
               if (tmp == -1)
                 {
                   _nss_mysql_log (LOG_ERR, "Syslog value '%s' invalid", val);
@@ -281,24 +281,6 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
 }
 
 /*
- * For a given NAME, return the matching enum'ed value.  Return
- * SECTION_INVALID if not found.
- */
-static int
-_nss_mysql_section_to_id (char *name)
-{
-  field_info_t *f;
-
-  function_enter;
-  for (f = section_info; f->name; f++)
-    {
-      if (strcmp (name, f->name) == 0)
-        function_return (f->type);
-    }
-  function_return (SECTION_INVALID);
-}
-
-/*
  * Step through FH until a valid section delimeter is found
  */
 static NSS_STATUS
@@ -316,7 +298,7 @@ _nss_mysql_get_section (FILE *fh, int *section)
           *p = '\0';
           p = line;
           p++;
-          *section = _nss_mysql_section_to_id (p);
+          *section = _nss_mysql_name_to_id (section_info, p);
           if (*section != SECTION_INVALID)
               function_return (NSS_SUCCESS);
         }
@@ -354,6 +336,7 @@ _nss_mysql_load_config_file (char *file)
   FILE *fh;
   int section;
   int to_return;
+  int server_num;
 
   function_enter;
   _nss_mysql_debug (FNAME, D_FILE, "Opening %s", file);
@@ -377,16 +360,16 @@ _nss_mysql_load_config_file (char *file)
         /* Add to list if you edit MAX_SERVERS/sections_t/etc */
         case SECTION_PRIMARY:
         case SECTION_SECONDARY:
-          if (section - SECTION_PRIMARY >= MAX_SERVERS)
+          server_num = section - SECTION_PRIMARY;
+          if (server_num >= MAX_SERVERS)
             {
               _nss_mysql_debug (FNAME, D_PARSE, "Invalid server #: %d",
-                                section);
+                                section - SECTION_PRIMARY);
               fclose (fh);
               function_return (NSS_UNAVAIL);
             }
           to_return =
-            _nss_mysql_load_section (fh,
-                                     &(conf.sql.server[section - SECTION_PRIMARY]),
+            _nss_mysql_load_section (fh, &(conf.sql.server[server_num]),
                                      server_fields);
           if (to_return != NSS_SUCCESS)
             {
@@ -491,8 +474,11 @@ _nss_mysql_reset_config (void)
 
   for (f = query_fields; f->name; f++)
     {
+      /* I use variables for clarity here.  This is ugly */
       char *q;
-      (uintptr_t *)q = *(uintptr_t *)((_nss_mysql_byte *)&conf.sql.query + f->ofs);
+      _nss_mysql_byte *b;
+      b = (_nss_mysql_byte *)&conf.sql.query + f->ofs;
+      (uintptr_t *)q = *(uintptr_t *)b;
       _nss_mysql_free (q);
     }
 
