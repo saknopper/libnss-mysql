@@ -6,6 +6,8 @@
               privsep-enabled SSH daemons to be unable to log in a MySQL user.
               Thanks to Mike Noordermeer for the patch.
 
+    * BUGFIX: Fixed broken 'initcmd' option
+
     * CHANGE: Minimum supported MySQL version is 3.23.09
 
 1.0 - 1.1
