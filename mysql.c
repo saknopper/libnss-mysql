@@ -264,40 +264,31 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
 }
 
 static NSS_STATUS
-_nss_mysql_pick_server (void)
+_nss_mysql_pick_server (int attempt)
 {
   DN ("_nss_mysql_pick_server")
   time_t curTime;
-  int i;
 
   DENTER
   time (&curTime);
-  for (i = 0; i < MAX_SERVERS; i++)
+  for (ci.server_num = 0; ci.server_num < MAX_SERVERS; ci.server_num++)
     {
-      if (conf.sql.server[i].status.valid == nfalse)
+      if (conf.sql.server[ci.server_num].status.valid == nfalse)
         continue;
-      if (conf.sql.server[i].status.up == ntrue)
-        {
-          ci.server_num = i;
-          DSRETURN (NSS_SUCCESS)
-        }
+      if (conf.sql.server[ci.server_num].status.up == ntrue)
+        DSRETURN (NSS_SUCCESS)
       else
         {
-          if (conf.sql.server[i].status.last_attempt == 0 ||
-              conf.sql.server[i].status.last_attempt + conf.global.retry <=
-                curTime)
-            {
-              ci.server_num = i;
-              DSRETURN (NSS_SUCCESS)
-            }
+          if (conf.sql.server[ci.server_num].status.last_attempt == 0 ||
+              conf.sql.server[ci.server_num].status.last_attempt +
+              conf.global.retry <= curTime)
+            DSRETURN (NSS_SUCCESS)
         }
     }
-  /* If we get this far, simply try server #0 (if it's "valid") */
-  if (conf.sql.server[0].status.valid)
-    {
-      ci.server_num = 0;
-      DSRETURN (NSS_SUCCESS)
-    }
+  /* Try server #0 if all else fails */
+  ci.server_num = 0;
+  if (attempt < MAX_SERVERS * 2 && conf.sql.server[ci.server_num].status.valid)
+    DSRETURN (NSS_SUCCESS)
   else
     DSRETURN (NSS_UNAVAIL)
 }
@@ -313,6 +304,7 @@ static NSS_STATUS
 _nss_mysql_connect_sql (MYSQL_RES **mresult)
 {
   DN ("_nss_mysql_connect_sql")
+  int attempt = 0;
 
   DENTER
   if (_nss_mysql_check_existing_connection (mresult) == ntrue)
@@ -330,7 +322,7 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
     }
 #endif /* HAVE_MYSQL_INIT */
 
-  while (_nss_mysql_pick_server () == NSS_SUCCESS)
+  while (_nss_mysql_pick_server (attempt++) == NSS_SUCCESS)
     {
       if (_nss_mysql_try_server (mresult) == NSS_SUCCESS)
         DSRETURN (NSS_SUCCESS)
@@ -367,7 +359,6 @@ _nss_mysql_fail_server (MYSQL_RES **mresult, int server_num)
  * Run QUERY against an existing MySQL connection.  If the query fails,
  * try to run the query against all other defined MySQL servers (in case
  * the query failure is due to a server failure/loss).
- * Caller should guarantee that QUERY isn't null or empty
  */
 NSS_STATUS
 _nss_mysql_run_query (char *query, MYSQL_RES **mresult)
