@@ -24,13 +24,9 @@ static const char rcsid[] =
     "$Id$";
 
 #include "nss_mysql.h"
-#include <stdio.h>
-#include <string.h>
 #include <stdarg.h>
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-
-extern conf_t conf;
 
 /*
  * Syslog a message at PRIORITY.
@@ -44,53 +40,28 @@ _nss_mysql_log (int priority, char *fmt, ...)
 {
   va_list ap;
 
-  if (priority > conf.global.syslog_priority)
-    return;
-
-  openlog (PACKAGE, OPENLOG_OPTIONS, conf.global.syslog_facility);
+  openlog (PACKAGE, OPENLOG_OPTIONS, SYSLOG_FACILITY);
   va_start (ap, fmt);
   vsyslog (priority, fmt, ap);
   va_end (ap);
   closelog ();
 }
 
-/*
- * Our debug routine.  FUNCTION should contain the calling function name.
- * FLAGS contains the type of debug message this is.  Sends the resulting
- * string to the log function above.
- */
-void
-_nss_mysql_debug (const char *function, int flags, char *fmt, ...)
-{
-  va_list ap;
-  char string[MAX_LOG_LEN];
-
-  if (conf.global.syslog_priority < LOG_DEBUG)
-    return;
-
-  if (!(flags & conf.global.debug_flags))
-    return;
-
-  va_start (ap, fmt);
-  vsnprintf (string, MAX_LOG_LEN, fmt, ap);
-  va_end (ap);
-  _nss_mysql_log (LOG_DEBUG, "%s: %s", function, string);
-}
-
 #ifdef HAVE_NSS_COMMON_H
 NSS_STATUS
 _nss_mysql_default_destr (nss_backend_t *be, void *args)
 {
-  function_enter;
   _nss_mysql_free (be);
   /*
    * We MUST close the link as the NSS subsystem unloads the module and thus
    * all static variables are lost
    * FIXME: This may no longer be necessary since we link with -z nodelete
    */
+  LOCK;
   _nss_mysql_close_sql (NULL, ntrue);
   _nss_mysql_reset_config ();
-  function_return (NSS_SUCCESS);
+  UNLOCK;
+  return (NSS_SUCCESS);
 
 }
 #endif
