@@ -25,7 +25,7 @@ AC_PREREQ(2.53)
 AC_CONFIG_SRCDIR([nss_main.c])
 AC_CANONICAL_TARGET([])
 AC_PREFIX_DEFAULT()
-AM_INIT_AUTOMAKE(libnss_mysql, 0.7)
+AM_INIT_AUTOMAKE(libnss_mysql, 0.7dev)
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
@@ -62,6 +62,39 @@ solaris*)
 *) os=unknown ;;
 esac
 
+AC_CACHE_CHECK([whether the linker accepts -Bgroup],
+               [nss_mysql_cv_cc_bgroup], [
+    SAVELIBS=$LIBS
+    LIBS="-Wl,-Bgroup $SAVELIBS"
+    AC_TRY_LINK([], [], nss_mysql_cv_cc_bgroup=yes,
+                        nss_mysql_cv_cc_bgroup=no)
+    LIBS=$SAVELIBS])
+if test $nss_mysql_cv_cc_bgroup = "yes"; then
+    LIBS="-Wl,-Bgroup $SAVELIBS"
+fi
+
+AC_CACHE_CHECK([whether the linker accepts --allow-shlib-undefined],
+               [nss_mysql_cv_cc_shlibundef], [
+    SAVELIBS=$LIBS
+    LIBS="-Wl,--allow-shlib-undefined $SAVELIBS"
+    AC_TRY_LINK([], [], nss_mysql_cv_cc_shlibundef=yes,
+                        nss_mysql_cv_cc_shlibundef=no)
+    LIBS=$SAVELIBS])
+if test $nss_mysql_cv_cc_shlibundef = "yes"; then
+    LIBS="-Wl,--allow-shlib-undefined $SAVELIBS"
+fi
+
+AC_CACHE_CHECK([whether the linker accepts -znodelete],
+               [nss_mysql_cv_cc_znodelete], [
+    SAVELIBS=$LIBS
+    LIBS="-Wl,-znodelete $SAVELIBS"
+    AC_TRY_LINK([], [], nss_mysql_cv_cc_znodelete=yes,
+                        nss_mysql_cv_cc_znodelete=no)
+    LIBS=$SAVELIBS])
+if test $nss_mysql_cv_cc_znodelete = "yes"; then
+    LIBS="-Wl,-znodelete $SAVELIBS"
+fi
+
 AM_CONDITIONAL(LINUX, test "$TOS" = "linux")
 AM_CONDITIONAL(SOLARIS, test "$TOS" = "solaris")
 
@@ -75,8 +108,8 @@ AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(dl, dlsym)
 AC_CHECK_LIB(z, compress)
 
-AC_CHECK_LIB(mysqlclient_r, mysql_connect, ,
-             [AC_CHECK_LIB(mysqlclient, mysql_connect, ,
+AC_CHECK_LIB(mysqlclient_r, main, ,
+             [AC_CHECK_LIB(mysqlclient, main, ,
                            [AC_MSG_ERROR([Unable find a functioning MySQL library])])])
 
 AC_HEADER_STDC
