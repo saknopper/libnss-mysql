@@ -2,13 +2,19 @@
 
 0.6 - 0.7
 
-    * BUGFIX: re-implemented uid check to make sure getsp* routines
+    * NEW:    Re-added debugging.  You can send debug output to syslog,
+              stderr, or a file.  See DEBUGGING for more information.
+
+    * BUGFIX: Re-implemented uid check to make sure getsp* routines
               couldn't be called by non-root users (which would create
               syslog message regarding failed query attempts).
 
     * BUGFIX: Fix nscd coredump under Solaris.  Any programs that
               tried to access pw->pw_comment and/or pw->pw_age would have
               suffered the same fate.
+
+    * BUGFIX: Fixed crash/hang under certain circumstances (usually when
+              forking).
 
 0.5 - 0.6
 
