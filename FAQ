@@ -94,3 +94,14 @@ A: There are a number of reasons for this, but basically you either need to:
      file from your GCC installation, and set the environment variable
      'LDFLAGS' to the following before running 'configure':
      -L/directory/containing/libgcc.a -lgcc
+
+Q: I'm getting segfaults on Solaris; truss indicates a crash shortly after
+   libz can't be found.
+
+A: If you're using Solaris 8+, this shouldn't be a problem as libz is included
+   with the OS.  On earlier versions, you've probably installed it into
+   /usr/local/lib or somewhere in /opt.  You need to make sure this directory
+   is included in the linker search PRIOR to building libnss-mysql.  If libz
+   is installed in /usr/local/lib, you'd need to do the following:
+   sh -c "LDFLAGS=-R/usr/local/lib ./configure"
+
