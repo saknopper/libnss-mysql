@@ -1,5 +1,18 @@
 # $Id$
 
+2002-08-28  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * nss_main.c, lookup.c, mysql.c, nss_confi.c, nss_mysql.h, nss_support.c:
+      turned 'conf' into a global variable instead of passing it around
+      everywhere
+
+2002-08-27  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * configure.in: Added "-z nodelete" LD_OPTIONS hack to get around
+    strange dlopen-related solaris memory leak bug
+
+    * Automake.am: added -module arg to libtool
+
 2002-08-23  Ben Goodwin  <cinergi@users.sourceforge.net>
 
     * lookup.c, lookup.h, memory.c, nss_config.c, nss_main.c,
