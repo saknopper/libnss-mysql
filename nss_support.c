@@ -23,7 +23,9 @@ static const char rcsid[] =
 #include <stdlib.h>
 #include <string.h>
 #include <pwd.h>
+#ifdef HAVE_SHADOW_H
 #include <shadow.h>
+#endif
 #include <grp.h>
 
 extern conf_t conf;
@@ -43,51 +45,102 @@ do {                                                                         \
   blen -= (ptr - qtr);                                                       \
 } while (0)
 
+#if defined(__FreeBSD__)
+typedef enum {
+  ROW_PW_NAME,
+  ROW_PW_PASSWD,
+  ROW_PW_UID,
+  ROW_PW_GID,
+  ROW_PW_CHANGE,
+  ROW_PW_CLASS,
+  ROW_PW_GECOS,
+  ROW_PW_DIR,
+  ROW_PW_SHELL,
+  ROW_PW_EXPIRE,
+  NUM_PW_ELEMENTS
+} pw_rows;
+#elif defined (sun)
+typedef enum {
+  ROW_PW_NAME,
+  ROW_PW_PASSWD,
+  ROW_PW_UID,
+  ROW_PW_GID,
+  ROW_PW_AGE,
+  ROW_PW_COMMENT,
+  ROW_PW_GECOS,
+  ROW_PW_DIR,
+  ROW_PW_SHELL,
+  NUM_PW_ELEMENTS
+} pw_rows;
+#else
+typedef enum {
+  ROW_PW_NAME,
+  ROW_PW_PASSWD,
+  ROW_PW_UID,
+  ROW_PW_GID,
+  ROW_PW_GECOS,
+  ROW_PW_DIR,
+  ROW_PW_SHELL,
+  NUM_PW_ELEMENTS
+} pw_rows;
+#endif
+
 NSS_STATUS 
 _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
                         MYSQL_RES *mresult, int *errnop)
 {
   DN ("_nss_mysql_load_passwd")
   MYSQL_ROW row;
-  int retVal;
+  int retVal, i;
   struct passwd *pw = (struct passwd *)result;
-  size_t offsets[8]; // 7 rows + an empty string
+  size_t offsets[NUM_PW_ELEMENTS];
   unsigned long *lengths;
 
   DENTER
   retVal = _nss_mysql_fetch_row (&row, mresult);
   if (retVal != NSS_SUCCESS)
     DSRETURN (retVal)
-  if (_nss_mysql_num_fields (mresult) != 7)
+  if (_nss_mysql_num_fields (mresult) != NUM_PW_ELEMENTS)
     DSRETURN (NSS_UNAVAIL)
 
   lengths = (unsigned long *) _nss_mysql_fetch_lengths (mresult);
   offsets[0] = 0;
-  offsets[1] = offsets[0] + lengths[0] + 1;
-  offsets[4] = offsets[1] + lengths[1] + 1;
-  offsets[5] = offsets[4] + lengths[4] + 1;
-  offsets[6] = offsets[5] + lengths[5] + 1;
-  offsets[7] = offsets[6] + lengths[6] + 1;	// An empty string
-  if (offsets[7] + 2 > buflen)	// each string + 2 bytes for empty string
+  for (i = 1; i < NUM_PW_ELEMENTS; i++)
+    offsets[i] = offsets[i - 1] + lengths[i - 1] + 1;
+  if (offsets[NUM_PW_ELEMENTS - 1] > buflen)
     EXHAUSTED_BUFFER;
 
   memset (buffer, 0, buflen);
-  pw->pw_name = memcpy (buffer + offsets[0], row[0], lengths[0]);
-  pw->pw_passwd = memcpy (buffer + offsets[1], row[1], lengths[1]);
-  pw->pw_uid = atoi (row[2]);
-  pw->pw_gid = atoi (row[3]);
-  pw->pw_gecos = memcpy (buffer + offsets[4], row[4], lengths[4]);
-  pw->pw_dir = memcpy (buffer + offsets[5], row[5], lengths[5]);
-  pw->pw_shell = memcpy (buffer + offsets[6], row[6], lengths[6]);
-#ifdef HAVE_NSS_COMMON_H
-  // Without these, 'nscd' on Solaris will segfault
-  pw->pw_comment = pw->pw_gecos;
-  pw->pw_age = memcpy (buffer + offsets[7], "", 2); // empty string
+  pw->pw_name = memcpy (buffer + offsets[ROW_PW_NAME], row[ROW_PW_NAME],
+                        lengths[ROW_PW_NAME]);
+  pw->pw_passwd = memcpy (buffer + offsets[ROW_PW_PASSWD], row[ROW_PW_PASSWD],
+                          lengths[ROW_PW_PASSWD]);
+  pw->pw_uid = atoi (row[ROW_PW_UID]);
+  pw->pw_gid = atoi (row[ROW_PW_GID]);
+  pw->pw_gecos = memcpy (buffer + offsets[ROW_PW_GECOS], row[ROW_PW_GECOS],
+                         lengths[ROW_PW_GECOS]);
+  pw->pw_dir = memcpy (buffer + offsets[ROW_PW_DIR], row[ROW_PW_DIR],
+                       lengths[ROW_PW_DIR]);
+  pw->pw_shell = memcpy (buffer + offsets[ROW_PW_SHELL], row[ROW_PW_SHELL],
+                         lengths[ROW_PW_SHELL]);
+#if defined(__FreeBSD__)
+  pw->pw_change = atoi (row[ROW_PW_CHANGE]);
+  pw->pw_class = memcpy (buffer + offsets[ROW_PW_CLASS], row[ROW_PW_CLASS],
+                         lengths[ROW_PW_CLASS]);
+  pw->pw_change = atoi (row[ROW_PW_EXPIRE]);
+#endif
+
+#if defined(sun)
+  pw->pw_class = memcpy (buffer + offsets[ROW_PW_AGE], row[ROW_PW_AGE],
+                         lengths[ROW_PW_AGE]);
+  pw->pw_class = memcpy (buffer + offsets[ROW_PW_COMMENT], row[ROW_PW_COMMENT],
+                         lengths[ROW_PW_COMMENT]);
 #endif
 
   DSRETURN (NSS_SUCCESS)
 }
 
+#ifdef HAVE_SHADOW_H
 NSS_STATUS 
 _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
                         MYSQL_RES *mresult, int *errnop)
@@ -124,6 +177,7 @@ _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
   sp->sp_flag = (unsigned long) atol (row[8]);
   DSRETURN (NSS_SUCCESS)
 }
+#endif
 
 static NSS_STATUS
 _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
@@ -285,3 +339,57 @@ _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
 
   DSRETURN (NSS_SUCCESS)
 }
+
+#if defined(__FreeBSD__)
+
+NSS_METHOD_PROTOTYPE(__nss_compat_getpwnam_r);
+NSS_METHOD_PROTOTYPE(__nss_compat_getpwuid_r);
+NSS_METHOD_PROTOTYPE(__nss_compat_getpwent_r);
+NSS_METHOD_PROTOTYPE(__nss_compat_setpwent);
+NSS_METHOD_PROTOTYPE(__nss_compat_endpwent);
+NSS_METHOD_PROTOTYPE(__nss_compat_getgrnam_r);
+NSS_METHOD_PROTOTYPE(__nss_compat_getgrgid_r);
+NSS_METHOD_PROTOTYPE(__nss_compat_getgrent_r);
+NSS_METHOD_PROTOTYPE(__nss_compat_setgrent);
+NSS_METHOD_PROTOTYPE(__nss_compat_endgrent);
+
+NSS_STATUS _nss_mysql_getpwnam_r (const char *, struct passwd *, char *,
+                                  size_t, int *);
+NSS_STATUS _nss_mysql_getpwuid_r (uid_t, struct passwd *, char *,
+                                  size_t, int *);
+NSS_STATUS _nss_mysql_getpwent_r (struct passwd *, char *, size_t, int *);
+NSS_STATUS _nss_mysql_setpwent (void);
+NSS_STATUS _nss_mysql_endpwent (void);
+
+NSS_STATUS _nss_mysql_getgrnam_r (const char *, struct group *, char *,
+                                  size_t, int *);
+NSS_STATUS _nss_mysql_getgrgid_r (gid_t, struct group *, char *,
+                                  size_t, int *);
+NSS_STATUS _nss_mysql_getgrent_r (struct group *, char *, size_t, int *);
+NSS_STATUS _nss_mysql_setgrent (void);
+NSS_STATUS _nss_mysql_endgrent (void);
+
+static ns_mtab methods[] = {
+    { NSDB_PASSWD, "getpwnam_r", __nss_compat_getpwnam_r, _nss_mysql_getpwnam_r },
+    { NSDB_PASSWD, "getpwuid_r", __nss_compat_getpwuid_r, _nss_mysql_getpwuid_r },
+    { NSDB_PASSWD, "getpwent_r", __nss_compat_getpwent_r, _nss_mysql_getpwent_r },
+    { NSDB_PASSWD, "endpwent",   __nss_compat_setpwent,   _nss_mysql_setpwent },
+    { NSDB_PASSWD, "setpwent",   __nss_compat_endpwent,   _nss_mysql_endpwent },
+    { NSDB_GROUP,  "getgrnam_r", __nss_compat_getgrnam_r, _nss_mysql_getgrnam_r },
+    { NSDB_GROUP,  "getgrgid_r", __nss_compat_getgrgid_r, _nss_mysql_getgrgid_r },
+    { NSDB_GROUP,  "getgrent_r", __nss_compat_getgrent_r, _nss_mysql_getgrent_r },
+    { NSDB_GROUP,  "endgrent",   __nss_compat_setgrent,   _nss_mysql_setgrent },
+    { NSDB_GROUP,  "setgrent",   __nss_compat_endgrent,   _nss_mysql_endgrent },
+};
+
+ns_mtab *
+nss_module_register (const char *name, unsigned int *size,
+                     nss_module_unregister_fn *unregister)
+{
+    *size = sizeof (methods) / sizeof (methods[0]);
+    *unregister = NULL;
+    return (methods);
+}
+
+#endif /* defined(__FreeBSD__) */
+
