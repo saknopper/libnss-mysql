@@ -71,7 +71,7 @@ esac
 
 AC_CHECK_FUNCS(strcspn strspn strtok, ,
                [AC_MSG_ERROR(The above function is required)])
-AC_CHECK_FUNCS(mysql_connect mysql_ping mysql_init)
+AC_CHECK_FUNCS(mysql_connect mysql_init)
 
 AC_ENABLE_SHARED(yes)
 AC_ENABLE_STATIC(no)

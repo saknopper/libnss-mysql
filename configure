@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.5 
+# From configure.in Revision: 1.6 
 
 
 # Configure paths for mysql-client, GPLv2
@@ -5935,7 +5935,7 @@ else
 fi
 done
 
-for ac_func in mysql_connect mysql_ping mysql_init
+for ac_func in mysql_connect mysql_init
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
 echo "configure:5942: checking for $ac_func" >&5

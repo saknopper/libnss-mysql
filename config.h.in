@@ -36,9 +36,6 @@
 /* Define if you have the mysql_init function.  */
 #undef HAVE_MYSQL_INIT
 
-/* Define if you have the mysql_ping function.  */
-#undef HAVE_MYSQL_PING
-
 /* Define if you have the strcspn function.  */
 #undef HAVE_STRCSPN
 
