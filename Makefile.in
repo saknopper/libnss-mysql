@@ -97,7 +97,7 @@ libnss_mysql_la_SOURCES = nss_config.c nss_main.c \
 libnss_mysql_la_LDFLAGS = -module -version-info @LIBVER@:0:0 -Wl,-znodelete -Wl,-Bgroup
 
 noinst_HEADERS = nss_mysql.h lookup.h
-CPPFLAGS = @CPPFLAGS@ -Wall -D_REENTRANT
+CPPFLAGS = @CPPFLAGS@ -D_REENTRANT
 EXTRA_DIST = TODO FAQ THANKS UPGRADING DEBUGGING sample/*.cfg sample/*.sql
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
