@@ -29,6 +29,21 @@ static const char rcsid[] =
 #include <netinet/in.h>
 #include <sys/un.h>
 
+/* Alignment code adapted from padl.com's nss_ldap */
+#ifdef __GNUC__
+#define alignof(ptr) __alignof__(ptr)
+#else
+#define alignof(ptr) (sizeof(char *))
+#endif
+
+#define align(ptr, blen, TYPE)                                               \
+do {                                                                         \
+  char *qtr = ptr;                                                           \
+  ptr += alignof(TYPE) - 1;                                                  \
+  ptr -= ((ptr - (char *)NULL) % alignof(TYPE));                             \
+  blen += (ptr - qtr);                                                       \
+} while (0)
+
 /* Number of comma- or space-separated tokens in BUFFER */
 static NSS_STATUS
 _nss_mysql_count_tokens (const char *buffer, int *count)
@@ -91,6 +106,7 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
       *(unsigned long *) (b + fofs) = (unsigned long) atol (val);
       break;
     case FT_PCHAR:
+      align (buffer, *bufused, char *);
       if (*bufused > buflen)
         {
           errno = ERANGE;
@@ -117,7 +133,8 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
             *(uintptr_t *) (b + fofs) = (uintptr_t) buffer;
             function_return (NSS_SUCCESS);
           }
-
+ 
+        align (buffer, *bufused, char *);
         /* Leave room for n+1 pointers (last must be NULL) */
         p = buffer;
         s = p + ((num_tokens + 1) * PTRSIZE);
