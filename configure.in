@@ -25,7 +25,7 @@ AC_PREREQ(2.53)
 AC_CONFIG_SRCDIR([nss_main.c])
 AC_CANONICAL_TARGET([])
 AC_PREFIX_DEFAULT()
-AM_INIT_AUTOMAKE(libnss-mysql, 1.1)
+AM_INIT_AUTOMAKE(libnss-mysql, 1.2)
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
@@ -107,7 +107,6 @@ AC_CHECK_TYPES([socklen_t], , , [
 
 AC_CHECK_FUNCS(strcspn strspn, ,
                [AC_MSG_ERROR([The above function is required])])
-AC_CHECK_FUNCS(mysql_init)
 
 EXPANDED_SYSCONFDIR=`eval echo $sysconfdir`
 AC_DEFINE_UNQUOTED([MAINCFG], "$EXPANDED_SYSCONFDIR/libnss-mysql.cfg",

@@ -4,7 +4,9 @@
 
     * BUGFIX: euid-change detection was broken, causing things like
               privsep-enabled SSH daemons to be unable to log in a MySQL user.
-              Thanks to Mike Noordermeer for pointing it out and a patch.
+              Thanks to Mike Noordermeer for the patch.
+
+    * CHANGE: Minimum supported MySQL version is 3.23.09
 
 1.0 - 1.1
 
