@@ -36,18 +36,21 @@ static const char rcsid[] =
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_once_t _nss_mysql_once_control = {PTHREAD_ONCE_INIT};
 
+/* Called from parent, just before fork */
 static void
 _nss_mysql_atfork_prepare (void)
 {
   LOCK;
 }
 
+/* Called from parent, just before fork returns */
 static void
 _nss_mysql_atfork_parent (void)
 {
   UNLOCK;
 }
 
+/* Called from child, just before fork returns */
 static void
 _nss_mysql_atfork_child (void)
 {
@@ -55,23 +58,28 @@ _nss_mysql_atfork_child (void)
   UNLOCK;
 }
 
+/* Setup pthread_atfork if current namespace contains pthreads. */
 static void
 _nss_mysql_pthread_once_init (void)
 {
   int (*pthread_atfork)();
 
-  pthread_atfork = dlsym (RTLD_DEFAULT, "pthread_atfork");
+  pthread_atfork = (int (*)(int))dlsym (RTLD_DEFAULT, "pthread_atfork");
   if (pthread_atfork)
     (*pthread_atfork) (_nss_mysql_atfork_prepare, _nss_mysql_atfork_parent,
                        _nss_mysql_atfork_child);
 }
 
+/*
+ * Setup pthread_once if it's available in the current namespace
+ * Load config file(s)
+ */
 NSS_STATUS
 _nss_mysql_init (void)
 {
   int (*pthread_once)();
 
-  pthread_once = dlsym (RTLD_DEFAULT, "pthread_once");
+  pthread_once = (int (*)(int))dlsym (RTLD_DEFAULT, "pthread_once");
   if (pthread_once)
     (*pthread_once) (&_nss_mysql_once_control, _nss_mysql_pthread_once_init);
   return (_nss_mysql_load_config ());
@@ -101,7 +109,7 @@ NSS_STATUS
 _nss_mysql_default_destr (nss_backend_t *be, void *args)
 {
   _nss_mysql_free (be);
-  /* Closing link & freeing memory unnecessary due to link w/ '-z nodelete' */
+  /* Closing link & freeing memory unnecessary due to link w/ '-znodelete' */
   return (NSS_SUCCESS);
 
 }
