@@ -2,10 +2,17 @@ Official website: http://libnss-mysql.sourceforge.net/
 
 MySQL for NSS systems
 =====================
-Supported systems:
+Supported Operating Systems:
     o Linux
-    o Solaris (2.6 - 2.8)
+    o Solaris (Sparc or Intel) (2.6, 7, 8. 9 without PAM)
     o FreeBSD (5.1+)
+
+Supported MySQL Versions:
+    o MySQL 3.23.x - 4.0.x
+
+Supported Compilers:
+    o GCC (2.95.2, 3.x)
+    o Sun Forte Developer 7 C 5.4
 
 NOTE: Solaris 9 is not fully unsupported.  Sun's PAM modules have become
       so restrictive that you can't even properly authenticate via PAM
@@ -85,20 +92,5 @@ At some point in the future, 64-bit support will be integrated.
 Debugging
 =========
     See the file DEBUGGING
-
-Tested with
-===========
-    Operating Systems
-      RedHat 6.1 - 9.0
-      Fedora Core 1
-      Solaris 6-8 (sparc)
-      Solaris 9 (sparc) (PAM apps will NOT work!)
-      Solaris 8 (x86)
-      FreeBSD 5.1
-    MySQL
-      MySQL 3.20.?? - 4.0.16
-    Compilers
-      gcc 2.95.2 - 3.3.2
-      Forte Developer 7 C 5.4 (Sun Workshop)
 
 $Id$
