@@ -80,6 +80,40 @@ void _nss_mysql_debug (char *fmt, ...);
 #define DN(n) static const char FUNCNAME[] = n;
 #define DENTER D ("%s: ENTER", FUNCNAME);
 #define DIRETURN(r) { D ("%s: EXIT (%d)", FUNCNAME, r); return (r); }
+#define DFRETURN(r)                                                         \
+  {                                                                         \
+    D ("%s: EXIT (%s)", FUNCNAME, r == 0 ? "SUCCESS" : "FAIL");             \
+    return (r);                                                             \
+  }
+#define DBRETURN(r)                                                         \
+  {                                                                         \
+    D ("%s: EXIT (%s)", FUNCNAME, r == ntrue ? "TRUE" : "FALSE");           \
+    return (r);                                                             \
+  }
+#define DSRETURN(r)                                                         \
+  {                                                                         \
+    char *status;                                                           \
+    switch (r)                                                              \
+      {                                                                     \
+      case NSS_SUCCESS:                                                     \
+        status = "NSS_SUCCESS";                                             \
+        break;                                                              \
+      case NSS_NOTFOUND:                                                    \
+        status = "NSS_NOTFOUND";                                            \
+        break;                                                              \
+      case NSS_UNAVAIL:                                                     \
+        status = "NSS_UNAVAIL";                                             \
+        break;                                                              \
+      case NSS_TRYAGAIN:                                                    \
+        status = "NSS_TRYAGAIN";                                            \
+        break;                                                              \
+      default:                                                              \
+        status = "UNKNOWN";                                                 \
+        break;                                                              \
+      }                                                                     \
+    D ("%s: EXIT (%s)", FUNCNAME, status);                                  \
+    return (r);                                                             \
+  }
 #define DPRETURN(r) { D ("%s: EXIT (%p)", FUNCNAME, r); return (r); }
 #define DEXIT D ("%s: EXIT", FUNCNAME);
 #else
@@ -88,6 +122,9 @@ void _nss_mysql_debug (char *fmt, ...);
 #define DENTER
 #define DIRETURN(r) return (r);
 #define DPRETURN(r) return (r);
+#define DFRETURN(r) return (r);
+#define DBRETURN(r) return (r);
+#define DSRETURN(r) return (r);
 #define DEXIT
 #define FUNCNAME ""
 #endif
@@ -112,14 +149,14 @@ extern pthread_mutex_t lock;
 #define EXHAUSTED_BUFFER                                                     \
   {                                                                          \
     *errnop = ERANGE;                                                        \
-    DIRETURN (NSS_TRYAGAIN);                                                 \
+    DSRETURN (NSS_TRYAGAIN);                                                 \
   }
 #else
 #define EXHAUSTED_BUFFER                                                     \
   {                                                                          \
     if (errnop)                                                              \
       *errnop = 1;                                                           \
-    DIRETURN (NSS_NOTFOUND);                                                 \
+    DSRETURN (NSS_NOTFOUND);                                                 \
   }
 #endif
 
