@@ -25,3 +25,11 @@ A: You must set 'PersistentPasswd' to 'Off' in your proftpd configuration.
    session     required      /lib/security/pam_limits.so
    session     required      /lib/security/pam_unix.so
 
+
+Q: Why do I get the following message when I try to use 'passwd' on Solaris?
+   "Supported configurations for passwd management are as follows" ...
+A: Sun chose to write their unix PAM module to only allow a very restrictive
+   configuration in /etc/nsswitch.conf.  You must now specify '-r files' on
+   the 'passwd' command-line to manipulate the password file.  For example:
+   passwd -r files username
+   I know this sucks, so figuring out a better workaround is on my TODO list.
