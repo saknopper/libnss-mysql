@@ -30,7 +30,7 @@ libnss_mysql_la_LDFLAGS = -module -version-info @LIBVER@:0:0
 noinst_HEADERS = nss_mysql.h lookup.h
 CPPFLAGS = @CPPFLAGS@ -D_REENTRANT
 EXTRA_DIST = TODO FAQ THANKS UPGRADING DEBUGGING sample/*.cfg sample/*.sql \
-             libnss_mysql.spec
+             libnss-mysql.spec
 
 install-exec-hook:
 	-rm -f $(DESTDIR)$(libdir)/libnss_mysql.la
@@ -42,13 +42,13 @@ if SOLARIS
 endif
 
 install-data-hook:
-	@if test ! -f ${DESTDIR}${sysconfdir}/nss_mysql.cfg; then \
+	@if test ! -f ${DESTDIR}${sysconfdir}/libnss-mysql.cfg; then \
 		${srcdir}/mkinstalldirs ${DESTDIR}${sysconfdir}; \
-		${INSTALL_DATA} ${srcdir}/sample/nss_mysql.cfg \
-			${DESTDIR}${sysconfdir}/nss_mysql.cfg; \
+		${INSTALL_DATA} ${srcdir}/sample/libnss-mysql.cfg \
+			${DESTDIR}${sysconfdir}/libnss-mysql.cfg; \
 	fi
-	@if test ! -f ${DESTDIR}${sysconfdir}/nss_mysql_root.cfg; then \
+	@if test ! -f ${DESTDIR}${sysconfdir}/libnss-mysql-root.cfg; then \
 		${srcdir}/mkinstalldirs ${DESTDIR}${sysconfdir}; \
-		${INSTALL_DATA} -m 600 ${srcdir}/sample/nss_mysql_root.cfg \
-			${DESTDIR}${sysconfdir}/nss_mysql_root.cfg; \
+		${INSTALL_DATA} -m 600 ${srcdir}/sample/libnss-mysql-root.cfg \
+			${DESTDIR}${sysconfdir}/libnss-mysql-root.cfg; \
 	fi

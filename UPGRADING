@@ -4,6 +4,23 @@ $Id$
 *** users, such as ssh, nscd, cron, etc.  It's best if you simply reboot
 *** unless you know the complete list of daemons to restart.
 
+0.8 -> 0.9
+    * IMPORTANT: The filenames for the configuration files has changed.
+      There's also been a slight change inside the configuration files.
+      It's MANDATORY that you follow these upgrade procedures.
+
+    * /etc/nss_mysql.cfg is now /etc/libnss-mysql.cfg
+
+    * /etc/nss_mysql_root.cfg is now /etc/libnss-mysql-root.cfg
+
+    * Only one server can be defined in your configuration files.
+      Delete any [secondary] sections and rename your [primary] section
+      to [server]
+
+    * A "make install" and RPM upgrades will NOT rename your existing
+      configuration files.  They will install new default ones under
+      their new names.  Overwrite them with your old files.
+
 0.7a -> 0.8
     * The /etc/my.cnf section, [libnss_mysql], is no longer supported.
       Use the new options in /etc/nss_mysql.cfg instead (see below).
