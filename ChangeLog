@@ -1,5 +1,19 @@
 # $Id$
 
+2002-08-16  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * mysql.c: Call mysql_escape_string if MYSQL_VERSION_ID < 32300.
+
+    * configure, configure.in: New method for checking MySQL install location.
+
+    * config.h.in, nss_mysql.h: No longer need mysql/mysql.h header check.
+
+    * acinclude.m4: New file.  Added mysql-finder function.
+
+    * aclocal.m4: Re-generated due to new acinclude.m4.
+
+    * TODO: The usual ...
+
 2002-08-15  Ben Goodwin  <cinergi@users.sourceforge.net>
 
     * nss_mysql.h: Added proto for _nss_mysql_escape_string().
