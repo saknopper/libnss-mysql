@@ -98,12 +98,12 @@ _nss_mysql_getgrgid_r (nss_backend_t *be, void *args)
 /*
  * endgrent
  */
-ENDENT(grent);
+ENDENT(grent)
 
 /*
  * setgrent
  */
-SETENT(grent);
+SETENT(grent)
 
 /*
  * getgrent
@@ -204,5 +204,5 @@ static nss_backend_op_t group_ops[] = {
     _nss_mysql_getgrmem
 };
 
-CONSTR(group);
+CONSTR(group)
 #endif

@@ -98,12 +98,12 @@ _nss_mysql_getpwuid_r (nss_backend_t *be, void *args)
 /*
  * endpwent
  */
-ENDENT(pwent);
+ENDENT(pwent)
 
 /*
  * setpwent
  */
-SETENT(pwent);
+SETENT(pwent)
 
 /*
  * getpwent
@@ -149,6 +149,6 @@ static nss_backend_op_t passwd_ops[] = {
     _nss_mysql_getpwuid_r           /* NSS_DBOP_PASSWD_BYUID */
 };
 
-CONSTR(passwd);
+CONSTR(passwd)
 
 #endif

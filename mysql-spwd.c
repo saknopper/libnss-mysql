@@ -63,12 +63,12 @@ _nss_mysql_getspnam_r (nss_backend_t *be, void *args)
 /*
  * endspent
  */
-ENDENT(spent);
+ENDENT(spent)
 
 /*
  * setspent
  */
-SETENT(spent);
+SETENT(spent)
 
 /*
  * getspent
@@ -113,7 +113,7 @@ static nss_backend_op_t shadow_ops[] = {
     _nss_mysql_getspnam_r           /* NSS_DBOP_SHADOW_BYNAME */
 };
 
-CONSTR(shadow);
+CONSTR(shadow)
 
 #endif
 
