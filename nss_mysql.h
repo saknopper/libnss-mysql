@@ -111,7 +111,7 @@ void _nss_mysql_debug (char *fmt, ...);
 #define DEXIT D ("%s: EXIT", FUNCNAME);
 #else
 #define D
-#define DN(n)
+#define DN(n) static const char FUNCNAME[] = n;
 #define DENTER
 #define DIRETURN(r) return (r);
 #define DPRETURN(r) return (r);
@@ -119,7 +119,6 @@ void _nss_mysql_debug (char *fmt, ...);
 #define DBRETURN(r) return (r);
 #define DSRETURN(r) return (r);
 #define DEXIT
-#define FUNCNAME ""
 #endif
 
 extern pthread_mutex_t lock;
