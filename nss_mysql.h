@@ -32,7 +32,7 @@
 #endif
 
 #include <mysql.h>
-#include <mysql/errmsg.h>
+#include <errmsg.h>
 
 #include <sys/socket.h>
 #include <errno.h>
