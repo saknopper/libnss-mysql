@@ -142,7 +142,7 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
                                   "Requesting more memory for BUFFER");
                 function_return (NSS_TRYAGAIN);
               }
-            *(char *)p = (uintptr_t) memcpy (s, token, token_size);
+            *(uintptr_t *) p = (uintptr_t) memcpy (s, token, token_size);
             p += PTRSIZE;
             s += token_size;
 
@@ -163,13 +163,7 @@ _nss_mysql_liswb (const char *val, void *structure, char *buffer,
 NSS_STATUS
 _nss_mysql_init (void)
 {
-  int to_return;
-
   function_enter;
-  to_return = _nss_mysql_load_config ();
-  if (to_return != NSS_SUCCESS)
-    function_return (to_return);
-  to_return = _nss_mysql_connect_sql ();
-  function_return (to_return);
+  function_return (_nss_mysql_load_config ());
 }
 
