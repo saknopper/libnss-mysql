@@ -26,4 +26,3 @@ ltmain.sh
 missing
 mkinstalldirs
 version.c
-libnss_mysql.spec
