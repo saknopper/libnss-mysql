@@ -1,5 +1,9 @@
 # $Id$
 
+2002-08-22  Ben Goodwin  <cinergi@users.sourceforge.net>
+
+    * lookup.h: (HAVE_NSS_H) setDBent/endDBent and NOT setDBent_r/endDBent_r
+
 2002-08-21  Ben Goodwin  <cinergi@users.sourceforge.net>
 
     * nss_mysql.h: Added missing #ifdef HAVE_NSS_COMMON_H around a prototype
