@@ -154,13 +154,13 @@ _nss_mysql_set_options (sql_server_t *server, int *flags)
   if (server->options.compress)
     {
       D ("%s: Setting compressed protocol", FUNCNAME);
-      mysql_options(&ci.link, MYSQL_OPT_COMPRESS, (char *)NULL);
+      mysql_options(&ci.link, MYSQL_OPT_COMPRESS, 0);
     }
   if (server->options.initcmd && strlen (server->options.initcmd))
     {
       D ("%s: Setting init-command to '%s'", FUNCNAME, server->options.initcmd);
       mysql_options(&ci.link, MYSQL_INIT_COMMAND,
-                    (char *)&server->options.initcmd);
+                    (char *)server->options.initcmd);
     }
   DEXIT
 }
@@ -238,16 +238,9 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
   _nss_mysql_set_options (server, &flags);
   D ("%s: Connecting to %s", FUNCNAME, server->host);
   if (mysql_real_connect (&ci.link, server->host, server->username,
-                          server->password, NULL, server->port,
+                          server->password, server->database, server->port,
                           server->socket, flags))
     {
-      if (mysql_select_db (&ci.link, server->database) != RETURN_SUCCESS)
-        {
-          _nss_mysql_log (LOG_ALERT, "Unable to select database %s: %s",
-                          server->database, mysql_error (&ci.link));
-          _nss_mysql_close_sql (mresult, ntrue);
-          DSRETURN (NSS_UNAVAIL)
-        }
       if (_nss_mysql_save_socket_info () != RETURN_SUCCESS )
         {
           _nss_mysql_log (LOG_ALERT, "Unable to save socket info");
