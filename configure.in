@@ -76,15 +76,6 @@ AC_CHECK_FUNCS(mysql_connect mysql_ping mysql_init)
 AC_ENABLE_SHARED(yes)
 AC_ENABLE_STATIC(no)
 
-AC_ARG_ENABLE(debug, [  --enable-debug=FILE     Send debugging to this file.],
-[
-case "${enableval}" in
-  yes) AC_DEFINE_UNQUOTED(DEBUG_FILE,"/tmp/debug") ;;
-   no) ;;
-    *) AC_DEFINE_UNQUOTED(DEBUG_FILE,"$enableval") ;;
-esac
-])
-
 AC_TRY_COMPILE([
 #include <stdio.h>],
 [printf ("Foo: %s\n", __func__);],
