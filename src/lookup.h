@@ -77,7 +77,7 @@
       DN ("_nss_mysql_" #type "_constr")                                     \
       nss_backend_t *be;                                                     \
       DENTER                                                                 \
-      be = (nss_backend_t *) _nss_mysql_malloc (sizeof (*be));               \
+      be = (nss_backend_t *) malloc (sizeof (*be));                          \
       if (!be)                                                               \
         DPRETURN (NULL)                                                      \
       be->ops = type##_ops;                                                  \
