@@ -2,6 +2,14 @@
 
 2002-08-22  Ben Goodwin  <cinergi@users.sourceforge.net>
 
+    * README: Solaris changes.  Info about sample MySQL database.  Prefix
+      changed.
+
+    * Makefile.am, Makefile.in, configure.in, configure: Solaris support.
+      *** NOTICE *** Default prefix has changed to / - configuration files
+      go in /etc by default; Linux libraries go in /lib and the Solaris
+      library goes in /usr/lib.
+
     * lookup.h: (HAVE_NSS_H) setDBent/endDBent and NOT setDBent_r/endDBent_r
 
 2002-08-21  Ben Goodwin  <cinergi@users.sourceforge.net>
