@@ -70,7 +70,7 @@ typedef nss_status_t NSS_STATUS;
 #define MAX_QUERY_ATTEMPTS  3           /* # of query retries */
 
 /* Default initializers */
-#define DEF_TIMEOUT     "3"
+#define DEF_TIMEOUT         3
 
 #ifdef DEBUG
 void _nss_mysql_debug (char *fmt, ...);

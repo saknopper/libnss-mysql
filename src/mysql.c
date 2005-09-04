@@ -137,10 +137,12 @@ static void
 _nss_mysql_set_options (sql_server_t *server)
 {
   DN ("_nss_mysql_set_options")
+  const unsigned int def_timeout = DEF_TIMEOUT;
 
   DENTER
 
-  mysql_options(&ci.link, MYSQL_OPT_CONNECT_TIMEOUT, DEF_TIMEOUT);
+  mysql_options(&ci.link, MYSQL_OPT_CONNECT_TIMEOUT,
+                (const char *) &def_timeout);
   mysql_options(&ci.link, MYSQL_READ_DEFAULT_GROUP, "libnss-mysql");
 
   DEXIT
