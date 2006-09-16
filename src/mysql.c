@@ -296,7 +296,7 @@ _nss_mysql_run_query (char *query, MYSQL_RES **mresult, int *attempts)
         {
           _nss_mysql_log (LOG_ALERT, "mysql_query failed: %s",
                           mysql_error (&ci.link));
-          DSRETURN (retval);
+          DSRETURN (NSS_UNAVAIL);
         }
     }
 
