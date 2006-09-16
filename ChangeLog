@@ -6,6 +6,8 @@
 
     * BUGFIX: Bug ID 1415600 - "DESTDIR=/another/root make install" fails
 
+    * BUGFIX: Explicitly set auto-reconnect; default on MySQL 5.0.3 is now off
+
 1.4 - 1.5
 
     * BUGFIX: Bug ID 1244484 - Connect timeout broke ability to connect to
