@@ -18,7 +18,7 @@ dnl
 dnl $Id$ */
 
 AC_INIT([libnss-mysql],[1.6-SNAPSHOT])
-AC_CONFIG_AUX_DIR(aux)
+AC_CONFIG_AUX_DIR(aux_scripts)
 AC_PREREQ([2.69])
 AC_CONFIG_SRCDIR([src/nss_main.c])
 AM_INIT_AUTOMAKE

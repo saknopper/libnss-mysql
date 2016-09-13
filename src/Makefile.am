@@ -26,14 +26,8 @@ library_sources         = version.c nss_config.c nss_main.c \
 library_ldflags         = -module -version-info @LIBVER@:0:0 \
                           -export-symbols $(srcdir)/@OS@.sym
 
-if RENAME
-lib_LTLIBRARIES         = nss_mysql.la
-nss_mysql_la_LDFLAGS    = $(library_ldflags)
-nss_mysql_la_SOURCES    = $(library_sources)
-else
 lib_LTLIBRARIES         = libnss_mysql.la
 libnss_mysql_la_LDFLAGS = $(library_ldflags)
 libnss_mysql_la_SOURCES = $(library_sources)
-endif
  
 noinst_HEADERS = nss_mysql.h lookup.h
