@@ -1,4 +1,3 @@
-Makefile
 aux
 config.h
 config.h.in
@@ -13,3 +12,11 @@ Makefile.in
 aclocal.m4
 configure
 libnss-mysql-?.?
+
+*.lo
+*.la
+.deps
+.libs
+Makefile
+Makefile.in
+version.c
