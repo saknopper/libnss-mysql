@@ -19,6 +19,8 @@
 # From Makefile.am $Revision$
 
 AUTOMAKE_OPTIONS = foreign 1.6
+ACLOCAL_AMFLAGS = -I m4
+
 SUBDIRS = src
 
 EXTRA_DIST = FAQ UPGRADING DEBUGGING libnss-mysql.spec src/*.sym \

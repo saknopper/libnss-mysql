@@ -18,6 +18,7 @@ dnl
 dnl $Id$ */
 
 AC_INIT([libnss-mysql],[1.6-SNAPSHOT])
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR(aux_scripts)
 AC_PREREQ([2.69])
 AC_CONFIG_SRCDIR([src/nss_main.c])
@@ -32,11 +33,13 @@ LT_INIT
 
 AC_DISABLE_STATIC
 
-AC_ARG_WITH(mysql,
-            [  --with-mysql=DIR        Location of your MySQL installation])
 AC_ARG_ENABLE(debug,
             [  --enable-debug          Enable debug (see DEBUGGING)],
             [AC_DEFINE([DEBUG], 1, [Enable debug])])
+
+WITH_MYSQL()
+MYSQL_USE_CLIENT_API()
+MYSQL_SUBST()
 
 LIBVER=2
 OS=linux
@@ -54,7 +57,7 @@ fi
 AC_SUBST(LIBVER)
 AC_SUBST(OS)
 
-FIND_MYSQL()
+
 
 AC_CHECK_LIB(socket, getsockname)
 AC_CHECK_LIB(nsl, gethostbyname)
@@ -62,11 +65,7 @@ AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(dl, dlsym)
 AC_CHECK_LIB(z, compress)
 
-AC_CHECK_LIB(mysqlclient, main, ,
-             [AC_MSG_ERROR([Unable find a functioning MySQL library])])
-
 AC_HEADER_STDC
-AC_CHECK_HEADER(mysql.h, , [AC_MSG_ERROR([Unable to find mysql.h])])
 AC_CHECK_HEADERS(syslog.h stdint.h nss.h nss_common.h shadow.h)
 
 AC_C_CONST
