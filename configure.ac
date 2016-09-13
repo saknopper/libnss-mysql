@@ -17,23 +17,20 @@ dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 dnl
 dnl $Id$ */
 
-dnl Autoconf 2.53 is REQUIRED
-
-AC_REVISION($Revision$)dnl
-AC_INIT
+AC_INIT([libnss-mysql],[1.6-SNAPSHOT])
 AC_CONFIG_AUX_DIR(aux)
-AC_PREREQ(2.53)
+AC_PREREQ([2.69])
 AC_CONFIG_SRCDIR([src/nss_main.c])
-AC_CANONICAL_TARGET([])
-AC_PREFIX_DEFAULT()
-AM_INIT_AUTOMAKE(libnss-mysql, 1.5)
+AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
 AC_PROG_CC
+AC_PROG_CC_C99
+
+LT_INIT
 
 AC_DISABLE_STATIC
-AC_PROG_LIBTOOL
 
 AC_ARG_WITH(mysql,
             [  --with-mysql=DIR        Location of your MySQL installation])
@@ -41,40 +38,14 @@ AC_ARG_ENABLE(debug,
             [  --enable-debug          Enable debug (see DEBUGGING)],
             [AC_DEFINE([DEBUG], 1, [Enable debug])])
 
-case "$target_os" in
-linux*)
-    CPPFLAGS="$CPPFLAGS -D_REENTRANT"
-    LIBVER=2
-    OS=linux
-    RENAME=false
-    test "$prefix" = "NONE" && prefix=
-    ;;
-solaris*)
-    CPPFLAGS="$CPPFLAGS -D_REENTRANT"
-    LIBVER=1
-    OS=solaris
-    RENAME=true
-    test "$prefix" = "NONE" && prefix= && libdir=/usr/lib
-    ;;
-freebsd*)
-    CPPFLAGS="$CPPFLAGS -DPIC -D_REENTRANT"
-    LIBVER=1
-    OS=freebsd
-    RENAME=true
-    test "$prefix" = "NONE" && prefix= && libdir=/usr/lib
-    ;;
-*)  OS=unknown
-    ;;
-esac
-
-AM_CONDITIONAL(RENAME, test "$RENAME" = "true")
+LIBVER=2
+OS=linux
 
 AC_CACHE_CHECK([whether the linker accepts -znodelete],
                [nss_mysql_cv_cc_znodelete], [
     SAVELIBS=$LIBS
     LIBS="-Wl,-znodelete $SAVELIBS"
-    AC_TRY_LINK([], [], nss_mysql_cv_cc_znodelete=yes,
-                        nss_mysql_cv_cc_znodelete=no)
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],[nss_mysql_cv_cc_znodelete=yes],[nss_mysql_cv_cc_znodelete=no])
     LIBS=$SAVELIBS])
 if test $nss_mysql_cv_cc_znodelete = "yes"; then
     LIBS="-Wl,-znodelete $SAVELIBS"
@@ -114,3 +85,4 @@ AC_DEFINE_UNQUOTED([ROOTCFG],"$EXPANDED_SYSCONFDIR/libnss-mysql-root.cfg",
 
 AC_CONFIG_FILES([Makefile src/Makefile src/version.c])
 AC_OUTPUT
+
