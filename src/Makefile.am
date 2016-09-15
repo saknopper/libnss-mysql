@@ -18,8 +18,6 @@
 ## $Id$
 # From Makefile.am $Revision$
 
-AUTOMAKE_OPTIONS = foreign 1.6
-
 library_sources         = version.c nss_config.c nss_main.c \
                           nss_support.c mysql.c lookup.c \
                           mysql-pwd.c mysql-spwd.c mysql-grp.c

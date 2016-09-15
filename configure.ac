@@ -22,12 +22,14 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_PREREQ([2.69])
 AC_CONFIG_SRCDIR([src/nss_main.c])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign 1.11 -Wall silent-rules color-tests])
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
 AC_PROG_CC
 AC_PROG_CC_C99
+
+AM_PROG_AR
 
 LT_INIT
 
