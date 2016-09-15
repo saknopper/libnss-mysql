@@ -16,6 +16,7 @@ libnss-mysql-?.?
 
 *.lo
 *.la
+*.o
 .deps
 .libs
 Makefile
