@@ -2,13 +2,8 @@
 
 ############################################################################
 # $Id$
-# Quick script to set up a build environment from CVS
+# Quick script to set up a build environment
 ############################################################################
 set -x
-test ! -d aux && mkdir aux
-aclocal -I aux && \
-autoheader && \
-autoconf && \
-libtoolize --copy --automake --force && \
-automake --add-missing --copy
 
+autoreconf -f
