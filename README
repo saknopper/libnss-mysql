@@ -1,4 +1,6 @@
-Official website: http://libnss-mysql.sourceforge.net/
+Official website: https://github.com/saknopper/libnss-mysql
+
+(forked from: http://libnss-mysql.sourceforge.net/)
 
 MySQL for NSS systems
 =====================
