@@ -288,3 +288,23 @@ _nss_mysql_reset_ent (MYSQL_RES **mresult)
   DEXIT
 }
 
+void __attribute__ ((constructor)) _nss_mysql_constructor(void)
+{
+	DN ("_nss_mysql_constructor");
+	DENTER
+
+	// TODO Implement this, called before dlopen() finishes
+
+	DEXIT
+}
+
+void __attribute__ ((destructor)) _nss_mysql_destructor(void)
+{
+	DN ("_nss_mysql_destructor");
+	DENTER
+
+	// TODO Implement this, called before dlclose() finishes
+
+	DEXIT
+}
+

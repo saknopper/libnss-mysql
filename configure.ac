@@ -46,20 +46,8 @@ MYSQL_SUBST()
 LIBVER=2
 OS=linux
 
-AC_CACHE_CHECK([whether the linker accepts -znodelete],
-               [nss_mysql_cv_cc_znodelete], [
-    SAVELIBS=$LIBS
-    LIBS="-Wl,-znodelete $SAVELIBS"
-    AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])],[nss_mysql_cv_cc_znodelete=yes],[nss_mysql_cv_cc_znodelete=no])
-    LIBS=$SAVELIBS])
-if test $nss_mysql_cv_cc_znodelete = "yes"; then
-    LIBS="-Wl,-znodelete $SAVELIBS"
-fi
-
 AC_SUBST(LIBVER)
 AC_SUBST(OS)
-
-
 
 AC_CHECK_LIB(socket, getsockname)
 AC_CHECK_LIB(nsl, gethostbyname)
