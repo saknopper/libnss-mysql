@@ -118,7 +118,7 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
  */
 NSS_STATUS
 _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
-                   char *q, nboolean restricted, void *result,
+                   char *q, bool restricted, void *result,
                    char *buffer, size_t buflen, int *errnop,
                    NSS_STATUS (*load_func)(void *, char *, size_t,
                                            MYSQL_RES *, int *),
@@ -134,7 +134,7 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
 
   cur_euid = geteuid ();
   D ("%s: restricted = %d, cur_euid = %u", __FUNCTION__, restricted, cur_euid);
-  if (restricted == ntrue && cur_euid != 0)
+  if (restricted == true && cur_euid != 0)
     DSRETURN (NSS_NOTFOUND)
 
    /* Make sure euid hasn't changed, thus changing our access abilities */
@@ -144,8 +144,8 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
     {
       D ("%s:, euid changed: %u -> %u", __FUNCTION__, euid, cur_euid);
       /* Close MySQL and config to force reload of config and reconnect */
-      _nss_mysql_close_sql (mresult, ntrue);
-      conf.valid = nfalse;
+      _nss_mysql_close_sql (mresult, true);
+      conf.valid = false;
       euid = cur_euid;
     }
 

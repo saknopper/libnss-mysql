@@ -89,7 +89,7 @@ static const char DEBUG_FILE[] = "/tmp/libnss-mysql-debug.log";
   }
 #define DBRETURN(r)                                                         \
   {                                                                         \
-    D ("%s: EXIT (%s)", __FUNCTION__, r == ntrue ? "TRUE" : "FALSE");           \
+    D ("%s: EXIT (%s)", __FUNCTION__, r == true ? "TRUE" : "FALSE");           \
     return (r);                                                             \
   }
 #define DSRETURN(r)                                                         \
@@ -163,15 +163,6 @@ extern pthread_mutex_t lock;
 #endif
 
 /*
- * To the untrained eye, this looks like my version of a boolean.  It's
- * really my secret code for taking over the universe ...
- */
-typedef enum {
-    nfalse,
-    ntrue
-} nboolean;
-
-/*
  * It's SO damn confusing when functions use a return of 0 for success and
  * 1 for failure, especially amidst functions that have a boolean return
  * type.. so use this instead.  PLEASE.  I BEG YOU.
@@ -224,7 +215,7 @@ typedef struct {
 } sql_conf_t;
 
 typedef struct {
-    nboolean        valid;              /* Have we loaded config yet? */
+    bool            valid;              /* Have we loaded config yet? */
     sql_conf_t      sql;                /* [server] section */
 } conf_t;
 
@@ -242,7 +233,7 @@ typedef struct {
 
 /* All information regarding existing MySQL link */
 typedef struct {
-    nboolean        valid;          /* Are we connected to a server? */
+    bool            valid;          /* Are we connected to a server? */
     MYSQL           link;
     socket_info_t   sock_info;      /* See above */
 } con_info_t;
@@ -266,7 +257,7 @@ NSS_STATUS _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
                                       MYSQL_RES *mresult, int *errnop);
 
 /* mysql.c */
-NSS_STATUS _nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful);
+NSS_STATUS _nss_mysql_close_sql (MYSQL_RES **mresult, bool graceful);
 void _nss_mysql_close_result (MYSQL_RES **mresult);
 NSS_STATUS _nss_mysql_run_query (char *query, MYSQL_RES **mresult,
                                  int *attempts);
@@ -282,7 +273,7 @@ NSS_STATUS _nss_mysql_load_config (void);
 
 /* lookup.c */
 NSS_STATUS _nss_mysql_lookup (lookup_t ltype, const char *name,
-                              unsigned int num, char *q, nboolean restricted,
+                              unsigned int num, char *q, bool restricted,
                               void *result, char *buffer, size_t buflen,
                               int *errnop,
                               NSS_STATUS (*load_func)(void *, char *, size_t,

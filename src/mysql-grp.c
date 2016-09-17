@@ -43,12 +43,12 @@ _nss_mysql_getgrnam_r (nss_backend_t *be, void *args)
   LOCK;
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNAME, name, 0, conf.sql.query.getgrnam,
-                              nfalse, result, buffer, buflen, errnop,
+                              false, result, buffer, buflen, errnop,
                               _nss_mysql_load_group, &mresult, __FUNCTION__);
 #elif defined(HAVE_NSS_COMMON_H)
   retVal = _nss_mysql_lookup (BYNAME, NSS_ARGS(args)->key.name,
                               0, conf.sql.query.getgrnam,
-                              nfalse, NSS_ARGS(args)->buf.result,
+                              false, NSS_ARGS(args)->buf.result,
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
                               &NSS_ARGS(args)->erange,
@@ -78,11 +78,11 @@ _nss_mysql_getgrgid_r (nss_backend_t *be, void *args)
   LOCK;
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNUM, NULL, uid, conf.sql.query.getgrgid,
-                              nfalse, result, buffer, buflen, errnop,
+                              false, result, buffer, buflen, errnop,
                               _nss_mysql_load_group, &mresult, __FUNCTION__);
 #else
   retVal = _nss_mysql_lookup (BYNUM, NULL, NSS_ARGS(args)->key.uid,
-                              conf.sql.query.getgrgid, nfalse,
+                              conf.sql.query.getgrgid, false,
                               NSS_ARGS(args)->buf.result,
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
@@ -122,11 +122,11 @@ _nss_mysql_getgrent_r (nss_backend_t *be, void *args)
   LOCK;
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getgrent,
-                              nfalse, result, buffer, buflen, errnop,
+                              false, result, buffer, buflen, errnop,
                               _nss_mysql_load_group, &mresult_grent, __FUNCTION__);
 #else
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getgrent,
-                              nfalse, NSS_ARGS(args)->buf.result,
+                              false, NSS_ARGS(args)->buf.result,
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
                               &NSS_ARGS(args)->erange,
@@ -175,13 +175,13 @@ _nss_mysql_getgrmem (nss_backend_t *be, void *args)
   LOCK;
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNAME, user, 0, conf.sql.query.gidsbymem,
-                              nfalse, &gi, NULL, 0, errnop,
+                              false, &gi, NULL, 0, errnop,
                               _nss_mysql_load_gidsbymem, &mresult,
                               "initgroups");
 #else
   retVal = _nss_mysql_lookup (BYNAME,
                               ((struct nss_groupsbymem *)args)->username,
-                              0, conf.sql.query.gidsbymem, nfalse, &gi, NULL,
+                              0, conf.sql.query.gidsbymem, false, &gi, NULL,
                               0, NULL, _nss_mysql_load_gidsbymem, &mresult,
                               "initgroups");
 #endif

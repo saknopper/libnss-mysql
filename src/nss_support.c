@@ -334,7 +334,7 @@ _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
 
   /* Load gr_mem */
   retVal = _nss_mysql_lookup (BYNUM, NULL, gr->gr_gid,
-                              conf.sql.query.memsbygid, nfalse, result,
+                              conf.sql.query.memsbygid, false, result,
                               buffer + offsets[ROW_GR_MEM],
                               buflen - offsets[ROW_GR_MEM],
                               errnop, _nss_mysql_load_memsbygid,

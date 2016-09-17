@@ -32,7 +32,7 @@ static const char rcsid[] =
 typedef size_t socklen_t;
 #endif
 
-con_info_t ci = { nfalse };
+con_info_t ci = { false };
 extern conf_t conf;
 
 /*
@@ -60,7 +60,7 @@ _nss_mysql_save_socket_info (void)
 /*
  * Compare ORIG and CUR
  */
-static nboolean
+static bool
 _nss_mysql_is_same_sockaddr (struct sockaddr orig, struct sockaddr cur)
 {
   DENTER
@@ -69,29 +69,29 @@ _nss_mysql_is_same_sockaddr (struct sockaddr orig, struct sockaddr cur)
     case AF_INET:
         if ((*(struct sockaddr_in *) &orig).sin_port != 
             (*(struct sockaddr_in *) &cur).sin_port)
-          DBRETURN (nfalse)
+          DBRETURN (false)
         if ((*(struct sockaddr_in *) &orig).sin_addr.s_addr != 
             (*(struct sockaddr_in *) &cur).sin_addr.s_addr)
-          DBRETURN (nfalse)
+          DBRETURN (false)
         break;
     case AF_UNIX:
         if (memcmp (&orig, &cur, sizeof (struct sockaddr)) != 0)
-          DBRETURN (nfalse)
+          DBRETURN (false)
         break;
     default:
         _nss_mysql_log (LOG_ERR, "%s: Unhandled sin_family", __FUNCTION__);
-        DBRETURN (nfalse)
+        DBRETURN (false)
         break;
     }
-  DBRETURN (ntrue)
+  DBRETURN (true)
 }
 
 /*
  * Check to see what current socket info is and compare to the saved
  * socket info (from _nss_mysql_save_socket_info() above).  Return
- * NTRUE if the current socket and saved socket match.
+ * true if the current socket and saved socket match.
  */
-static nboolean
+static bool
 _nss_mysql_validate_socket (void)
 {
   socklen_t local_size = sizeof (struct sockaddr);
@@ -101,21 +101,21 @@ _nss_mysql_validate_socket (void)
   DENTER
   memset(&check, 0, sizeof (check));
   if (getpeername (ci.link.net.fd, &check, &remote_size) != RETURN_SUCCESS)
-    DBRETURN (nfalse)
-  if (_nss_mysql_is_same_sockaddr (ci.sock_info.remote, check) != ntrue)
-    DBRETURN (nfalse)
+    DBRETURN (false)
+  if (_nss_mysql_is_same_sockaddr (ci.sock_info.remote, check) != true)
+    DBRETURN (false)
 
   memset(&check, 0, sizeof (check));
   if (getsockname (ci.link.net.fd, &check, &local_size) != RETURN_SUCCESS)
-    DBRETURN (nfalse)
-  if (_nss_mysql_is_same_sockaddr (ci.sock_info.local, check) != ntrue)
-    DBRETURN (nfalse)
+    DBRETURN (false)
+  if (_nss_mysql_is_same_sockaddr (ci.sock_info.local, check) != true)
+    DBRETURN (false)
 
-  DBRETURN (ntrue)
+  DBRETURN (true)
 }
 
 NSS_STATUS
-_nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful)
+_nss_mysql_close_sql (MYSQL_RES **mresult, bool graceful)
 {
   DENTER
   _nss_mysql_close_result (mresult);
@@ -124,7 +124,7 @@ _nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful)
       D ("%s: calling mysql_close()", __FUNCTION__);
       mysql_close (&ci.link);
     }
-  ci.valid = nfalse;
+  ci.valid = false;
   DSRETURN (NSS_SUCCESS)
 }
 
@@ -153,14 +153,14 @@ _nss_mysql_set_options (sql_server_t *server)
  * This does NOT run mysql_ping because that function is
  * extraordinarily slow (~doubles time to fetch a query)
  */
-static nboolean
+static bool
 _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
 {
   static pid_t pid = -1;
 
   DENTER
-  if (ci.valid == nfalse || conf.valid == nfalse)
-    DBRETURN (nfalse)
+  if (ci.valid == false || conf.valid == false)
+    DBRETURN (false)
 
   if (pid == -1)
     pid = getpid ();
@@ -168,21 +168,21 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
     {
       /* saved pid == ppid = we've forked; We MUST create a new connection */
       D ("%s: fork() detected", __FUNCTION__);
-      ci.valid = nfalse;
+      ci.valid = false;
       pid = getpid ();
-      DBRETURN (nfalse)
+      DBRETURN (false)
     }
 
-  if (_nss_mysql_validate_socket () == nfalse)
+  if (_nss_mysql_validate_socket () == false)
     {
        /* Do *NOT* CLOSE_LINK - the socket is invalid! */
       D ("%s: invalid socket detected", __FUNCTION__);
-      _nss_mysql_close_sql (mresult, nfalse);
-      ci.valid = nfalse;
-      DBRETURN (nfalse)
+      _nss_mysql_close_sql (mresult, false);
+      ci.valid = false;
+      DBRETURN (false)
     }
 
-  DBRETURN (ntrue)
+  DBRETURN (true)
 }
 
 /*
@@ -197,7 +197,7 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
 
   DENTER
 
-  if (_nss_mysql_check_existing_connection (mresult) == ntrue)
+  if (_nss_mysql_check_existing_connection (mresult) == true)
     {
       D ("%s: Using existing connection", __FUNCTION__);
       DSRETURN (NSS_SUCCESS)
@@ -232,10 +232,10 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
       if (_nss_mysql_save_socket_info () != RETURN_SUCCESS )
         {
           _nss_mysql_log (LOG_ALERT, "Unable to save socket info");
-          _nss_mysql_close_sql (mresult, ntrue);
+          _nss_mysql_close_sql (mresult, true);
           DSRETURN (NSS_UNAVAIL)
         }
-      ci.valid = ntrue;
+      ci.valid = true;
       ci.link.reconnect = 0; /* Safety: We can't let MySQL assume socket is
                                 still valid; see _nss_mysql_validate_socket */
       DSRETURN (NSS_SUCCESS)

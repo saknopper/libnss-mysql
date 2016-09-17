@@ -34,8 +34,8 @@ typedef struct {
 
 /*
  * Get the next key/value pair from an open file
- * return NTRUE if a key/val pair is found
- * return NFALSE if EOF or error
+ * return true if a key/val pair is found
+ * return false if EOF or error
  * Lines can begin (column 0) with a '#' for comments
  * key/val pairs must be in the following format
  *      key = val
@@ -53,7 +53,7 @@ typedef struct {
  * val = config value loaded here
  * val_size = storage size of val
  */
-static nboolean
+static bool
 _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
                      int val_size)
 {
@@ -61,7 +61,7 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
   char *ccil;                     /* Current Character In Line */
   char *cur;
   size_t size;
-  nboolean fetch_key = ntrue;
+  bool fetch_key = true;
 
   DENTER
 
@@ -98,13 +98,13 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
       ccil += size;
       if (*(ccil - 1) == '\\')
         {
-          fetch_key = nfalse;     /* Next line continues a value */
+          fetch_key = false;     /* Next line continues a value */
           *(ccil - 1) = '\0';     /* Remove the '\' */
           size--;
         }
       else
         {
-          fetch_key = ntrue;      /* Next line starts with a key */
+          fetch_key = true;      /* Next line starts with a key */
           *ccil = '\0';           /* Null-terminate the value */
         }
       /* Append what we just snarfed to VAL */
@@ -113,16 +113,16 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
       if (val_size <= 0)
         {
           _nss_mysql_log (LOG_ERR, "%s: Config value too long", __FUNCTION__);
-          DBRETURN (nfalse)
+          DBRETURN (false)
         }
 
       if (!fetch_key)             /* Next line continues a value */
         continue;
 
       D ("%s: Found: %s -> %s", __FUNCTION__, key, val);
-      DBRETURN (ntrue)
+      DBRETURN (true)
     }
-  DBRETURN (nfalse)
+  DBRETURN (false)
 }
 
 /*
@@ -183,26 +183,26 @@ _nss_mysql_load_config_file (char *file)
  * Sanity-check the loaded configuration data
  * Make sure we have at least a host and database defined
  */
-static nboolean
+static bool
 _nss_mysql_validate_config (void)
 {
   DENTER
   if (!conf.sql.server.host[0] || !conf.sql.server.database[0])
-    DBRETURN (nfalse);
+    DBRETURN (false);
 
-  DBRETURN (ntrue)
+  DBRETURN (true)
 }
 
 /*
  * Load our config files
- * Upon success, set conf.valid = ntrue
+ * Upon success, set conf.valid = true
  */
 NSS_STATUS
 _nss_mysql_load_config (void)
 {
   DENTER
   /* Config is already loaded, don't do it again */
-  if (conf.valid == ntrue)
+  if (conf.valid == true)
     DSRETURN (NSS_SUCCESS)
 
   memset (&conf, 0, sizeof (conf));
@@ -214,11 +214,11 @@ _nss_mysql_load_config (void)
   _nss_mysql_load_config_file (ROOTCFG);
 
   /* double-check our config */
-  if (_nss_mysql_validate_config () == nfalse)
+  if (_nss_mysql_validate_config () == false)
     DSRETURN (NSS_UNAVAIL)
 
   /* Let the rest of the module know we've got a good config */
-  conf.valid = ntrue;
+  conf.valid = true;
 
   DSRETURN (NSS_SUCCESS)
 }

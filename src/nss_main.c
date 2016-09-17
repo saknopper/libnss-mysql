@@ -154,7 +154,7 @@ _nss_mysql_atfork_child (void)
 {
   DENTER
   /* Don't close the link; just set it to invalid so we'll open a new one */
-  _nss_mysql_close_sql (NULL, nfalse);
+  _nss_mysql_close_sql (NULL, false);
   if (_nss_mysql_locked_by_atfork)
     {
       _nss_mysql_locked_by_atfork = 0;
@@ -204,7 +204,7 @@ _nss_mysql_atexit_handler (void)
   extern conf_t conf;
 
   DENTER
-  _nss_mysql_close_sql (NULL, ntrue);
+  _nss_mysql_close_sql (NULL, true);
   _nss_mysql_safe_memset (conf.sql.server.password, 0,
                           sizeof (conf.sql.server.password));
   DEXIT
@@ -218,16 +218,16 @@ NSS_STATUS
 _nss_mysql_init (void)
 {
   int (*pthread_once)();
-  static int atexit_isset = nfalse;
+  static int atexit_isset = false;
 
   DENTER
   pthread_once = (int (*)(int))dlsym (RTLD_DEFAULT, "pthread_once");
   if (pthread_once)
     (*pthread_once) (&_nss_mysql_once_control, _nss_mysql_pthread_once_init);
-  if (atexit_isset == nfalse)
+  if (atexit_isset == false)
     {
       if (atexit(_nss_mysql_atexit_handler) == RETURN_SUCCESS)
-        atexit_isset = ntrue;
+        atexit_isset = true;
     }
   DSRETURN (_nss_mysql_load_config ())
 }
