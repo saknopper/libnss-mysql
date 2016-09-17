@@ -40,7 +40,6 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
                         char *qin, char *qout, MYSQL_RES **mresult,
                         const char *caller)
 {
-  DN ("_nss_mysql_build_query")
   char clean_name[MAX_NAME_SIZE * 2 + 1];
   int retVal;
 
@@ -58,11 +57,11 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
     case BYNAME: /* This lookup key is a name/string */
       if (!name || !name[0])
         DSRETURN (NSS_NOTFOUND)
-      D ("%s: BYNAME, name = '%s'", FUNCNAME, name);
+      D ("%s: BYNAME, name = '%s'", __FUNCTION__, name);
       if (strlen (name) >= MAX_NAME_SIZE)
         {
           _nss_mysql_log (LOG_CRIT, "%s: name '%s' too long (MAX = %d)",
-                          FUNCNAME, name, MAX_NAME_SIZE);
+                          __FUNCTION__, name, MAX_NAME_SIZE);
           DSRETURN (NSS_UNAVAIL)
         }
       if (_nss_mysql_escape_string (clean_name, name, mresult) != NSS_SUCCESS)
@@ -70,30 +69,30 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
       retVal = snprintf (qout, MAX_QUERY_SIZE, qin, clean_name);
       if (retVal < 1 || retVal >= MAX_QUERY_SIZE)
         {
-          _nss_mysql_log (LOG_CRIT, "%s: snprintf error: %d", FUNCNAME, retVal);
+          _nss_mysql_log (LOG_CRIT, "%s: snprintf error: %d", __FUNCTION__, retVal);
           DSRETURN (NSS_UNAVAIL)
         }
       /* New lookup, reset any existing queries */
       _nss_mysql_reset_ent (mresult);
       break;
     case BYNUM: /* This lookup key is a uid/gid/number */
-      D ("%s: BYNUM, num = '%u'", FUNCNAME, num);
+      D ("%s: BYNUM, num = '%u'", __FUNCTION__, num);
       retVal = snprintf (qout, MAX_QUERY_SIZE, qin, num);
       if (retVal < 1 || retVal >= MAX_QUERY_SIZE)
         {
-          _nss_mysql_log (LOG_CRIT, "%s: snprintf error: %d", FUNCNAME, retVal);
+          _nss_mysql_log (LOG_CRIT, "%s: snprintf error: %d", __FUNCTION__, retVal);
           DSRETURN (NSS_UNAVAIL)
         }
       /* New lookup, reset any existing queries */
       _nss_mysql_reset_ent (mresult);
       break;
     case BYNONE: /* This query has no key (e.g. a getpwent) */
-      D ("%s: BYNONE creating initial query", FUNCNAME);
+      D ("%s: BYNONE creating initial query", __FUNCTION__);
       strcpy (qout, qin);
       break;
     default:
       _nss_mysql_log (LOG_ERR, "%s: default case reached - should never happen",
-                      FUNCNAME);
+                      __FUNCTION__);
       DSRETURN (NSS_UNAVAIL)
     }
   DSRETURN (NSS_SUCCESS)
@@ -125,7 +124,6 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
                                            MYSQL_RES *, int *),
                    MYSQL_RES **mresult, const char *caller)
 {
-  DN ("_nss_mysql_lookup")
   char query[MAX_QUERY_SIZE];            /* Query to send to MySQL */
   int retVal;
   int attempts = MAX_QUERY_ATTEMPTS;    /* Attempt # (countdown) */
@@ -135,7 +133,7 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
   DENTER
 
   cur_euid = geteuid ();
-  D ("%s: restricted = %d, cur_euid = %u", FUNCNAME, restricted, cur_euid);
+  D ("%s: restricted = %d, cur_euid = %u", __FUNCTION__, restricted, cur_euid);
   if (restricted == ntrue && cur_euid != 0)
     DSRETURN (NSS_NOTFOUND)
 
@@ -144,7 +142,7 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
     euid = cur_euid;
   else if (euid != cur_euid)
     {
-      D ("%s:, euid changed: %u -> %u", FUNCNAME, euid, cur_euid);
+      D ("%s:, euid changed: %u -> %u", __FUNCTION__, euid, cur_euid);
       /* Close MySQL and config to force reload of config and reconnect */
       _nss_mysql_close_sql (mresult, ntrue);
       conf.valid = nfalse;
@@ -177,4 +175,3 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
 
   DSRETURN (retVal)
 }
-

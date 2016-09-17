@@ -57,7 +57,6 @@ static nboolean
 _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
                      int val_size)
 {
-  DN ("_nss_mysql_next_key")
   char line[MAX_LINE_SIZE];
   char *ccil;                     /* Current Character In Line */
   char *cur;
@@ -113,14 +112,14 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
       val_size -= size;
       if (val_size <= 0)
         {
-          _nss_mysql_log (LOG_ERR, "%s: Config value too long", FUNCNAME);
+          _nss_mysql_log (LOG_ERR, "%s: Config value too long", __FUNCTION__);
           DBRETURN (nfalse)
         }
 
       if (!fetch_key)             /* Next line continues a value */
         continue;
 
-      D ("%s: Found: %s -> %s", FUNCNAME, key, val);
+      D ("%s: Found: %s -> %s", __FUNCTION__, key, val);
       DBRETURN (ntrue)
     }
   DBRETURN (nfalse)
@@ -134,7 +133,6 @@ _nss_mysql_next_key (FILE *fh, char *key, int key_size, char *val,
 static void
 _nss_mysql_load_config_file (char *file)
 {
-  DN ("_nss_mysql_load_config_file")
   FILE *fh;
   char key[MAX_KEY_SIZE];
   char val[MAX_VAL_SIZE];
@@ -165,12 +163,12 @@ _nss_mysql_load_config_file (char *file)
   };
 
   DENTER
-  D ("%s: Attempting to load: %s", FUNCNAME, file);
+  D ("%s: Attempting to load: %s", __FUNCTION__, file);
   /* No error-handling here; validate_config will catch missing data */
   if ((fh = fopen (file, "r")) == NULL)
     DRETURN;
 
-  D ("%s: fopen() successful", FUNCNAME);
+  D ("%s: fopen() successful", __FUNCTION__);
 
   /* Step through all key/val pairs available */
   while (_nss_mysql_next_key (fh, key, MAX_KEY_SIZE, val, MAX_VAL_SIZE))
@@ -189,8 +187,6 @@ _nss_mysql_load_config_file (char *file)
 static nboolean
 _nss_mysql_validate_config (void)
 {
-  DN ("_nss_mysql_validate_config")
-
   DENTER
   if (!conf.sql.server.host[0] || !conf.sql.server.database[0])
     DBRETURN (nfalse);
@@ -205,8 +201,6 @@ _nss_mysql_validate_config (void)
 NSS_STATUS
 _nss_mysql_load_config (void)
 {
-  DN ("_nss_mysql_load_config")
-
   DENTER
   /* Config is already loaded, don't do it again */
   if (conf.valid == ntrue)

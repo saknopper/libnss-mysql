@@ -36,7 +36,6 @@ _nss_mysql_getgrnam_r (const char *name, struct group *result, char *buffer,
 _nss_mysql_getgrnam_r (nss_backend_t *be, void *args)
 #endif
 {
-  DN ("_nss_mysql_getgrnam_r")
   int retVal;
   MYSQL_RES *mresult = NULL;
 
@@ -45,7 +44,7 @@ _nss_mysql_getgrnam_r (nss_backend_t *be, void *args)
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNAME, name, 0, conf.sql.query.getgrnam,
                               nfalse, result, buffer, buflen, errnop,
-                              _nss_mysql_load_group, &mresult, FUNCNAME);
+                              _nss_mysql_load_group, &mresult, __FUNCTION__);
 #elif defined(HAVE_NSS_COMMON_H)
   retVal = _nss_mysql_lookup (BYNAME, NSS_ARGS(args)->key.name,
                               0, conf.sql.query.getgrnam,
@@ -53,7 +52,7 @@ _nss_mysql_getgrnam_r (nss_backend_t *be, void *args)
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
                               &NSS_ARGS(args)->erange,
-                              _nss_mysql_load_group, &mresult, FUNCNAME);
+                              _nss_mysql_load_group, &mresult, __FUNCTION__);
   if (retVal == NSS_SUCCESS)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
@@ -72,7 +71,6 @@ _nss_mysql_getgrgid_r (uid_t uid, struct group *result, char *buffer,
 _nss_mysql_getgrgid_r (nss_backend_t *be, void *args)
 #endif
 {
-  DN ("_nss_mysql_getgrgid_r")
   int retVal;
   MYSQL_RES *mresult = NULL;
 
@@ -81,7 +79,7 @@ _nss_mysql_getgrgid_r (nss_backend_t *be, void *args)
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNUM, NULL, uid, conf.sql.query.getgrgid,
                               nfalse, result, buffer, buflen, errnop,
-                              _nss_mysql_load_group, &mresult, FUNCNAME);
+                              _nss_mysql_load_group, &mresult, __FUNCTION__);
 #else
   retVal = _nss_mysql_lookup (BYNUM, NULL, NSS_ARGS(args)->key.uid,
                               conf.sql.query.getgrgid, nfalse,
@@ -89,7 +87,7 @@ _nss_mysql_getgrgid_r (nss_backend_t *be, void *args)
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
                               &NSS_ARGS(args)->erange,
-                              _nss_mysql_load_group, &mresult, FUNCNAME);
+                              _nss_mysql_load_group, &mresult, __FUNCTION__);
   if (retVal == NSS_SUCCESS)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
@@ -118,7 +116,6 @@ _nss_mysql_getgrent_r (struct group *result, char *buffer, size_t buflen,
 _nss_mysql_getgrent_r (nss_backend_t *be, void *args)
 #endif
 {
-  DN ("_nss_mysql_getgrent_r")
   int retVal;
 
   DENTER
@@ -126,14 +123,14 @@ _nss_mysql_getgrent_r (nss_backend_t *be, void *args)
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getgrent,
                               nfalse, result, buffer, buflen, errnop,
-                              _nss_mysql_load_group, &mresult_grent, FUNCNAME);
+                              _nss_mysql_load_group, &mresult_grent, __FUNCTION__);
 #else
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getgrent,
                               nfalse, NSS_ARGS(args)->buf.result,
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
                               &NSS_ARGS(args)->erange,
-                              _nss_mysql_load_group, &mresult_grent, FUNCNAME);
+                              _nss_mysql_load_group, &mresult_grent, __FUNCTION__);
   if (retVal == NSS_SUCCESS)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
@@ -150,13 +147,11 @@ _nss_mysql_initgroups_dyn (const char *user, gid_t group, long int *start,
                            long int *size, gid_t **groupsp, long int limit,
                            int *errnop)
 {
-  DN ("_nss_mysql_initgroups_dyn")
 #endif
 #ifdef HAVE_NSS_COMMON_H
 NSS_STATUS
 _nss_mysql_getgrmem (nss_backend_t *be, void *args)
 {
-  DN ("_nss_mysql_getgrmem")
 #endif
   int retVal;
   MYSQL_RES *mresult = NULL;

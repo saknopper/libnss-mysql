@@ -37,7 +37,6 @@ _nss_mysql_getspnam_r (const char *name, struct spwd *result, char *buffer,
 _nss_mysql_getspnam_r (nss_backend_t *be, void *args)
 #endif
 {
-  DN ("_nss_mysql_getspnam_r")
   int retVal;
   MYSQL_RES *mresult = NULL;
 
@@ -46,7 +45,7 @@ _nss_mysql_getspnam_r (nss_backend_t *be, void *args)
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNAME, name, 0, conf.sql.query.getspnam,
                               ntrue, result, buffer, buflen, errnop,
-                              _nss_mysql_load_shadow, &mresult, FUNCNAME);
+                              _nss_mysql_load_shadow, &mresult, __FUNCTION__);
 #else
   retVal = _nss_mysql_lookup (BYNAME, NSS_ARGS(args)->key.name, 0,
                               conf.sql.query.getspnam, ntrue,
@@ -54,7 +53,7 @@ _nss_mysql_getspnam_r (nss_backend_t *be, void *args)
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
                               &NSS_ARGS(args)->erange,
-                              _nss_mysql_load_shadow, &mresult, FUNCNAME);
+                              _nss_mysql_load_shadow, &mresult, __FUNCTION__);
   if (retVal == NSS_SUCCESS)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif
@@ -83,7 +82,6 @@ _nss_mysql_getspent_r (struct spwd *result, char *buffer, size_t buflen,
 _nss_mysql_getspent_r (nss_backend_t *be, void *args)
 #endif
 {
-  DN ("_nss_mysql_getspent_r")
   int retVal;
 
   DENTER
@@ -91,14 +89,14 @@ _nss_mysql_getspent_r (nss_backend_t *be, void *args)
 #ifdef HAVE_NSS_H
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getspent,
                               ntrue, result, buffer, buflen, errnop,
-                              _nss_mysql_load_shadow, &mresult_spent, FUNCNAME);
+                              _nss_mysql_load_shadow, &mresult_spent, __FUNCTION__);
 #else
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getspent,
                               ntrue, NSS_ARGS(args)->buf.result,
                               NSS_ARGS(args)->buf.buffer,
                               NSS_ARGS(args)->buf.buflen,
                               &NSS_ARGS(args)->erange,
-                              _nss_mysql_load_shadow, &mresult_spent, FUNCNAME);
+                              _nss_mysql_load_shadow, &mresult_spent, __FUNCTION__);
   if (retVal == NSS_SUCCESS)
     NSS_ARGS(args)->returnval = NSS_ARGS(args)->buf.result;
 #endif

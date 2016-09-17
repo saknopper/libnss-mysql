@@ -112,7 +112,6 @@ NSS_STATUS
 _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
                         MYSQL_RES *mresult, int *errnop)
 {
-  DN ("_nss_mysql_load_passwd")
   MYSQL_ROW row;
   int retVal, i;
   struct passwd *pw = (struct passwd *)result;
@@ -177,7 +176,6 @@ NSS_STATUS
 _nss_mysql_load_shadow (void *result, char *buffer, size_t buflen,
                         MYSQL_RES *mresult, int *errnop)
 {
-  DN ("_nss_mysql_load_shadow")
   MYSQL_ROW row;
   int retVal;
   struct spwd *sp = (struct spwd *)result;
@@ -226,7 +224,6 @@ static NSS_STATUS
 _nss_mysql_load_memsbygid (void *result, char *buffer, size_t buflen,
                            MYSQL_RES *mresult, int *errnop)
 {
-  DN ("_nss_mysql_load_memsbygid")
   MYSQL_ROW row;
   int retVal;
   struct group *gr = (struct group *)result;
@@ -295,7 +292,6 @@ NSS_STATUS
 _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
                        MYSQL_RES *mresult, int *errnop)
 {
-  DN ("_nss_mysql_load_group")
   MYSQL_ROW row;
   MYSQL_RES *mresult_grmem = NULL;
   int retVal;
@@ -342,7 +338,7 @@ _nss_mysql_load_group (void *result, char *buffer, size_t buflen,
                               buffer + offsets[ROW_GR_MEM],
                               buflen - offsets[ROW_GR_MEM],
                               errnop, _nss_mysql_load_memsbygid,
-                              &mresult_grmem, FUNCNAME);
+                              &mresult_grmem, __FUNCTION__);
 
   DSRETURN (retVal)
 }
@@ -351,7 +347,6 @@ NSS_STATUS
 _nss_mysql_load_gidsbymem (void *result, char *buffer, size_t buflen,
                            MYSQL_RES *mresult, int *errnop)
 {
-  DN ("_nss_mysql_load_gidsbymem")
   MYSQL_ROW row;
   unsigned long num_rows, i;
   group_info_t *gi = (group_info_t *)result;

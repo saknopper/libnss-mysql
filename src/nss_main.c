@@ -119,7 +119,6 @@ _nss_mysql_debug (char *fmt, ...)
 static void
 _nss_mysql_atfork_prepare (void)
 {
-  DN ("_nss_mysql_atfork_prepare")
   int (*trylock)();
 
   DENTER
@@ -137,7 +136,6 @@ _nss_mysql_atfork_prepare (void)
 static void
 _nss_mysql_atfork_parent (void)
 {
-  DN ("_nss_mysql_atfork_parent")
   DENTER
   if (_nss_mysql_locked_by_atfork)
     {
@@ -154,7 +152,6 @@ _nss_mysql_atfork_parent (void)
 static void
 _nss_mysql_atfork_child (void)
 {
-  DN ("_nss_mysql_atfork_child")
   DENTER
   /* Don't close the link; just set it to invalid so we'll open a new one */
   _nss_mysql_close_sql (NULL, nfalse);
@@ -170,7 +167,6 @@ _nss_mysql_atfork_child (void)
 static void
 _nss_mysql_pthread_once_init (void)
 {
-  DN ("_nss_mysql_atfork_once_init")
   int (*pthread_atfork)();
 
   DENTER
@@ -187,7 +183,6 @@ _nss_mysql_pthread_once_init (void)
 static void *
 _nss_mysql_safe_memset (void *s, int c, size_t n)
 {
-  DN ("_nss_mysql_safe_memset")
   volatile char *p = s;
 
   DENTER
@@ -206,7 +201,6 @@ _nss_mysql_safe_memset (void *s, int c, size_t n)
 static void
 _nss_mysql_atexit_handler (void)
 {
-  DN ("_nss_mysql_atexit_handler")
   extern conf_t conf;
 
   DENTER
@@ -223,7 +217,6 @@ _nss_mysql_atexit_handler (void)
 NSS_STATUS
 _nss_mysql_init (void)
 {
-  DN ("_nss_mysql_init")
   int (*pthread_once)();
   static int atexit_isset = nfalse;
 
@@ -247,7 +240,6 @@ _nss_mysql_init (void)
 void
 _nss_mysql_log (int priority, char *fmt, ...)
 {
-  DN ("_nss_mysql_log")
   va_list ap;
   char msg[MAX_MSG_SIZE];
 
@@ -261,7 +253,6 @@ _nss_mysql_log (int priority, char *fmt, ...)
 NSS_STATUS
 _nss_mysql_default_destr (nss_backend_t *be, void *args)
 {
-  DN ("_nss_mysql_default_destr")
   DENTER
   if (be)
     {
@@ -282,7 +273,6 @@ _nss_mysql_default_destr (nss_backend_t *be, void *args)
 void
 _nss_mysql_reset_ent (MYSQL_RES **mresult)
 {
-  DN ("_nss_mysql_reset_ent")
   DENTER
   _nss_mysql_close_result (mresult);
   DEXIT
@@ -290,7 +280,6 @@ _nss_mysql_reset_ent (MYSQL_RES **mresult)
 
 void __attribute__ ((constructor)) _nss_mysql_constructor(void)
 {
-	DN ("_nss_mysql_constructor");
 	DENTER
 
 	// TODO Implement this, called before dlopen() finishes
@@ -300,11 +289,9 @@ void __attribute__ ((constructor)) _nss_mysql_constructor(void)
 
 void __attribute__ ((destructor)) _nss_mysql_destructor(void)
 {
-	DN ("_nss_mysql_destructor");
 	DENTER
 
 	// TODO Implement this, called before dlclose() finishes
 
 	DEXIT
 }
-

@@ -23,7 +23,6 @@
     NSS_STATUS                                                               \
     _nss_mysql_set##type (void)                                              \
     {                                                                        \
-      DN ("_nss_mysql_set" #type)                                            \
       DENTER                                                                 \
       LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
@@ -35,7 +34,6 @@
     NSS_STATUS                                                               \
     _nss_mysql_end##type (void)                                              \
     {                                                                        \
-      DN ("_nss_mysql_end" #type)                                            \
       DENTER                                                                 \
       LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
@@ -49,7 +47,6 @@
     NSS_STATUS                                                               \
     _nss_mysql_set##type (nss_backend_t *be, void *args)                     \
     {                                                                        \
-      DN ("_nss_mysql_set" #type)                                            \
       DENTER                                                                 \
       LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
@@ -61,7 +58,6 @@
     NSS_STATUS                                                               \
     _nss_mysql_end##type (nss_backend_t *be, void *args)                     \
     {                                                                        \
-      DN ("_nss_mysql_end" #type)                                            \
       DENTER                                                                 \
       LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
@@ -74,7 +70,6 @@
     _nss_mysql_##type##_constr (const char *db_name, const char *src_name,   \
                                 const char *cfg_args)                        \
     {                                                                        \
-      DN ("_nss_mysql_" #type "_constr")                                     \
       nss_backend_t *be;                                                     \
       DENTER                                                                 \
       be = (nss_backend_t *) malloc (sizeof (*be));                          \
@@ -85,4 +80,3 @@
       DPRETURN (be)                                                          \
     }
 #endif
-

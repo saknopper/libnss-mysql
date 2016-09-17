@@ -43,6 +43,10 @@
 #include <unistd.h>
 #include <sys/types.h>
 
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h>
+#endif
+
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
@@ -74,19 +78,18 @@ typedef nss_status_t NSS_STATUS;
 
 #ifdef DEBUG
 void _nss_mysql_debug (char *fmt, ...);
-#define DEBUG_FILE "/tmp/libnss-mysql-debug.log"
+static const char DEBUG_FILE[] = "/tmp/libnss-mysql-debug.log";
 #define D _nss_mysql_debug
-#define DN(n) static const char FUNCNAME[] = n;
-#define DENTER D ("%s: ENTER", FUNCNAME);
-#define DIRETURN(r) { D ("%s: EXIT (%d)", FUNCNAME, r); return (r); }
+#define DENTER D ("%s: ENTER", __FUNCTION__);
+#define DIRETURN(r) { D ("%s: EXIT (%d)", __FUNCTION__, r); return (r); }
 #define DFRETURN(r)                                                         \
   {                                                                         \
-    D ("%s: EXIT (%s)", FUNCNAME, r == 0 ? "SUCCESS" : "FAIL");             \
+    D ("%s: EXIT (%s)", __FUNCTION__, r == 0 ? "SUCCESS" : "FAIL");             \
     return (r);                                                             \
   }
 #define DBRETURN(r)                                                         \
   {                                                                         \
-    D ("%s: EXIT (%s)", FUNCNAME, r == ntrue ? "TRUE" : "FALSE");           \
+    D ("%s: EXIT (%s)", __FUNCTION__, r == ntrue ? "TRUE" : "FALSE");           \
     return (r);                                                             \
   }
 #define DSRETURN(r)                                                         \
@@ -110,15 +113,14 @@ void _nss_mysql_debug (char *fmt, ...);
         status = "UNKNOWN";                                                 \
         break;                                                              \
       }                                                                     \
-    D ("%s: EXIT (%s)", FUNCNAME, status);                                  \
+    D ("%s: EXIT (%s)", __FUNCTION__, status);                                  \
     return (r);                                                             \
   }
-#define DPRETURN(r) { D ("%s: EXIT (%p)", FUNCNAME, r); return (r); }
-#define DRETURN { D ("%s: EXIT", FUNCNAME); return; }
-#define DEXIT D ("%s: EXIT", FUNCNAME);
+#define DPRETURN(r) { D ("%s: EXIT (%p)", __FUNCTION__, r); return (r); }
+#define DRETURN { D ("%s: EXIT", __FUNCTION__); return; }
+#define DEXIT D ("%s: EXIT", __FUNCTION__);
 #else
 #define D
-#define DN(n) static const char FUNCNAME[] = n;
 #define DENTER
 #define DIRETURN(r) return (r);
 #define DPRETURN(r) return (r);

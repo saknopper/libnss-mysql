@@ -42,7 +42,6 @@ extern conf_t conf;
 static freturn_t
 _nss_mysql_save_socket_info (void)
 {
-  DN ("_nss_mysql_save_socket_info")
   socklen_t local_size = sizeof (struct sockaddr);
   socklen_t remote_size = sizeof (struct sockaddr);
   int r;
@@ -64,8 +63,6 @@ _nss_mysql_save_socket_info (void)
 static nboolean
 _nss_mysql_is_same_sockaddr (struct sockaddr orig, struct sockaddr cur)
 {
-  DN ("_nss_mysql_is_same_sockaddr")
-
   DENTER
   switch (((struct sockaddr_in *)&ci.sock_info.local)->sin_family)
     {
@@ -82,7 +79,7 @@ _nss_mysql_is_same_sockaddr (struct sockaddr orig, struct sockaddr cur)
           DBRETURN (nfalse)
         break;
     default:
-        _nss_mysql_log (LOG_ERR, "%s: Unhandled sin_family", FUNCNAME);
+        _nss_mysql_log (LOG_ERR, "%s: Unhandled sin_family", __FUNCTION__);
         DBRETURN (nfalse)
         break;
     }
@@ -97,7 +94,6 @@ _nss_mysql_is_same_sockaddr (struct sockaddr orig, struct sockaddr cur)
 static nboolean
 _nss_mysql_validate_socket (void)
 {
-  DN ("_nss_mysql_validate_socket")
   socklen_t local_size = sizeof (struct sockaddr);
   socklen_t remote_size = sizeof (struct sockaddr);
   struct sockaddr check;
@@ -121,12 +117,11 @@ _nss_mysql_validate_socket (void)
 NSS_STATUS
 _nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful)
 {
-  DN ("_nss_mysql_close_sql")
   DENTER
   _nss_mysql_close_result (mresult);
   if (graceful && ci.valid)
     {
-      D ("%s: calling mysql_close()", FUNCNAME);
+      D ("%s: calling mysql_close()", __FUNCTION__);
       mysql_close (&ci.link);
     }
   ci.valid = nfalse;
@@ -136,7 +131,6 @@ _nss_mysql_close_sql (MYSQL_RES **mresult, nboolean graceful)
 static void
 _nss_mysql_set_options (sql_server_t *server)
 {
-  DN ("_nss_mysql_set_options")
   const unsigned int def_timeout = DEF_TIMEOUT;
   const my_bool reconnect = 1;
 
@@ -162,7 +156,6 @@ _nss_mysql_set_options (sql_server_t *server)
 static nboolean
 _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
 {
-  DN ("_nss_mysql_check_existing_connection")
   static pid_t pid = -1;
 
   DENTER
@@ -174,7 +167,7 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
   else if (pid == getppid ())
     {
       /* saved pid == ppid = we've forked; We MUST create a new connection */
-      D ("%s: fork() detected", FUNCNAME);
+      D ("%s: fork() detected", __FUNCTION__);
       ci.valid = nfalse;
       pid = getpid ();
       DBRETURN (nfalse)
@@ -183,7 +176,7 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
   if (_nss_mysql_validate_socket () == nfalse)
     {
        /* Do *NOT* CLOSE_LINK - the socket is invalid! */
-      D ("%s: invalid socket detected", FUNCNAME);
+      D ("%s: invalid socket detected", __FUNCTION__);
       _nss_mysql_close_sql (mresult, nfalse);
       ci.valid = nfalse;
       DBRETURN (nfalse)
@@ -198,7 +191,6 @@ _nss_mysql_check_existing_connection (MYSQL_RES **mresult)
 static NSS_STATUS
 _nss_mysql_connect_sql (MYSQL_RES **mresult)
 {
-  DN ("_nss_mysql_connect_sql")
   int retval;
   sql_server_t *server = &conf.sql.server;
   unsigned int port;
@@ -207,7 +199,7 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
 
   if (_nss_mysql_check_existing_connection (mresult) == ntrue)
     {
-      D ("%s: Using existing connection", FUNCNAME);
+      D ("%s: Using existing connection", __FUNCTION__);
       DSRETURN (NSS_SUCCESS)
     }
 
@@ -225,7 +217,7 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
     }
 
   _nss_mysql_set_options (server);
-  D ("%s: Connecting to %s", FUNCNAME, server->host);
+  D ("%s: Connecting to %s", __FUNCTION__, server->host);
   if (server->port)
     port = atoi (server->port);
   else
@@ -256,11 +248,10 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
 void
 _nss_mysql_close_result (MYSQL_RES **mresult)
 {
-  DN ("_nss_mysql_close_result")
   DENTER
   if (mresult && *mresult && ci.valid)
     {
-      D ("%s, calling mysql_free_result()", FUNCNAME);
+      D ("%s, calling mysql_free_result()", __FUNCTION__);
       mysql_free_result (*mresult);
     }
   if (mresult)
@@ -274,14 +265,13 @@ _nss_mysql_close_result (MYSQL_RES **mresult)
 NSS_STATUS
 _nss_mysql_run_query (char *query, MYSQL_RES **mresult, int *attempts)
 {
-  DN ("_nss_mysql_run_query")
   int retval;
 
   DENTER
   if (!query)
     DSRETURN (NSS_NOTFOUND)
 
-  D ("%s: Executing query: %s", FUNCNAME, query);
+  D ("%s: Executing query: %s", __FUNCTION__, query);
 
   retval = _nss_mysql_connect_sql (mresult);
   if (retval != NSS_SUCCESS)
@@ -318,8 +308,6 @@ _nss_mysql_run_query (char *query, MYSQL_RES **mresult, int *attempts)
 NSS_STATUS
 _nss_mysql_fetch_row (MYSQL_ROW *row, MYSQL_RES *mresult)
 {
-  DN ("_nss_mysql_fetch_row")
-
   DENTER
   if ((*row = mysql_fetch_row (mresult)) == NULL)
     {
@@ -338,12 +326,9 @@ _nss_mysql_fetch_row (MYSQL_ROW *row, MYSQL_RES *mresult)
 NSS_STATUS
 _nss_mysql_escape_string (char *to, const char *from, MYSQL_RES **mresult)
 {
-  DN ("_nss_mysql_escape_string")
-
   DENTER
   if (_nss_mysql_connect_sql (mresult) != NSS_SUCCESS)
     DSRETURN (NSS_UNAVAIL)
   mysql_real_escape_string (&ci.link, to, from, strlen(from));
   DSRETURN (NSS_SUCCESS)
 }
-
