@@ -136,7 +136,6 @@ _nss_mysql_load_config_file (char *file)
   FILE *fh;
   char key[MAX_KEY_SIZE];
   char val[MAX_VAL_SIZE];
-  size_t size;
   config_info_t *c;
 
   /* map config key to 'conf' location; must be NULL-terminated */
