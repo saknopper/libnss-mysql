@@ -279,4 +279,3 @@ NSS_STATUS _nss_mysql_lookup (lookup_t ltype, const char *name,
                               NSS_STATUS (*load_func)(void *, char *, size_t,
                                                       MYSQL_RES *, int *),
                               MYSQL_RES **mresult, const char *caller);
-

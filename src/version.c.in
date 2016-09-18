@@ -17,4 +17,3 @@
  */
 
 static const char version[] = "$Version: @VERSION@ $";
-

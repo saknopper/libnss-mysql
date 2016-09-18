@@ -222,4 +222,3 @@ _nss_mysql_load_config (void)
 
   DSRETURN (NSS_SUCCESS)
 }
-

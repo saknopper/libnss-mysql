@@ -452,4 +452,3 @@ nss_module_register (const char *name, unsigned int *size,
 }
 
 #endif /* defined(__FreeBSD__) */
-
