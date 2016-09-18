@@ -281,6 +281,7 @@ _nss_mysql_reset_ent (MYSQL_RES **mresult)
 void __attribute__ ((constructor)) _nss_mysql_constructor(void)
 {
 	DENTER
+	D ("%s: loading %s", __FUNCTION__, PACKAGE_STRING);
 
 	// TODO Implement this, called before dlopen() finishes
 
