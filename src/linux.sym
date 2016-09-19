@@ -1,5 +1,3 @@
-_nss_mysql_constructor
-_nss_mysql_destructor
 _nss_mysql_endgrent
 _nss_mysql_endpwent
 _nss_mysql_endspent
