@@ -52,7 +52,6 @@ AC_SUBST(OS)
 AC_CHECK_LIB(socket, getsockname)
 AC_CHECK_LIB(nsl, gethostbyname)
 AC_CHECK_LIB(m, floor)
-AC_CHECK_LIB(dl, dlsym)
 AC_CHECK_LIB(z, compress)
 
 AC_HEADER_STDC
