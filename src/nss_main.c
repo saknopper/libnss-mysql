@@ -28,17 +28,8 @@ static const char rcsid[] =
 #include <stdarg.h>     /* va_start() */
 #include <sys/stat.h>   /* umask() */
 
-/* 
- * GNU source only defines RTLD_DEFAULT if __USE_GNU is set
- */
-#ifndef __USE_GNU
-#define __USE_GNU
-#include <dlfcn.h>
-#undef __USE_GNU
-#endif
-
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_once_t _nss_mysql_once_control = {PTHREAD_ONCE_INIT};
+pthread_once_t _nss_mysql_once_control = PTHREAD_ONCE_INIT;
 static int _nss_mysql_locked_by_atfork = 0;
 
 #define MAX_MSG_SIZE 1024
@@ -119,13 +110,16 @@ _nss_mysql_debug (char *fmt, ...)
 static void
 _nss_mysql_atfork_prepare (void)
 {
-  int (*trylock)();
-
   DENTER
-  trylock = (int (*)(int))dlsym (RTLD_DEFAULT, "pthread_mutex_trylock");
-  if (trylock)
-    if ((*trylock) (&lock) == 0)
-      _nss_mysql_locked_by_atfork = 1;
+
+  if (pthread_mutex_trylock(&lock) == 0)
+  {
+    _nss_mysql_locked_by_atfork = 1;
+  } else
+  {
+    D ("%s: error calling pthread_mutex_trylock() - lock failed", __FUNCTION__);
+  }
+
   DEXIT
 }
 
@@ -167,13 +161,14 @@ _nss_mysql_atfork_child (void)
 static void
 _nss_mysql_pthread_once_init (void)
 {
-  int (*pthread_atfork)();
-
   DENTER
-  pthread_atfork = (int (*)(int))dlsym (RTLD_DEFAULT, "pthread_atfork");
-  if (pthread_atfork)
-    (*pthread_atfork) (_nss_mysql_atfork_prepare, _nss_mysql_atfork_parent,
-                       _nss_mysql_atfork_child);
+
+  if (pthread_atfork(_nss_mysql_atfork_prepare, _nss_mysql_atfork_parent,
+                       _nss_mysql_atfork_child) != 0)
+  {
+    D ("%s: error calling pthread_atfork()", __FUNCTION__);
+  }
+
   DEXIT
 }
 
@@ -217,18 +212,20 @@ _nss_mysql_atexit_handler (void)
 NSS_STATUS
 _nss_mysql_init (void)
 {
-  int (*pthread_once)();
   static int atexit_isset = false;
 
   DENTER
-  pthread_once = (int (*)(int))dlsym (RTLD_DEFAULT, "pthread_once");
-  if (pthread_once)
-    (*pthread_once) (&_nss_mysql_once_control, _nss_mysql_pthread_once_init);
+
+  if (pthread_once(&_nss_mysql_once_control, _nss_mysql_pthread_once_init) != 0) {
+    D ("%s: error calling pthread_once()", __FUNCTION__);
+  }
+
   if (atexit_isset == false)
     {
       if (atexit(_nss_mysql_atexit_handler) == RETURN_SUCCESS)
         atexit_isset = true;
     }
+
   DSRETURN (_nss_mysql_load_config ())
 }
 
@@ -259,9 +256,10 @@ _nss_mysql_default_destr (nss_backend_t *be, void *args)
       free (be);
       be = NULL;
     }
-  /* Closing link & freeing memory unnecessary due to link w/ '-znodelete' */
-  DSRETURN (NSS_SUCCESS)
 
+  /* TODO: Close link and free memory !? */
+
+  DSRETURN (NSS_SUCCESS)
 }
 #endif
 
