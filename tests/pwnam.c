@@ -50,6 +50,8 @@ test_getpwnam_r(void *arg)
 			perror("getpwnam_r");
 		}
 
+		free(buf);
+
 		return NULL;
 	}
 
