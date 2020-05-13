@@ -71,5 +71,5 @@ AC_DEFINE_UNQUOTED([MAINCFG], "$EXPANDED_SYSCONFDIR/libnss-mysql.cfg",
 AC_DEFINE_UNQUOTED([ROOTCFG],"$EXPANDED_SYSCONFDIR/libnss-mysql-root.cfg",
                    [Root config file])
 
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile src/version.c])
 AC_OUTPUT
