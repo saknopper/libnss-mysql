@@ -236,8 +236,14 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
           DSRETURN (NSS_UNAVAIL)
         }
       ci.valid = true;
-      ci.link.reconnect = 0; /* Safety: We can't let MySQL assume socket is
-                                still valid; see _nss_mysql_validate_socket */
+	  /* Safety: We can't let MySQL assume socket is still valid; see _nss_mysql_validate_socket */
+#if MYSQL_VERSION_ID >= 50013
+      const bool reconnect = 0;
+      mysql_options(&ci.link, MYSQL_OPT_RECONNECT, &reconnect);
+#else
+      ci.link.reconnect = (my_bool) 0;
+#endif
+
       DSRETURN (NSS_SUCCESS)
     }
   _nss_mysql_log (LOG_ALERT, "Connection to server '%s' failed: %s",
