@@ -34,11 +34,11 @@ _nss_mysql_getspnam_r (const char *name, struct spwd *result, char *buffer,
   MYSQL_RES *mresult = NULL;
 
   DENTER
-  LOCK;
+
   retVal = _nss_mysql_lookup (BYNAME, name, 0, conf.sql.query.getspnam,
                               true, result, buffer, buflen, errnop,
                               _nss_mysql_load_shadow, &mresult, __FUNCTION__);
-  UNLOCK;
+
   DSRETURN (retVal)
 }
 
@@ -62,11 +62,11 @@ _nss_mysql_getspent_r (struct spwd *result, char *buffer, size_t buflen,
   int retVal;
 
   DENTER
-  LOCK;
+
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getspent,
                               true, result, buffer, buflen, errnop,
                               _nss_mysql_load_shadow, &mresult_spent, __FUNCTION__);
-  UNLOCK;
+
   DSRETURN (retVal)
 }
 

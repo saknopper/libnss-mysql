@@ -131,10 +131,6 @@ static const char DEBUG_FILE[] = "/tmp/libnss-mysql-debug.log";
 #define DEXIT
 #endif
 
-extern pthread_mutex_t lock;
-#define LOCK pthread_mutex_lock (&lock)
-#define UNLOCK pthread_mutex_unlock (&lock)
-
 /*
  * Linux and Solaris handle buffer exhaustion differently.
  * Linux sets errno to ERANGE and returns TRYAGAIN, which results in
