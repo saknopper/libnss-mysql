@@ -208,6 +208,9 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
       DSRETURN (NSS_UNAVAIL)
     }
 
+  unsigned int is_mysql_thread_safe = mysql_thread_safe();
+  D ("%s: mysql client library is thread safe: %s", __FUNCTION__, is_mysql_thread_safe ? "yes" : "no");
+
   _nss_mysql_set_options (server);
   D ("%s: Connecting to %s", __FUNCTION__, server->host);
   if (server->port[0])

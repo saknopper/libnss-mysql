@@ -33,11 +33,11 @@ _nss_mysql_getgrnam_r (const char *name, struct group *result, char *buffer,
   MYSQL_RES *mresult = NULL;
 
   DENTER
-  LOCK;
+
   retVal = _nss_mysql_lookup (BYNAME, name, 0, conf.sql.query.getgrnam,
                               false, result, buffer, buflen, errnop,
                               _nss_mysql_load_group, &mresult, __FUNCTION__);
-  UNLOCK;
+
   DSRETURN (retVal)
 }
 
@@ -52,11 +52,11 @@ _nss_mysql_getgrgid_r (uid_t uid, struct group *result, char *buffer,
   MYSQL_RES *mresult = NULL;
 
   DENTER
-  LOCK;
+
   retVal = _nss_mysql_lookup (BYNUM, NULL, uid, conf.sql.query.getgrgid,
                               false, result, buffer, buflen, errnop,
                               _nss_mysql_load_group, &mresult, __FUNCTION__);
-  UNLOCK;
+
   DSRETURN (retVal)
 }
 
@@ -80,11 +80,11 @@ _nss_mysql_getgrent_r (struct group *result, char *buffer, size_t buflen,
   int retVal;
 
   DENTER
-  LOCK;
+
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getgrent,
                               false, result, buffer, buflen, errnop,
                               _nss_mysql_load_group, &mresult_grent, __FUNCTION__);
-  UNLOCK;
+
   DSRETURN (retVal)
 }
 
@@ -107,15 +107,14 @@ _nss_mysql_initgroups_dyn (const char *user, gid_t group, long int *start,
   gi.groupsp = groupsp;
   gi.group = (long int) group;
 
-  LOCK;
+
   retVal = _nss_mysql_lookup (BYNAME, user, 0, conf.sql.query.gidsbymem,
                               false, &gi, NULL, 0, errnop,
                               _nss_mysql_load_gidsbymem, &mresult,
                               "initgroups");
-  UNLOCK;
+
   if (retVal != NSS_SUCCESS)
     DSRETURN (retVal)
 
   DSRETURN (NSS_SUCCESS)
 }
-
