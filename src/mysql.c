@@ -132,7 +132,6 @@ static void
 _nss_mysql_set_options (sql_server_t *server)
 {
   const unsigned int def_timeout = DEF_TIMEOUT;
-  const my_bool reconnect = 1;
 
   DENTER
 
@@ -140,7 +139,8 @@ _nss_mysql_set_options (sql_server_t *server)
                 (const char *) &def_timeout);
   mysql_options(&ci.link, MYSQL_READ_DEFAULT_GROUP, "libnss-mysql");
 #if MYSQL_VERSION_ID >= 50013
-  mysql_options(&ci.link, MYSQL_OPT_RECONNECT, (const char *) &reconnect);
+  const bool reconnect = 1;
+  mysql_options(&ci.link, MYSQL_OPT_RECONNECT, &reconnect);
 #else
   ci.link.reconnect = (my_bool) 1;
 #endif
