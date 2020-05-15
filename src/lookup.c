@@ -129,10 +129,14 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
 
   DENTER
 
+  REAL_LOCK;
+
   cur_euid = geteuid ();
   D ("%s: restricted = %d, cur_euid = %u", __FUNCTION__, restricted, cur_euid);
-  if (restricted == true && cur_euid != 0)
+  if (restricted == true && cur_euid != 0) {
+    REAL_UNLOCK;
     DSRETURN (NSS_NOTFOUND)
+  }
 
    /* Make sure euid hasn't changed, thus changing our access abilities */
   if (euid == -1)
@@ -147,8 +151,10 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
     }
 
   /* Required in case link & config were reset due to euid change */
-  if (_nss_mysql_init () != NSS_SUCCESS)
+  if (_nss_mysql_init () != NSS_SUCCESS) {
+    REAL_UNLOCK;
     DSRETURN (NSS_UNAVAIL)
+  }
 
   /* BYNONE indicates *ent; don't create/run the query since we already did */
   if (!(ltype == BYNONE && mresult && *mresult))
@@ -156,11 +162,15 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
       /* Create query string using config & args */
       retVal = _nss_mysql_build_query (ltype, name, num, q, query, mresult,
                                        caller);
-      if (retVal != NSS_SUCCESS)
+      if (retVal != NSS_SUCCESS) {
+        REAL_UNLOCK;
         DSRETURN (retVal)
+      }
       retVal = _nss_mysql_run_query (query, mresult, &attempts);
-      if (retVal != NSS_SUCCESS)
+      if (retVal != NSS_SUCCESS) {
+        REAL_UNLOCK;
         DSRETURN (retVal)
+      }
     }
 
   /* Take result of query and load RESULT & BUFFER */
@@ -169,6 +179,8 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
   /* BYNONE indicates *ent; don't kill the result here, endent does that */
   if (ltype != BYNONE)
     _nss_mysql_close_result (mresult);
+
+  REAL_UNLOCK;
 
   DSRETURN (retVal)
 }

@@ -124,8 +124,14 @@ static const char DEBUG_FILE[] = "/tmp/libnss-mysql-debug.log";
 #endif
 
 extern pthread_mutex_t lock;
-#define LOCK pthread_mutex_lock (&lock)
-#define UNLOCK pthread_mutex_unlock (&lock)
+//#define LOCK pthread_mutex_lock (&lock)
+//#define UNLOCK pthread_mutex_unlock (&lock)
+
+#define LOCK
+#define UNLOCK
+
+#define REAL_LOCK pthread_mutex_lock (&lock)
+#define REAL_UNLOCK pthread_mutex_unlock (&lock)
 
 /*
  * Linux and Solaris handle buffer exhaustion differently.

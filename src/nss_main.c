@@ -54,7 +54,7 @@ _nss_mysql_debug (char *fmt, ...)
   env = getenv ("LIBNSS_MYSQL_DEBUG");
   if (env)
     type = atoi (env);
-  
+
   if (type <= 1)
     {
       if (type == 0)
@@ -159,6 +159,10 @@ static void
 _nss_mysql_pthread_once_init (void)
 {
   DENTER
+
+  my_init();
+  unsigned int is_mysql_thread_safe = mysql_thread_safe();
+  D ("%s: mysql client library is thread safe: %s", __FUNCTION__, is_mysql_thread_safe ? "yes" : "no");
 
   if (pthread_atfork(_nss_mysql_atfork_prepare, _nss_mysql_atfork_parent,
                        _nss_mysql_atfork_child) != 0)
