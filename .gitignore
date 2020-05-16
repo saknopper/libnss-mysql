@@ -9,7 +9,6 @@ stamp-h
 stamp-h1
 *.gz
 autom4te*.cache
-Makefile.in
 aclocal.m4
 configure
 libnss-mysql-?.?
