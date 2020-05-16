@@ -65,11 +65,5 @@ AC_CHECK_TYPES([socklen_t], , , [
 #include <sys/socket.h>
 ])
 
-EXPANDED_SYSCONFDIR=`eval echo $sysconfdir`
-AC_DEFINE_UNQUOTED([MAINCFG], "$EXPANDED_SYSCONFDIR/libnss-mysql.cfg",
-                   [Main config file])
-AC_DEFINE_UNQUOTED([ROOTCFG],"$EXPANDED_SYSCONFDIR/libnss-mysql-root.cfg",
-                   [Root config file])
-
 AC_CONFIG_FILES([Makefile src/Makefile src/version.c])
 AC_OUTPUT
