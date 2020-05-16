@@ -25,7 +25,7 @@ library_ldflags         = -module -version-info @LIBVER@:0:0 \
                           -export-symbols $(srcdir)/@OS@.sym
 
 lib_LTLIBRARIES         = libnss_mysql.la
-libnss_mysql_la_CFLAGS  = @MYSQL_CFLAGS@
+libnss_mysql_la_CFLAGS  = @MYSQL_CFLAGS@ -DROOTCFG='"$(sysconfdir)/libnss-mysql-root.cfg"' -DMAINCFG='"$(sysconfdir)/libnss-mysql.cfg"'
 libnss_mysql_la_LDFLAGS = @MYSQL_LDFLAGS@ $(library_ldflags)
 libnss_mysql_la_SOURCES = $(library_sources)
 
