@@ -29,14 +29,14 @@ CREATE TABLE groups (
   password varchar(34) NOT NULL default 'x',
   gid int(11) NOT NULL auto_increment,
   PRIMARY KEY  (gid)
-) TYPE=MyISAM AUTO_INCREMENT=5000;
+) AUTO_INCREMENT=5000;
 
 CREATE TABLE grouplist (
   rowid int(11) NOT NULL auto_increment,
   gid int(11) NOT NULL default '0',
   username char(16) NOT NULL default '',
   PRIMARY KEY  (rowid)
-) TYPE=MyISAM;
+);
 
 CREATE TABLE users (
   username varchar(16) NOT NULL default '',
@@ -58,7 +58,7 @@ CREATE TABLE users (
   PRIMARY KEY  (uid),
   UNIQUE KEY username (username),
   KEY uid (uid)
-) TYPE=MyISAM AUTO_INCREMENT=5000;
+) AUTO_INCREMENT=5000;
 
 # The data ...
 INSERT INTO users (username,gecos,homedir,password)

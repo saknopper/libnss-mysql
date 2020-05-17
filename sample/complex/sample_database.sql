@@ -46,14 +46,14 @@ CREATE TABLE customer (
   notes text,
   signupdate date NOT NULL default '0000-00-00',
   PRIMARY KEY  (cust_num)
-) TYPE=MyISAM;
+);
 
 CREATE TABLE service_defs (
   name varchar(25) NOT NULL default '',
   shell varchar(255) NOT NULL default '/bin/date',
   homedir varchar(255) NOT NULL default '/tmp',
   PRIMARY KEY  (name)
-) TYPE=MyISAM;
+);
 
 CREATE TABLE services (
   cust_num int(11) NOT NULL default '0',
@@ -69,7 +69,7 @@ CREATE TABLE services (
   PRIMARY KEY  (uid),
   UNIQUE KEY username (username),
   KEY cust_num (cust_num)
-) TYPE=MyISAM AUTO_INCREMENT=5000;
+) AUTO_INCREMENT=5000;
 
 # The data ...
 INSERT INTO customer (first_name,last_name,middle_initial)
