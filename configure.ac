@@ -20,7 +20,7 @@ dnl $Id$ */
 AC_INIT([libnss-mysql],[m4_esyscmd(./git-version-gen .)],[https://github.com/saknopper/libnss-mysql/issues],[libnss-mysql],[https://github.com/saknopper/libnss-mysql])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
-AC_PREREQ([2.69])
+AC_PREREQ([2.63])
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_SRCDIR([src/nss_main.c])
 
@@ -30,7 +30,8 @@ AM_MAINTAINER_MODE
 AC_PROG_CC
 AC_PROG_CC_C99
 
-AM_PROG_AR
+dnl Older versions don't have AM_PROG_AR, while newer versions complain if you don't use it
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 LT_INIT
 
