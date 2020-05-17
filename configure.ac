@@ -17,7 +17,7 @@ dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 dnl
 dnl $Id$ */
 
-AC_INIT([libnss-mysql],[m4_esyscmd(./git-version-gen .)],[https://github.com/saknopper/libnss-mysql/issues],[libnss-mysql],[https://github.com/saknopper/libnss-mysql])
+AC_INIT([libnss-mysql],[m4_esyscmd(./git-version-gen .tarball-version)],[https://github.com/saknopper/libnss-mysql/issues],[libnss-mysql],[https://github.com/saknopper/libnss-mysql])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_PREREQ([2.63])
