@@ -20,9 +20,6 @@
  * Global variables and miscellaneous support routines
  */
 
-static const char rcsid[] =
-    "$Id$";
-
 #include "nss_mysql.h"
 #include <stdio.h>      /* fprintf() */
 #include <stdarg.h>     /* va_start() */

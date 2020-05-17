@@ -69,5 +69,5 @@ AC_CHECK_TYPES([socklen_t], , , [
 #include <sys/socket.h>
 ])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/version.c])
+AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT

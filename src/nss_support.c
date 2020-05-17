@@ -16,9 +16,6 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-static const char rcsid[] =
-    "$Id$";
-
 #include "nss_mysql.h"
 #include <string.h>     /* memset() */
 #include <pwd.h>        /* struct passwd */

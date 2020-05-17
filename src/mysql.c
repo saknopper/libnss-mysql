@@ -21,9 +21,6 @@
  * need should come from here.
  */
 
-static const char rcsid[] =
-    "$Id$";
-
 #include "nss_mysql.h"
 #include <string.h>     /* strlen() */
 #include <netinet/in.h> /* struct sockaddr_in */

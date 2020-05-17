@@ -18,7 +18,7 @@
 ## $Id$
 # From Makefile.am $Revision$
 
-library_sources         = version.c nss_config.c nss_main.c \
+library_sources         = nss_config.c nss_main.c \
                           nss_support.c mysql.c lookup.c \
                           mysql-pwd.c mysql-spwd.c mysql-grp.c
 library_ldflags         = -module -version-info @LIBVER@:0:0 \
