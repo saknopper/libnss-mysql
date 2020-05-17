@@ -4,4 +4,4 @@ compiler:
   - clang
   - gcc
 
-script: autoreconf -i -f && ./configure && make && make test
+script: autoreconf -i -f && ./configure && make
