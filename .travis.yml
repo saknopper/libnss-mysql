@@ -4,4 +4,8 @@ compiler:
   - clang
   - gcc
 
+dist:
+  - xenial
+  - bionic
+
 script: autoreconf -i -f && ./configure && make
