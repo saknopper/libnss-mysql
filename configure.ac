@@ -21,9 +21,10 @@ AC_INIT([libnss-mysql],[m4_esyscmd(./git-version-gen .)],[https://github.com/sak
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_PREREQ([2.69])
+AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_SRCDIR([src/nss_main.c])
-AM_INIT_AUTOMAKE([foreign 1.11 -Wall silent-rules color-tests])
-AM_CONFIG_HEADER(config.h)
+
+AM_INIT_AUTOMAKE([foreign])
 AM_MAINTAINER_MODE
 
 AC_PROG_CC
