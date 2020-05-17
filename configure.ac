@@ -35,9 +35,12 @@ LT_INIT
 
 AC_DISABLE_STATIC
 
-AC_ARG_ENABLE(debug,
-            [  --enable-debug          Enable debug (see DEBUGGING)],
-            [AC_DEFINE([DEBUG], 1, [Enable debug])])
+AC_ARG_ENABLE([debug],
+    AS_HELP_STRING([--enable-debug], [Enable debug (see DEBUGGING)]))
+
+AS_IF([test "x$enable_debug" = "xyes"], [
+  AC_DEFINE([DEBUG], 1, [Enable debug])
+])
 
 WITH_MYSQL()
 MYSQL_USE_CLIENT_API()
