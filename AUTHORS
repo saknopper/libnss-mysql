@@ -1,5 +1,6 @@
 libnss-mysql is Copyright (C) 2002 Ben Goodwin <cinergi@users.sourceforge.net>
 It was created in May 2002, based upon much earlier, non-NSS code.
 
-So far, no one else has contributed.
-
+In 2016 it has been forked by Sander Knopper <sander@knopper.tk> in an
+attempt to modernize the build system and focus on supporting modern Linux
+systems and recent versions of MySQL/MariaDB.
