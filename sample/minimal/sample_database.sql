@@ -27,21 +27,21 @@ create database auth;
 use auth;
 
 # The tables ...
-CREATE TABLE groups (
+CREATE TABLE `groups` (
   name varchar(16) NOT NULL default '',
   password varchar(34) NOT NULL default 'x',
   gid int(11) NOT NULL auto_increment,
   PRIMARY KEY  (gid)
 ) AUTO_INCREMENT=5000;
 
-CREATE TABLE grouplist (
+CREATE TABLE `grouplist` (
   rowid int(11) NOT NULL auto_increment,
   gid int(11) NOT NULL default '0',
   username char(16) NOT NULL default '',
   PRIMARY KEY  (rowid)
 );
 
-CREATE TABLE users (
+CREATE TABLE `users` (
   username varchar(16) NOT NULL default '',
   uid int(11) NOT NULL auto_increment,
   password varchar(34) NOT NULL default 'x',
@@ -51,9 +51,9 @@ CREATE TABLE users (
 ) AUTO_INCREMENT=5000;
 
 # The data ...
-INSERT INTO users (username,password) VALUES ('cinergi', ENCRYPT('cinergi'));
-INSERT INTO groups (name) VALUES ('foobaz');
-INSERT INTO grouplist (gid,username) VALUES (5000,'cinergi');
+INSERT INTO `users` (username,password) VALUES ('cinergi', ENCRYPT('cinergi'));
+INSERT INTO `groups` (name) VALUES ('foobaz');
+INSERT INTO `grouplist` (gid,username) VALUES (5000,'cinergi');
 
 # The permissions ...
 GRANT USAGE ON *.* TO `nss-root`@`localhost` IDENTIFIED BY 'rootpass';
