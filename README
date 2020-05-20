@@ -9,7 +9,7 @@ Supported Operating Systems:
     o FreeBSD (5.1+)
 
 Supported MySQL Versions:
-    o MySQL 3.23.9 - 5.7.x
+    o Recently tested on MySQL 5.7 and 8.0, but should run fine on older versions.
 
 Prerequisites
 =============
@@ -38,7 +38,7 @@ The details
     o Edit /etc/libnss-mysql.cfg and /etc/libnss-mysql-root.cfg.
 
     o Add data to MySQL. The default configs will work well with the sample
-      sql database in sample/sample_database.sql.  Read that file for more
+      sql database in sample/*/sample_database.sql.  Read that file for more
       details on the sample database.
 
     o Edit (or create) /etc/nsswitch.conf such that it contains at least the
