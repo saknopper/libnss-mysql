@@ -24,11 +24,8 @@
 
 #ifdef HAVE_NSS_H
 #include <nss.h>
-#elif defined HAVE_NSS_COMMON_H
-#include <nss_common.h>
-#include <nss_dbdefs.h>
 #else
-#error I need either nss.h or nss_common.h!
+#error I need nss.h!
 #endif
 
 #include <mysql.h>
@@ -55,16 +52,11 @@
 
 #include <pthread.h>
 
-#ifdef HAVE_NSS_H
 #define NSS_SUCCESS     NSS_STATUS_SUCCESS
 #define NSS_NOTFOUND    NSS_STATUS_NOTFOUND
 #define NSS_UNAVAIL     NSS_STATUS_UNAVAIL
 #define NSS_TRYAGAIN    NSS_STATUS_TRYAGAIN
 typedef enum nss_status NSS_STATUS;
-#elif defined HAVE_NSS_COMMON_H
-typedef nss_status_t NSS_STATUS;
-#define NSS_ARGS(args)  ((nss_XbyY_args_t *)args)
-#endif
 
 #define MAX_LINE_SIZE       1024        /* Max line length in config file */
 #define MAX_QUERY_SIZE      2048        /* Max size of SQL query */
@@ -147,20 +139,11 @@ extern pthread_mutex_t lock;
  * over and over, without increasing the buffer - AKA infinite (or long)
  * loop.
  */
-#ifdef HAVE_NSS_H
 #define EXHAUSTED_BUFFER                                                     \
   {                                                                          \
     *errnop = ERANGE;                                                        \
     DSRETURN (NSS_TRYAGAIN);                                                 \
   }
-#else
-#define EXHAUSTED_BUFFER                                                     \
-  {                                                                          \
-    if (errnop)                                                              \
-      *errnop = 1;                                                           \
-    DSRETURN (NSS_NOTFOUND);                                                 \
-  }
-#endif
 
 /*
  * It's SO damn confusing when functions use a return of 0 for success and
@@ -241,9 +224,6 @@ typedef struct {
 /* nss_main.c */
 NSS_STATUS _nss_mysql_init (void);
 void _nss_mysql_log (int priority, char *fmt, ...);
-#ifdef HAVE_NSS_COMMON_H
-NSS_STATUS _nss_mysql_default_destr (nss_backend_t *be, void *args);
-#endif
 void _nss_mysql_reset_ent (MYSQL_RES **mresult);
 
 /* nss_support.c */

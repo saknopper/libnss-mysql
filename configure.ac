@@ -60,7 +60,7 @@ AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(z, compress)
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS(syslog.h stdint.h stdbool.h nss.h nss_common.h shadow.h)
+AC_CHECK_HEADERS(syslog.h stdint.h stdbool.h nss.h shadow.h)
 
 AC_C_CONST
 AC_TYPE_UID_T

@@ -243,23 +243,6 @@ _nss_mysql_log (int priority, char *fmt, ...)
   va_end (ap);
 }
 
-#ifdef HAVE_NSS_COMMON_H
-NSS_STATUS
-_nss_mysql_default_destr (nss_backend_t *be, void *args)
-{
-  DENTER
-  if (be)
-    {
-      free (be);
-      be = NULL;
-    }
-
-  /* TODO: Close link and free memory !? */
-
-  DSRETURN (NSS_SUCCESS)
-}
-#endif
-
 /*
  * SET/END ent's call this.  While the definition of endent is to close
  * the "file", we need to keep the MySQL link persistent, so we just

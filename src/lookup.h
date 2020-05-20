@@ -17,8 +17,6 @@
 
 #include "nss_mysql.h"
 
-#ifdef HAVE_NSS_H
-
 #define SETENT(type)                                                         \
     NSS_STATUS                                                               \
     _nss_mysql_set##type (void)                                              \
@@ -41,42 +39,3 @@
       DSRETURN (NSS_SUCCESS)                                                 \
     }
 
-#elif defined (HAVE_NSS_COMMON_H)
-
-#define SETENT(type)                                                         \
-    NSS_STATUS                                                               \
-    _nss_mysql_set##type (nss_backend_t *be, void *args)                     \
-    {                                                                        \
-      DENTER                                                                 \
-      LOCK;                                                                  \
-      _nss_mysql_reset_ent (&mresult_##type);                                \
-      UNLOCK;                                                                \
-      DSRETURN (NSS_SUCCESS)                                                 \
-    }
-
-#define ENDENT(type)                                                         \
-    NSS_STATUS                                                               \
-    _nss_mysql_end##type (nss_backend_t *be, void *args)                     \
-    {                                                                        \
-      DENTER                                                                 \
-      LOCK;                                                                  \
-      _nss_mysql_reset_ent (&mresult_##type);                                \
-      UNLOCK;                                                                \
-      DSRETURN (NSS_SUCCESS)                                                 \
-    }
-
-#define CONSTR(type)                                                         \
-    nss_backend_t *                                                          \
-    _nss_mysql_##type##_constr (const char *db_name, const char *src_name,   \
-                                const char *cfg_args)                        \
-    {                                                                        \
-      nss_backend_t *be;                                                     \
-      DENTER                                                                 \
-      be = (nss_backend_t *) malloc (sizeof (*be));                          \
-      if (!be)                                                               \
-        DPRETURN (NULL)                                                      \
-      be->ops = type##_ops;                                                  \
-      be->n_ops = sizeof (type##_ops) / sizeof (nss_backend_op_t);           \
-      DPRETURN (be)                                                          \
-    }
-#endif
