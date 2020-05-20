@@ -24,9 +24,18 @@ library_sources         = nss_config.c nss_main.c \
 library_ldflags         = -module -version-info @LIBVER@:0:0 \
                           -export-symbols $(srcdir)/@OS@.sym
 
+if FREEBSD
+lib_LTLIBRARIES      = nss_mysql.la
+nss_mysql_la_CFLAGS  = @MYSQL_CFLAGS@ -DROOTCFG='"$(sysconfdir)/libnss-mysql-root.cfg"' -DMAINCFG='"$(sysconfdir)/libnss-mysql.cfg"'
+nss_mysql_la_LDFLAGS = @MYSQL_LDFLAGS@ $(library_ldflags)
+nss_mysql_la_SOURCES = $(library_sources)
+endif
+
+if LINUX
 lib_LTLIBRARIES         = libnss_mysql.la
 libnss_mysql_la_CFLAGS  = @MYSQL_CFLAGS@ -DROOTCFG='"$(sysconfdir)/libnss-mysql-root.cfg"' -DMAINCFG='"$(sysconfdir)/libnss-mysql.cfg"'
 libnss_mysql_la_LDFLAGS = @MYSQL_LDFLAGS@ $(library_ldflags)
 libnss_mysql_la_SOURCES = $(library_sources)
+endif
 
 noinst_HEADERS = nss_mysql.h lookup.h

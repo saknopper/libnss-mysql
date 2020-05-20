@@ -44,6 +44,28 @@ AS_IF([test "x$enable_debug" = "xyes"], [
   AC_DEFINE([DEBUG], 1, [Enable debug])
 ])
 
+build_freebsd=no
+build_linux=no
+
+case "${host_os}" in
+    freebsd*)
+        LIBVER=1
+        OS=freebsd
+		build_freebsd=yes
+        ;;
+    linux*)
+        LIBVER=2
+        OS=linux
+		build_linux=yes
+        ;;
+    *)
+	    AC_MSG_ERROR(["OS $host_os is not supported"])
+        ;;
+esac
+
+AM_CONDITIONAL([FREEBSD], [test "x$build_freebsd" = "xyes"])
+AM_CONDITIONAL([LINUX], [test "x$build_linux" = "xyes"])
+
 WITH_MYSQL()
 MYSQL_USE_CLIENT_API()
 MYSQL_SUBST()
