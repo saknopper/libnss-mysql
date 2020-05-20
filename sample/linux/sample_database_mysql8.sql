@@ -3,7 +3,7 @@
 #
 #                THIS DATABASE IS INTENDED FOR Linux
 #
-# Use 'mysql -u root -p < sample_database.sql' to load this example into your
+# Use 'mysql -u root -p < sample_database_mysql8.sql' to load this example into your
 # MySQL server.
 # This example will:
 #   1) create a database called 'auth'
@@ -45,7 +45,7 @@ CREATE TABLE `users` (
   gecos varchar(128) NOT NULL default '',
   homedir varchar(255) NOT NULL default '',
   shell varchar(64) NOT NULL default '/bin/bash',
-  password varchar(34) NOT NULL default 'x',
+  password varchar(128) NOT NULL default 'x',
   lstchg bigint(20) NOT NULL default '1',
   min bigint(20) NOT NULL default '0',
   max bigint(20) NOT NULL default '99999',
@@ -60,15 +60,18 @@ CREATE TABLE `users` (
 
 # The data ...
 INSERT INTO `users` (username,gecos,homedir,password)
-    VALUES ('cinergi', 'Ben Goodwin', '/home/cinergi', ENCRYPT('cinergi'));
+    VALUES ('cinergi', 'Ben Goodwin', '/home/cinergi', '$6$G2pAloKLyLW7j$MvDFG4fa3EYExucCxvgzTI.NSJybyQFIBZG4yesYFJjJsLsgGx/xg.aIV8gf32al9iq0zAGZROm7fHTmVBl8p/');
 INSERT INTO `groups` (name)
     VALUES ('foobaz');
 INSERT INTO `grouplist` (gid,username)
     VALUES (5000,'cinergi');
 
 # The permissions ...
-GRANT USAGE ON *.* TO `nss-root`@`localhost` IDENTIFIED BY 'rootpass';
-GRANT USAGE ON *.* TO `nss-user`@`localhost` IDENTIFIED BY 'userpass';
+CREATE USER `nss-root`@`localhost` IDENTIFIED BY 'rootpass';
+GRANT USAGE ON *.* TO `nss-root`@`localhost`;
+
+CREATE USER `nss-user`@`localhost` IDENTIFIED BY 'userpass';
+GRANT USAGE ON *.* TO `nss-user`@`localhost`;
 
 GRANT Select (`username`, `uid`, `gid`, `gecos`, `homedir`, `shell`, `password`,
               `lstchg`, `min`, `max`, `warn`, `inact`, `expire`, `flag`)
@@ -91,4 +94,3 @@ GRANT Select (`username`, `gid`)
 GRANT Select (`username`, `gid`)
              ON `auth`.`grouplist`
              TO 'nss-root'@'localhost';
-

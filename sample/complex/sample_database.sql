@@ -30,7 +30,7 @@ create database auth;
 use auth;
 
 # The tables ...
-CREATE TABLE customer (
+CREATE TABLE `customer` (
   cust_num int(11) NOT NULL auto_increment,
   first_name varchar(25) NOT NULL default '',
   last_name varchar(25) NOT NULL default '',
@@ -48,14 +48,14 @@ CREATE TABLE customer (
   PRIMARY KEY  (cust_num)
 );
 
-CREATE TABLE service_defs (
+CREATE TABLE `service_defs` (
   name varchar(25) NOT NULL default '',
   shell varchar(255) NOT NULL default '/bin/date',
   homedir varchar(255) NOT NULL default '/tmp',
   PRIMARY KEY  (name)
 );
 
-CREATE TABLE services (
+CREATE TABLE `services` (
   cust_num int(11) NOT NULL default '0',
   username varchar(16) NOT NULL default '',
   uid int(11) NOT NULL auto_increment,
@@ -72,12 +72,12 @@ CREATE TABLE services (
 ) AUTO_INCREMENT=5000;
 
 # The data ...
-INSERT INTO customer (first_name,last_name,middle_initial)
+INSERT INTO `customer` (first_name,last_name,middle_initial)
     VALUES ('Benjamin','Goodwin','C');
-INSERT INTO services (cust_num,username,password,product,created,expire)
+INSERT INTO `services` (cust_num,username,password,product,created,expire)
     VALUES (LAST_INSERT_ID(),'cinergi',ENCRYPT('cinergi'),'Basic Dialup',NOW(),
             DATE_ADD(NOW(), INTERVAL 1 YEAR));
-INSERT INTO service_defs (name)
+INSERT INTO `service_defs` (name)
     VALUES ('Basic Dialup');
 
 # The permissions ...
