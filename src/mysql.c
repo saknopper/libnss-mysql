@@ -64,10 +64,11 @@ _nss_mysql_is_same_sockaddr (struct sockaddr orig, struct sockaddr cur)
   switch (((struct sockaddr_in *)&ci.sock_info.local)->sin_family)
     {
     case AF_INET:
-        if ((*(struct sockaddr_in *) &orig).sin_port != 
+    case AF_INET6:
+        if ((*(struct sockaddr_in *) &orig).sin_port !=
             (*(struct sockaddr_in *) &cur).sin_port)
           DBRETURN (false)
-        if ((*(struct sockaddr_in *) &orig).sin_addr.s_addr != 
+        if ((*(struct sockaddr_in *) &orig).sin_addr.s_addr !=
             (*(struct sockaddr_in *) &cur).sin_addr.s_addr)
           DBRETURN (false)
         break;
