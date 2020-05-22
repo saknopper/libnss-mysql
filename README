@@ -5,11 +5,11 @@ Official website: https://github.com/saknopper/libnss-mysql
 MySQL for NSS systems
 =====================
 Supported Operating Systems:
-    o Linux
+    o Linux (recently tested on CentOS 6, 7 and 8. Ubuntu 20.04. Gentoo.
     o FreeBSD (5.1+)
 
 Supported MySQL Versions:
-    o Recently tested on MySQL 5.7 and 8.0, but should run fine on older versions.
+    o Recently tested on MySQL 5.1, 5.7 and 8.0, but should run fine on older versions.
 
 Prerequisites
 =============
