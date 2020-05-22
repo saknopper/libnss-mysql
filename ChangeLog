@@ -1,4 +1,15 @@
-# $Id$
+1.7
+
+    * NEW:    I (Sander Knopper) am the maintainer of this fork of libnss-mysql,
+              *not* officially taking over the project since it's a fork.
+              Might have to come up with different name, but I'm not too worried
+              about that for now.
+    * CHANGE: Modernized build system, depend on C99 and make use of the
+              benefits
+    * CHANGE: Dropped Solaris support
+    * NEW:    Added mysql 8 sample database (for Linux)
+    * NEW:    Added IPv6 support
+    * CHANGE: Minor cleanups and fixes for compiler warnings
 
 1.5 - 1.6
 
