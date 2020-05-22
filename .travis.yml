@@ -1,14 +1,22 @@
 language: c
 
-compiler:
-  - clang
-  - gcc
-
 jobs:
   include:
-    - os: linux
+    - name: "Xenial clang"
+      os: linux
       dist: xenial
-    - os: linux
+      compiler: clang
+    - name: "Xenial gcc"
+      os: linux
+      dist: xenial
+      compiler: gcc
+    - name: "Bionic clang"
+      os: linux
       dist: bionic
+      compiler: clang
+    - name: "Bionic gcc"
+      os: linux
+      dist: bionic
+      compiler: gcc
 
 script: autoreconf -i -f && ./configure && make
