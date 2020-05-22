@@ -191,7 +191,7 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
 {
   int retval;
   sql_server_t *server = &conf.sql.server;
-  unsigned int port;
+  unsigned int port = 0;
 
   DENTER
 
@@ -216,10 +216,9 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
 
   _nss_mysql_set_options (server);
   D ("%s: Connecting to %s", __FUNCTION__, server->host);
-  if (server->port)
+  if (server->port[0])
     port = atoi (server->port);
-  else
-    port = 0;
+
   if (mysql_real_connect (&ci.link, server->host,
                           server->username[0] ? server->username : NULL,
                           server->password[0] ? server->password : NULL,
