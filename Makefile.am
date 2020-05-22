@@ -24,7 +24,7 @@ SUBDIRS = src
 
 EXTRA_DIST = FAQ UPGRADING DEBUGGING libnss-mysql.spec git-version-gen \
              src/*.sym sample/README sample/complex/*.* sample/minimal/*.* \
-             sample/linux/*.* sample/solaris/*.* sample/freebsd/*.*
+             sample/linux/*.* sample/freebsd/*.*
 
 dist-hook:
 	echo $(VERSION) > $(distdir)/.tarball-version
