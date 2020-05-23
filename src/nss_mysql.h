@@ -69,9 +69,18 @@ typedef enum nss_status NSS_STATUS;
 #define DEF_TIMEOUT         3
 
 #ifdef DEBUG
+#define DEBUG_TEST 1
+#else
+#define DEBUG_TEST 0
+#endif
+
 void _nss_mysql_debug (char *fmt, ...);
+
+#define D(fmt, ...) \
+  do { if (DEBUG_TEST) _nss_mysql_debug (fmt, __VA_ARGS__); } while (0)
+
+#ifdef DEBUG
 static const char DEBUG_FILE[] = "/tmp/libnss-mysql-debug.log";
-#define D _nss_mysql_debug
 #define DENTER D ("%s: ENTER", __FUNCTION__);
 #define DIRETURN(r) { D ("%s: EXIT (%d)", __FUNCTION__, r); return (r); }
 #define DFRETURN(r)                                                         \
@@ -112,7 +121,6 @@ static const char DEBUG_FILE[] = "/tmp/libnss-mysql-debug.log";
 #define DRETURN { D ("%s: EXIT", __FUNCTION__); return; }
 #define DEXIT D ("%s: EXIT", __FUNCTION__);
 #else
-#define D
 #define DENTER
 #define DIRETURN(r) return (r);
 #define DPRETURN(r) return (r);
