@@ -18,6 +18,8 @@ libnss-mysql-?.?
 *.o
 .deps
 .libs
+.tarball-version
+.version
 Makefile
 Makefile.in
 version.c
