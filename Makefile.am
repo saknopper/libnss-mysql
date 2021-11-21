@@ -23,8 +23,11 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = src
 
 EXTRA_DIST = FAQ UPGRADING DEBUGGING libnss-mysql.spec git-version-gen \
-             $(srcdir)/sample $(srcdir)/src/*.sym
+             $(top_srcdir)/.version $(srcdir)/sample $(srcdir)/src/*.sym
 
+BUILT_SOURCES = $(top_srcdir)/.version
+$(top_srcdir)/.version:
+	echo $(VERSION) > $@-t && mv $@-t $@
 dist-hook:
 	echo $(VERSION) > $(distdir)/.tarball-version
 
