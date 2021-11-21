@@ -1,3 +1,8 @@
+1.7.1
+    * CHANGE: Minor build system cleanups
+    * CHANGE: Fix some compiler warnings, mostly related to debug output.
+    * CHANGE: Improved cleanup of resources after lookup is finished.
+
 1.7
 
     * NEW:    I (Sander Knopper) am the maintainer of this fork of libnss-mysql,
