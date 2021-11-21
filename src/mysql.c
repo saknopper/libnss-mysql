@@ -136,12 +136,6 @@ _nss_mysql_set_options (sql_server_t *server)
   mysql_options(&ci.link, MYSQL_OPT_CONNECT_TIMEOUT,
                 (const char *) &def_timeout);
   mysql_options(&ci.link, MYSQL_READ_DEFAULT_GROUP, "libnss-mysql");
-#if MYSQL_VERSION_ID >= 50013
-  const bool reconnect = 1;
-  mysql_options(&ci.link, MYSQL_OPT_RECONNECT, &reconnect);
-#else
-  ci.link.reconnect = (my_bool) 1;
-#endif
 
   DEXIT
 }
@@ -233,13 +227,6 @@ _nss_mysql_connect_sql (MYSQL_RES **mresult)
           DSRETURN (NSS_UNAVAIL)
         }
       ci.valid = true;
-      /* Safety: We can't let MySQL assume socket is still valid; see _nss_mysql_validate_socket */
-#if MYSQL_VERSION_ID >= 50013
-      const bool reconnect = 0;
-      mysql_options(&ci.link, MYSQL_OPT_RECONNECT, &reconnect);
-#else
-      ci.link.reconnect = (my_bool) 0;
-#endif
 
       DSRETURN (NSS_SUCCESS)
     }
