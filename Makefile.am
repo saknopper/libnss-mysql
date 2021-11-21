@@ -23,8 +23,7 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = src
 
 EXTRA_DIST = FAQ UPGRADING DEBUGGING libnss-mysql.spec git-version-gen \
-             src/*.sym sample/README sample/complex/*.* sample/minimal/*.* \
-             sample/linux/*.* sample/freebsd/*.*
+             $(srcdir)/sample $(srcdir)/src/*.sym
 
 dist-hook:
 	echo $(VERSION) > $(distdir)/.tarball-version
@@ -40,3 +39,12 @@ install-data-hook:
 		${INSTALL_DATA} -m 600 ${srcdir}/sample/@OS@/libnss-mysql-root.cfg \
 			${DESTDIR}${sysconfdir}/libnss-mysql-root.cfg; \
 	fi
+
+uninstall-hook:
+	if test -f ${DESTDIR}${sysconfdir}/libnss-mysql.cfg; then \
+		rm ${DESTDIR}${sysconfdir}/libnss-mysql.cfg; \
+	fi
+	if test -f ${DESTDIR}${sysconfdir}/libnss-mysql-root.cfg; then \
+		rm ${DESTDIR}${sysconfdir}/libnss-mysql-root.cfg; \
+	fi
+
