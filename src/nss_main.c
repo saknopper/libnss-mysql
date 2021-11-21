@@ -261,8 +261,6 @@ void __attribute__ ((constructor)) _nss_mysql_constructor(void)
 	DENTER
 	D ("%s: loading %s", __FUNCTION__, PACKAGE_STRING);
 
-	// TODO Implement this, called before dlopen() finishes
-
 	DEXIT
 }
 
@@ -270,7 +268,7 @@ void __attribute__ ((destructor)) _nss_mysql_destructor(void)
 {
 	DENTER
 
-	// TODO Implement this, called before dlclose() finishes
+	mysql_library_end();
 
 	DEXIT
 }
