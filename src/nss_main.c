@@ -268,7 +268,5 @@ void __attribute__ ((destructor)) _nss_mysql_destructor(void)
 {
 	DENTER
 
-	mysql_library_end();
-
 	DEXIT
 }
