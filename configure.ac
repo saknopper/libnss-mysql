@@ -28,7 +28,6 @@ AM_INIT_AUTOMAKE([foreign])
 AM_MAINTAINER_MODE
 
 AC_PROG_CC
-AC_PROG_CC_C99
 
 dnl Older versions don't have AM_PROG_AR, while newer versions complain if you don't use it
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
@@ -78,7 +77,6 @@ AC_CHECK_LIB(nsl, gethostbyname)
 AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(z, compress)
 
-AC_HEADER_STDC
 AC_CHECK_HEADERS(syslog.h stdint.h stdbool.h nss.h shadow.h)
 
 AC_C_CONST
