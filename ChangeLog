@@ -1,6 +1,7 @@
 1.7.1
     * CHANGE: Minor build system cleanups
     * CHANGE: Fix some compiler warnings, mostly related to debug output.
+    * CHANGE: Use explicit_bzero() instead of our own custom method
 
 1.7
 
