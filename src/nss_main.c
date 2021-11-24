@@ -28,6 +28,7 @@
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_once_t _nss_mysql_once_control = PTHREAD_ONCE_INIT;
+static int _nss_mysql_locked_by_atfork = 0;
 
 #define MAX_MSG_SIZE 1024
 
@@ -54,7 +55,7 @@ _nss_mysql_debug (char *fmt, ...)
   env = getenv ("LIBNSS_MYSQL_DEBUG");
   if (env)
     type = atoi (env);
-
+  
   if (type <= 1)
     {
       if (type == 0)
@@ -102,12 +103,126 @@ _nss_mysql_debug (char *fmt, ...)
  */
 
 /*
+ * Before fork() processing begins, the prepare fork handler is called
+ */
+static void
+_nss_mysql_atfork_prepare (void)
+{
+  DENTER
+
+  if (pthread_mutex_trylock(&lock) == 0)
+  {
+    _nss_mysql_locked_by_atfork = 1;
+  } else
+  {
+    D ("%s: error calling pthread_mutex_trylock() - lock failed", __FUNCTION__);
+  }
+
+  DEXIT
+}
+
+/*
+ * The parent fork handler is called after fork() processing finishes
+ * in the parent process
+ */
+static void
+_nss_mysql_atfork_parent (void)
+{
+  DENTER
+  if (_nss_mysql_locked_by_atfork)
+    {
+      _nss_mysql_locked_by_atfork = 0;
+      UNLOCK;
+    }
+  DEXIT
+}
+
+/*
+ * The child fork handler is called after fork() processing finishes in the
+ * child process.
+ */
+static void
+_nss_mysql_atfork_child (void)
+{
+  DENTER
+  /* Don't close the link; just set it to invalid so we'll open a new one */
+  _nss_mysql_close_sql (NULL, false);
+  if (_nss_mysql_locked_by_atfork)
+    {
+      _nss_mysql_locked_by_atfork = 0;
+      UNLOCK;
+    }
+  DEXIT
+}
+
+/* Setup pthread_atfork if current namespace contains pthreads. */
+static void
+_nss_mysql_pthread_once_init (void)
+{
+  DENTER
+
+  if (pthread_atfork(_nss_mysql_atfork_prepare, _nss_mysql_atfork_parent,
+                       _nss_mysql_atfork_child) != 0)
+  {
+    D ("%s: error calling pthread_atfork()", __FUNCTION__);
+  }
+
+  DEXIT
+}
+
+/*
+ * Prevent the "dead store removal" problem present with stock memset()
+ */
+static void *
+_nss_mysql_safe_memset (void *s, int c, size_t n)
+{
+  volatile char *p = s;
+
+  DENTER
+  if (p)
+    {
+      while (n--)
+        *p++ = c;
+    }
+  DPRETURN (s)
+}
+
+/*
+ * Make an attempt to close the link when the process exits
+ * Set in _nss_mysql_init() below
+ */
+static void
+_nss_mysql_atexit_handler (void)
+{
+  extern conf_t conf;
+
+  DENTER
+  _nss_mysql_close_sql (NULL, true);
+  _nss_mysql_safe_memset (conf.sql.server.password, 0,
+                          sizeof (conf.sql.server.password));
+  DEXIT
+}
+
+/*
+ * Setup pthread_once if it's available in the current namespace
  * Load config file(s)
  */
 NSS_STATUS
 _nss_mysql_init (void)
 {
+  static int atexit_isset = false;
+
   DENTER
+
+  if (pthread_once(&_nss_mysql_once_control, _nss_mysql_pthread_once_init) != 0) {
+    D ("%s: error calling pthread_once()", __FUNCTION__);
+  }
+
+  if (atexit_isset == false)
+    {
+      if (atexit(_nss_mysql_atexit_handler) == RETURN_SUCCESS)
+        atexit_isset = true;
+    }
 
   DSRETURN (_nss_mysql_load_config ())
 }
@@ -153,10 +268,6 @@ void __attribute__ ((constructor)) _nss_mysql_constructor(void)
 void __attribute__ ((destructor)) _nss_mysql_destructor(void)
 {
 	DENTER
-
-	extern conf_t conf;
-	_nss_mysql_close_sql (NULL, true);
-	explicit_bzero(conf.sql.server.password, sizeof (conf.sql.server.password));
 
 	DEXIT
 }

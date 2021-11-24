@@ -22,7 +22,9 @@
     _nss_mysql_set##type (void)                                              \
     {                                                                        \
       DENTER                                                                 \
+      LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
+      UNLOCK;                                                                \
       DSRETURN (NSS_SUCCESS)                                                 \
     }
 
@@ -31,6 +33,9 @@
     _nss_mysql_end##type (void)                                              \
     {                                                                        \
       DENTER                                                                 \
+      LOCK;                                                                  \
       _nss_mysql_reset_ent (&mresult_##type);                                \
+      UNLOCK;                                                                \
       DSRETURN (NSS_SUCCESS)                                                 \
     }
+

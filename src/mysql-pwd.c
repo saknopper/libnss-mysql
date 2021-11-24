@@ -33,11 +33,11 @@ _nss_mysql_getpwnam_r (const char *name, struct passwd *result, char *buffer,
   MYSQL_RES *mresult = NULL;
 
   DENTER
-
+  LOCK;
   retVal = _nss_mysql_lookup (BYNAME, name, 0, conf.sql.query.getpwnam,
                               false, result, buffer, buflen, errnop,
                               _nss_mysql_load_passwd, &mresult, __FUNCTION__);
-
+  UNLOCK;
   DSRETURN (retVal)
 }
 
@@ -52,11 +52,11 @@ _nss_mysql_getpwuid_r (uid_t uid, struct passwd *result, char *buffer,
   MYSQL_RES *mresult = NULL;
 
   DENTER
-
+  LOCK;
   retVal = _nss_mysql_lookup (BYNUM, NULL, uid, conf.sql.query.getpwuid,
                               false, result, buffer, buflen, errnop,
                               _nss_mysql_load_passwd, &mresult, __FUNCTION__);
-
+  UNLOCK;
   DSRETURN (retVal)
 }
 
@@ -80,10 +80,11 @@ _nss_mysql_getpwent_r (struct passwd *result, char *buffer, size_t buflen,
   int retVal;
 
   DENTER
-
+  LOCK;
   retVal = _nss_mysql_lookup (BYNONE, NULL, 0, conf.sql.query.getpwent,
                               false, result, buffer, buflen, errnop,
                               _nss_mysql_load_passwd, &mresult_pwent, __FUNCTION__);
-
+  UNLOCK;
   DSRETURN (retVal)
 }
+
