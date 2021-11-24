@@ -77,7 +77,7 @@ AC_CHECK_LIB(nsl, gethostbyname)
 AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(z, compress)
 
-AC_CHECK_HEADERS(syslog.h stdint.h stdbool.h nss.h shadow.h)
+AC_CHECK_HEADERS(syslog.h stdbool.h nss.h shadow.h)
 
 AC_C_CONST
 AC_TYPE_UID_T
