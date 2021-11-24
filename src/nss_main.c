@@ -171,23 +171,6 @@ _nss_mysql_pthread_once_init (void)
 }
 
 /*
- * Prevent the "dead store removal" problem present with stock memset()
- */
-static void *
-_nss_mysql_safe_memset (void *s, int c, size_t n)
-{
-  volatile char *p = s;
-
-  DENTER
-  if (p)
-    {
-      while (n--)
-        *p++ = c;
-    }
-  DPRETURN (s)
-}
-
-/*
  * Make an attempt to close the link when the process exits
  * Set in _nss_mysql_init() below
  */
@@ -198,8 +181,7 @@ _nss_mysql_atexit_handler (void)
 
   DENTER
   _nss_mysql_close_sql (NULL, true);
-  _nss_mysql_safe_memset (conf.sql.server.password, 0,
-                          sizeof (conf.sql.server.password));
+  explicit_bzero (conf.sql.server.password, sizeof (conf.sql.server.password));
   DEXIT
 }
 
