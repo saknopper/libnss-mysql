@@ -23,6 +23,7 @@
 #include "nss_mysql.h"
 #include <stdio.h>      /* fprintf() */
 #include <stdarg.h>     /* va_start() */
+#include <string.h>     /* explicit_bzero() */
 #include <sys/stat.h>   /* umask() */
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -101,23 +102,6 @@ _nss_mysql_debug (char *fmt, ...)
  */
 
 /*
- * Prevent the "dead store removal" problem present with stock memset()
- */
-static void *
-_nss_mysql_safe_memset (void *s, int c, size_t n)
-{
-  volatile char *p = s;
-
-  DENTER
-  if (p)
-    {
-      while (n--)
-        *p++ = c;
-    }
-  DPRETURN (s)
-}
-
-/*
  * Load config file(s)
  */
 NSS_STATUS
@@ -170,10 +154,9 @@ void __attribute__ ((destructor)) _nss_mysql_destructor(void)
 {
 	DENTER
 
-  extern conf_t conf;
-  _nss_mysql_close_sql (NULL, true);
-  _nss_mysql_safe_memset (conf.sql.server.password, 0,
-                          sizeof (conf.sql.server.password));
+	extern conf_t conf;
+	_nss_mysql_close_sql (NULL, true);
+	explicit_bzero(conf.sql.server.password, sizeof (conf.sql.server.password));
 
 	DEXIT
 }
