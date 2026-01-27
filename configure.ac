@@ -74,7 +74,6 @@ AC_SUBST(OS)
 
 AC_SEARCH_LIBS([getpeername], [socket])
 AC_SEARCH_LIBS([getsockname], [socket])
-AC_SEARCH_LIBS([floor], [m])
 AC_SEARCH_LIBS([compress], [z])
 
 AC_CHECK_HEADERS(syslog.h stdbool.h nss.h shadow.h)
