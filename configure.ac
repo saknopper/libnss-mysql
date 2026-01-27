@@ -72,6 +72,7 @@ MYSQL_SUBST()
 AC_SUBST(LIBVER)
 AC_SUBST(OS)
 
+AC_SEARCH_LIBS([getpeername], [socket])
 AC_SEARCH_LIBS([getsockname], [socket])
 AC_SEARCH_LIBS([gethostbyname], [nsl])
 AC_SEARCH_LIBS([floor], [m])
