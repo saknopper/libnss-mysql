@@ -1,3 +1,8 @@
+1.7.2
+    * CHANGE: Minor build system cleanups
+                - drop unused dependency
+                - avoid unnecessary linking
+
 1.7.1
     * CHANGE: Minor build system cleanups
     * CHANGE: Fix some compiler warnings, mostly related to debug output.
