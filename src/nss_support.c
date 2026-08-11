@@ -27,17 +27,19 @@
 extern conf_t conf;
 
 /* Alignment code adapted from padl.com's nss_ldap */
-#ifdef __GNUC__
-#define alignof(ptr) __alignof__(ptr)
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#define alignof(TYPE) _Alignof(TYPE)
+#elif defined(__GNUC__)
+#define alignof(TYPE) __alignof__(TYPE)
 #else
-#define alignof(ptr) (sizeof(char *))
+#define alignof(TYPE) (sizeof(char *))
 #endif
 
 #define align(ptr, blen, TYPE)                                               \
 do {                                                                         \
   char *qtr = ptr;                                                           \
   ptr += alignof(TYPE) - 1;                                                  \
-  ptr -= ((ptr - (char *)NULL) % alignof(TYPE));                             \
+  ptr -= ((uintptr_t)ptr % alignof(TYPE));                                   \
   blen -= (ptr - qtr);                                                       \
 } while (0)
 
