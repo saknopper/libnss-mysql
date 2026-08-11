@@ -130,7 +130,7 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
   char query[MAX_QUERY_SIZE];            /* Query to send to MySQL */
   int retVal;
   int attempts = MAX_QUERY_ATTEMPTS;    /* Attempt # (countdown) */
-  static uid_t euid = -1;               /* Last known euid for change detect */
+  static uid_t euid = (uid_t) -1;       /* Last known euid for change detect */
   uid_t cur_euid;                       /* CURRENT euid */
 
   DENTER
@@ -141,7 +141,7 @@ _nss_mysql_lookup (lookup_t ltype, const char *name, unsigned int num,
     DSRETURN (NSS_NOTFOUND)
 
    /* Make sure euid hasn't changed, thus changing our access abilities */
-  if (euid == -1)
+  if (euid == (uid_t) -1)
     euid = cur_euid;
   else if (euid != cur_euid)
     {
