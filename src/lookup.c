@@ -85,6 +85,12 @@ _nss_mysql_build_query (lookup_t ltype, const char *name, unsigned int num,
       break;
     case BYNONE: /* This query has no key (e.g. a getpwent) */
       D ("%s: BYNONE creating initial query", __FUNCTION__);
+      if (strlen (qin) >= MAX_QUERY_SIZE)
+        {
+          _nss_mysql_log (LOG_CRIT, "%s: query too long (MAX = %d)",
+                          __FUNCTION__, MAX_QUERY_SIZE);
+          DSRETURN (NSS_UNAVAIL)
+        }
       strcpy (qout, qin);
       break;
     default:
