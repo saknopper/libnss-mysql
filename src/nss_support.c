@@ -136,7 +136,7 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
   offsets[ROW_PW_NAME] = 0;
   for (i = 1; i < NUM_PW_ELEMENTS; i++)
     offsets[i] = offsets[i - 1] + lengths[i - 1] + 1;
-  if (offsets[NUM_PW_ELEMENTS - 1] > buflen)
+  if (offsets[NUM_PW_ELEMENTS - 1] + lengths[NUM_PW_ELEMENTS - 1] + 1 > buflen)
     EXHAUSTED_BUFFER;
 
   /* Clear out buffer and copy in data */
