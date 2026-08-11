@@ -157,7 +157,7 @@ _nss_mysql_load_passwd (void *result, char *buffer, size_t buflen,
   pw->pw_change = atoi (row[ROW_PW_CHANGE]);
   pw->pw_class = memcpy (buffer + offsets[ROW_PW_CLASS], row[ROW_PW_CLASS],
                          lengths[ROW_PW_CLASS]);
-  pw->pw_change = atoi (row[ROW_PW_EXPIRE]);
+  pw->pw_expire = atoi (row[ROW_PW_EXPIRE]);
 #endif
 
 #if defined(sun)
