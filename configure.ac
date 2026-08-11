@@ -32,9 +32,7 @@ AC_PROG_CC
 dnl Older versions don't have AM_PROG_AR, while newer versions complain if you don't use it
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
-LT_INIT
-
-AC_DISABLE_STATIC
+LT_INIT([disable-static])
 
 AC_ARG_ENABLE([debug],
     AS_HELP_STRING([--enable-debug], [Enable debug (see DEBUGGING)]))
