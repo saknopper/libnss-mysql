@@ -201,36 +201,6 @@ AC_DEFUN([MYSQL_SUBST], [
 ])
 
 
-dnl check if current MySQL version meets a version requirement
-dnl and act accordingly
-dnl
-dnl MYSQL_CHECK_VERSION([requested_version],[yes_action],[no_action])
-dnl 
-AC_DEFUN([MYSQL_CHECK_VERSION], [
-  AX_COMPARE_VERSION([$MYSQL_VERSION], [GE], [$1], [$2], [$3])
-])
-
-
-
-dnl check if current MySQL version meets a version requirement
-dnl and bail out with an error message if not
-dnl
-dnl MYSQL_NEED_VERSION([need_version])
-dnl 
-AC_DEFUN([MYSQL_NEED_VERSION], [
-  if test "x$MYSQL_FORK" = "x"
-  then
-    forkname=mysql
-  else
-    forkname=$MYSQL_FORK
-  fi
-  AC_MSG_CHECKING([$forkname version >= $1])
-  MYSQL_CHECK_VERSION([$1], 
-    [AC_MSG_RESULT([yes ($MYSQL_VERSION)])], 
-    [AC_MSG_ERROR([no ($MYSQL_VERSION)])])
-])
-
-
 dnl check for embedded server library
 dnl 
 dnl MYSQL_NEED_EMBEDDED()
@@ -430,74 +400,6 @@ AC_DEFUN([MYSQL_EMBEDDED_LDFLAGS], [
 
 
 
-dnl set up variables for compilation of NDBAPI applications
-dnl 
-dnl MYSQL_USE_NDB_API()
-dnl
-AC_DEFUN([MYSQL_USE_NDB_API], [
-  MYSQL_USE_CLIENT_API()
-  AC_PROG_CXX
-  MYSQL_CHECK_VERSION([5.0.0],[  
-
-    # mysql_config results need some post processing for now
-
-    # the include pathes changed in 5.1.x due
-    # to the pluggable storage engine clenups,
-    # it also dependes on whether we build against
-    # mysql source or installed headers
-    if test "x$MYSQL_SRCDIR" = "x"
-    then 
-      IBASE=$MYSQL_CONFIG_INCLUDE
-    else
-      IBASE=$MYSQL_SRCDIR
-    fi
-    MYSQL_CHECK_VERSION([5.1.0], [
-      IBASE="$IBASE/storage/ndb"
-    ],[
-      IBASE="$IBASE/ndb"
-    ])
-    if test "x$MYSQL_SRCDIR" != "x"
-    then 
-      IBASE="$MYSQL_SRCDIR/include"
-    fi
-
-    # add the ndbapi specifc include dirs
-    ADDFLAGS="$ADDFLAGS $IBASE"
-    ADDFLAGS="$ADDFLAGS $IBASE/ndbapi"
-    ADDFLAGS="$ADDFLAGS $IBASE/mgmapi"
-
-    MYSQL_CFLAGS="$MYSQL_CFLAGS $ADDFLAGS"
-    MYSQL_CXXFLAGS="$MYSQL_CXXFLAGS $ADDFLAGS"
-
-    # check for ndbapi header file NdbApi.hpp
-    AC_LANG_PUSH(C++)
-    OLD_CXXFLAGS=$CXXFLAGS
-    CXXFLAGS="$CXXFLAGS $MYSQL_CXXFLAGS"
-    AC_CHECK_HEADER([NdbApi.hpp],,[AC_ERROR(["Can't find NdbApi header files"])])
-    CXXFLAGS=$OLD_CXXFLAGS
-    AC_LANG_POP()
-
-    # check for the ndbapi client library
-    AC_LANG_PUSH(C++)
-    OLD_LIBS=$LIBS
-    LIBS="$LIBS $MYSQL_LIBS -lmysys -lmystrings"
-    OLD_LDFLAGS=$LDFLAGS
-    LDFLAGS="$LDFLAGS $MYSQL_LDFLAGS"
-    AC_CHECK_LIB([ndbclient],[ndb_init],,[AC_ERROR(["Can't find NdbApi client lib"])]) 
-    LIBS=$OLD_LIBS
-    LDFLAGS=$OLD_LDFLAGS
-    AC_LANG_POP()
-
-    # add the ndbapi specific static libs
-    MYSQL_LIBS="$MYSQL_LIBS -lndbclient -lmysys -lmystrings "    
-
-  ],[
-    AC_ERROR(["NdbApi needs at lest MySQL 5.0"])
-  ])
-])
-
-
-
 dnl set up variables for compilation of UDF extensions
 dnl 
 dnl MYSQL_USE_UDF_API()
@@ -512,26 +414,3 @@ AC_DEFUN([MYSQL_USE_UDF_API], [
   MYSQL_DEBUG_SERVER()
 ])
 
-
-
-dnl set up variables for compilation of plugins
-dnl 
-dnl MYSQL_USE_PLUGIN_API()
-dnl
-AC_DEFUN([MYSQL_USE_PLUGIN_API], [
-  # plugin interface is only availabe starting with MySQL 5.1
-  MYSQL_NEED_VERSION([5.1.0])
-
-  # for plugins the recommended way to include plugin.h 
-  # is <mysql/plugin.h>, not <plugin.h>, so we have to
-  # strip the trailing /mysql from the include path
-  # reported by mysql_config
-  ADDFLAGS=`echo $MYSQL_CONFIG_INCLUDE | sed -e"s/\/mysql\$//g"` 
-
-  MYSQL_CFLAGS="$ADDFLAGS $MYSQL_CONFIG_INCLUDE $MYSQL_CFLAGS -DMYSQL_DYNAMIC_PLUGIN"    
-
-  MYSQL_CXXFLAGS="$ADDFLAGS $MYSQL_CONFIG_INCLUDE $MYSQL_CXXFLAGS -DMYSQL_DYNAMIC_PLUGIN"
-  MYSQL_CXXFLAGS="$MYSQL_CXXFLAGS -fno-implicit-templates -fno-exceptions -fno-rtti"    
-
-  MYSQL_DEBUG_SERVER()
-])
