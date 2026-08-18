@@ -26,3 +26,67 @@ jobs:
       run: make check
     - name: make distcheck
       run: make distcheck
+
+  nss-smoke-test:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        database:
+          - name: MariaDB 11
+            image: mariadb:11
+            packages: libmariadb-dev mariadb-client
+            client: mariadb
+            fixture: sample/linux/sample_database.sql
+            health_options: --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          - name: MySQL 8.0
+            image: mysql:8.0
+            packages: libmysqlclient-dev mysql-client
+            client: mysql
+            fixture: sample/linux/sample_database_mysql8.sql
+            health_options: --health-cmd="mysqladmin ping --protocol=tcp --host=127.0.0.1 --user=root --password=$MYSQL_ROOT_PASSWORD"
+    services:
+      database:
+        image: ${{ matrix.database.image }}
+        env:
+          MARIADB_ROOT_PASSWORD: test-root-password
+          MARIADB_ROOT_HOST: '%'
+          MYSQL_ROOT_PASSWORD: test-root-password
+          MYSQL_ROOT_HOST: '%'
+        ports:
+          - 3306:3306
+        options: >-
+          ${{ matrix.database.health_options }}
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: Install build and database clients
+      run: |
+        sudo apt-get update
+        sudo apt-get install --yes ${{ matrix.database.packages }}
+    - name: Build and install libnss-mysql
+      run: |
+        autoreconf -i -f
+        ./configure --sysconfdir=/etc
+        make
+        sudo make install
+        sudo ldconfig
+    - name: Seed the test database
+      env:
+        MYSQL_PWD: test-root-password
+      run: |
+        sed -e "s/'localhost'/'%'/g" -e 's/`localhost`/`%`/g' ${{ matrix.database.fixture }} | ${{ matrix.database.client }} --host=127.0.0.1 --port=3306 --user=root
+    - name: Configure NSS for the test database
+      run: |
+        sudo sed -i 's/^host .*/host        127.0.0.1/' /etc/libnss-mysql.cfg
+        sudo sed -i 's/^#port.*/port        3306/' /etc/libnss-mysql.cfg
+        sudo grep -qE '^passwd:.*[[:space:]]mysql([[:space:]]|$)' /etc/nsswitch.conf || sudo sed -i -E 's/^(passwd:[[:space:]]+.*)/\1 mysql/' /etc/nsswitch.conf
+        sudo grep -qE '^group:.*[[:space:]]mysql([[:space:]]|$)' /etc/nsswitch.conf || sudo sed -i -E 's/^(group:[[:space:]]+.*)/\1 mysql/' /etc/nsswitch.conf
+    - name: Exercise NSS lookups
+      run: |
+        getent passwd cinergi | grep -Fx 'cinergi:x:5000:5000:Ben Goodwin:/home/cinergi:/bin/bash'
+        getent group foobaz | grep -Fx 'foobaz:x:5000:cinergi'
+        id cinergi | grep -F 'uid=5000(cinergi) gid=5000(foobaz) groups=5000(foobaz)'
+        ! getent passwd does-not-exist
