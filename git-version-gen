@@ -20,7 +20,7 @@ scriptversion=2019-10-13.15; # UTC
 # This script is derived from GIT-VERSION-GEN from GIT: https://git-scm.com/.
 # It may be run two ways:
 # - from a git repository in which the "git describe" command below
-#   produces useful output (thus requiring at least one signed tag)
+#   produces useful output (thus requiring at least one annotated or lightweight tag)
 # - from a non-git-repo directory containing a .tarball-version file, which
 #   presumes this script is invoked like "./git-version-gen .tarball-version".
 
@@ -154,8 +154,8 @@ then
 # directory, and "git describe" output looks sensible, use that to
 # derive a version string.
 elif test "`git log -1 --pretty=format:x . 2>&1`" = x \
-    && v=`git describe --abbrev=4 --match="$prefix*" HEAD 2>/dev/null \
-          || git describe --abbrev=4 HEAD 2>/dev/null` \
+    && v=`git describe --tags --abbrev=4 --match="$prefix*" HEAD 2>/dev/null \
+          || git describe --tags --abbrev=4 HEAD 2>/dev/null` \
     && v=`printf '%s\n' "$v" | sed "$tag_sed_script"` \
     && case $v in
          $prefix[0-9]*) ;;
