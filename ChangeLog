@@ -1,3 +1,15 @@
+1.7.3
+  * BUGFIX: Prevent buffer overflows from oversized BYNONE queries and
+        passwd shell values
+  * BUGFIX: Fix undefined behavior in the buffer alignment macro
+  * BUGFIX: Correct FreeBSD passwd account expiration field assignment
+  * CHANGE: Quote the `groups` column in sample queries for MySQL 8
+        compatibility
+  * CHANGE: Clean up MySQL build macros and disable static library builds
+  * CHANGE: Use an explicit uid_t sentinel for effective UID tracking
+  * CHANGE: Expand CI coverage with Ubuntu 26.04 and MySQL/MariaDB smoke
+        tests
+
 1.7.2
     * CHANGE: Minor build system cleanups
                 - drop unused dependency
