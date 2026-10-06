@@ -2,6 +2,10 @@ Official website: https://github.com/saknopper/libnss-mysql
 
 (forked from: http://libnss-mysql.sourceforge.net/)
 
+ARCHIVED
+========
+I've archived this repo since I no longer use this project anywhere myself anymore. Hence I don't plan to develop nor maintain it any further.
+
 MySQL for NSS systems
 =====================
 Supported Operating Systems:
